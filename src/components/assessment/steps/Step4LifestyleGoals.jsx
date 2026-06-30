@@ -248,7 +248,6 @@ export function Step4LifestyleGoals() {
                               style={{ color: TEXT_DARK }}
                             >
                               Target Year
-                              <span style={{ color: ORANGE }} className="font-bold ml-0.5">*</span>
                             </label>
                             <input
                               type="number"
@@ -271,7 +270,6 @@ export function Step4LifestyleGoals() {
                               style={{ color: TEXT_DARK }}
                             >
                               Today's Cost
-                              <span style={{ color: ORANGE }} className="font-bold ml-0.5">*</span>
                             </label>
                             <input
                               type="number"

@@ -38,8 +38,5 @@ export const validateStep3 = (childrenData, childrenCount) => {
 };
 
 export const validateStep4 = (activeGoals) => {
-  return (
-    activeGoals.length > 0 &&
-    activeGoals.every((g) => g.targetYear?.trim() && g.todaysCost?.trim())
-  );
+  return true;
 };

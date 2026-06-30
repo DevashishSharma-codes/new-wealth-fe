@@ -43,11 +43,7 @@ const initialChildren = [
   { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "" },
 ];
 
-const initialGoals = [
-  { id: 1, type: "Home Purchase", targetYear: "", todaysCost: "" },
-  { id: 2, type: "Foreign Tour", targetYear: "", todaysCost: "" },
-  { id: 3, type: "Foreign Tour", targetYear: "", todaysCost: "" },
-];
+const initialGoals = [];
 
 export default function AssessmentProvider({ children }) {
   const [step, setStep] = useState(1);
@@ -328,9 +324,12 @@ export default function AssessmentProvider({ children }) {
         }
       });
 
-      await assessmentService.submitFlow4(assessmentId, {
-        goals: apiGoals,
-      });
+      // If no goals were added, skip the API call and proceed
+      if (apiGoals.length > 0) {
+        await assessmentService.submitFlow4(assessmentId, {
+          goals: apiGoals,
+        });
+      }
       nextStep();
     } catch (err) {
       console.error(err);
@@ -345,24 +344,19 @@ export default function AssessmentProvider({ children }) {
     setIsCalculating(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Pre-populate missing values with defaults if empty
+    // Use "0" for any empty numeric fields instead of hardcoded defaults
     let finalFormData = { ...formData };
-    const hasSpouse = !!(finalFormData.spouseName && finalFormData.spouseName.trim());
-    if (!finalFormData.targetRetireAge || !finalFormData.targetRetireAge.trim()) finalFormData.targetRetireAge = "60";
-    if (!finalFormData.yearsUntilRetirement || !finalFormData.yearsUntilRetirement.trim()) finalFormData.yearsUntilRetirement = "30";
-    if (!finalFormData.requiredAnnualIncome || !finalFormData.requiredAnnualIncome.trim()) {
-      finalFormData.requiredAnnualIncome = hasSpouse ? "2500000" : "1500000";
-    }
-    if (!finalFormData.epfEmployerShare || !finalFormData.epfEmployerShare.trim()) finalFormData.epfEmployerShare = "1400";
-    if (!finalFormData.epfEmployeeShare || !finalFormData.epfEmployeeShare.trim()) finalFormData.epfEmployeeShare = "1400";
-    if (!finalFormData.epfTotalCorpus || !finalFormData.epfTotalCorpus.trim()) finalFormData.epfTotalCorpus = "0";
-
-    if (!finalFormData.npsEmployerShare || !finalFormData.npsEmployerShare.trim()) finalFormData.npsEmployerShare = "0";
-    if (!finalFormData.npsEmployeeShare || !finalFormData.npsEmployeeShare.trim()) finalFormData.npsEmployeeShare = "0";
-    if (!finalFormData.npsTotalCorpus || !finalFormData.npsTotalCorpus.trim()) finalFormData.npsTotalCorpus = "0";
-
-    if (!finalFormData.superEmployerShare || !finalFormData.superEmployerShare.trim()) finalFormData.superEmployerShare = "0";
-    if (!finalFormData.superTotalCorpus || !finalFormData.superTotalCorpus.trim()) finalFormData.superTotalCorpus = "0";
+    const numericFields = [
+      'targetRetireAge', 'yearsUntilRetirement', 'requiredAnnualIncome',
+      'epfEmployerShare', 'epfEmployeeShare', 'epfTotalCorpus',
+      'npsEmployerShare', 'npsEmployeeShare', 'npsTotalCorpus',
+      'superEmployerShare', 'superTotalCorpus',
+    ];
+    numericFields.forEach((field) => {
+      if (!finalFormData[field] || !finalFormData[field].toString().trim()) {
+        finalFormData[field] = "0";
+      }
+    });
 
     setFormData(finalFormData);
 

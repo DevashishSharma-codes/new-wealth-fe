@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import wealthWisdomLogo from '../assets/wealth-wisdom-logo.png';
 
 // Custom SVG Icons for Features
 const ReadinessIcon = () => (
@@ -58,35 +59,7 @@ export default function Home() {
           
           {/* Logo */}
           <Link to="/" className="flex flex-col items-center text-center justify-center select-none shrink-0">
-            <svg className="w-12 h-12" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Laurel wreath left */}
-              <path d="M22 42C17 38 15 32 15 26C15 20 18 15 22 12" stroke="#1E2B49" strokeWidth="2" strokeLinecap="round" />
-              <path d="M17 34C15 33 13 30 13 28C13 26 15 23 17 22" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M19 26C17 25 15 22 15 20C15 18 17 15 19 14" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
-              
-              {/* Laurel wreath right */}
-              <path d="M42 42C47 38 49 32 49 26C49 20 46 15 42 12" stroke="#1E2B49" strokeWidth="2" strokeLinecap="round" />
-              <path d="M47 34C49 33 51 30 51 28C51 26 49 23 47 22" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M45 26C47 25 49 22 49 20C49 18 47 15 45 14" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
-              
-              {/* Outer Shield / Circle background */}
-              <circle cx="32" cy="27" r="11" fill="#1E2B49" />
-              
-              {/* Inner Shield (Gold) */}
-              <path d="M32 20L38 22V28C38 31.5 32 35 32 35C32 35 26 31.5 26 28V22L32 20Z" fill="#EAA850" />
-              
-              {/* Checkmark inside gold shield */}
-              <path d="M29 27.5L31 29.5L35 24.5" stroke="#1E2B49" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              
-              {/* Tiny gold ribbon/accents below */}
-              <path d="M24 45C32 48 32 48 40 45" stroke="#EAA850" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-            <span className="font-heading font-black tracking-[0.12em] text-[11px] text-[#1E2B49] mt-1.5 leading-none uppercase">
-              WEALTH WISDOM
-            </span>
-            <span className="text-[6.5px] text-[#ED8B36] font-extrabold tracking-[0.12em] uppercase mt-0.5 leading-none">
-              THE CHOICE OF YOUR FUTURE
-            </span>
+            <img src={wealthWisdomLogo} alt="Wealth Wisdom - Take Charge of Your Future" className="h-16 w-auto object-contain" />
           </Link>
 
           {/* Title */}

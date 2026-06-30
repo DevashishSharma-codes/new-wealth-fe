@@ -1,0 +1,298 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+// Custom SVG Icons for Features
+const ReadinessIcon = () => (
+  <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const RoadmapIcon = () => (
+  <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+  </svg>
+);
+
+const CorpusIcon = () => (
+  <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const InvestmentIcon = () => (
+  <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+);
+
+const ProtectionIcon = () => (
+  <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+  </svg>
+);
+
+const PlanningIcon = () => (
+  <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+  </svg>
+);
+
+export default function Home() {
+  return (
+    <div className="min-h-screen flex flex-col font-sans selection:bg-brand-gold/30 selection:text-brand-blue">
+      
+      {/* 1. Top Promotional Banner */}
+      <div className="bg-[#FFF3E6] border-b border-orange-100 py-3 px-4 text-center">
+        <p className="text-xs sm:text-sm text-[#E56A1F] font-medium tracking-wide">
+          Take charge of your future with a personalized retirement plan &rarr;{' '}
+          <Link to="/assessment" className="underline hover:text-brand-orange font-bold transition-colors">
+            Start your assessment today!
+          </Link>
+        </p>
+      </div>
+
+      {/* 2. Navigation Header */}
+      <header className="bg-white sticky top-0 z-40 border-b border-slate-100 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+          
+          {/* Logo */}
+          <Link to="/" className="flex flex-col items-center text-center justify-center select-none shrink-0">
+            <svg className="w-12 h-12" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Laurel wreath left */}
+              <path d="M22 42C17 38 15 32 15 26C15 20 18 15 22 12" stroke="#1E2B49" strokeWidth="2" strokeLinecap="round" />
+              <path d="M17 34C15 33 13 30 13 28C13 26 15 23 17 22" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M19 26C17 25 15 22 15 20C15 18 17 15 19 14" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
+              
+              {/* Laurel wreath right */}
+              <path d="M42 42C47 38 49 32 49 26C49 20 46 15 42 12" stroke="#1E2B49" strokeWidth="2" strokeLinecap="round" />
+              <path d="M47 34C49 33 51 30 51 28C51 26 49 23 47 22" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M45 26C47 25 49 22 49 20C49 18 47 15 45 14" stroke="#1E2B49" strokeWidth="1.5" strokeLinecap="round" />
+              
+              {/* Outer Shield / Circle background */}
+              <circle cx="32" cy="27" r="11" fill="#1E2B49" />
+              
+              {/* Inner Shield (Gold) */}
+              <path d="M32 20L38 22V28C38 31.5 32 35 32 35C32 35 26 31.5 26 28V22L32 20Z" fill="#EAA850" />
+              
+              {/* Checkmark inside gold shield */}
+              <path d="M29 27.5L31 29.5L35 24.5" stroke="#1E2B49" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              
+              {/* Tiny gold ribbon/accents below */}
+              <path d="M24 45C32 48 32 48 40 45" stroke="#EAA850" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+            <span className="font-heading font-black tracking-[0.12em] text-[11px] text-[#1E2B49] mt-1.5 leading-none uppercase">
+              WEALTH WISDOM
+            </span>
+            <span className="text-[6.5px] text-[#ED8B36] font-extrabold tracking-[0.12em] uppercase mt-0.5 leading-none">
+              THE CHOICE OF YOUR FUTURE
+            </span>
+          </Link>
+
+          {/* Title */}
+          <h2 className="hidden md:block font-heading text-[19px] font-medium text-slate-700">
+            Retirement Planning Assessment
+          </h2>
+
+          {/* Get Started Button */}
+          <Link 
+            to="/assessment"
+            className="inline-flex items-center gap-2 bg-[#1C1B1A] hover:bg-slate-800 text-white px-5 py-3 rounded-lg text-sm font-semibold tracking-wide transition-all shadow-xs"
+          >
+            Get started &rarr;
+          </Link>
+        </div>
+      </header>
+
+      {/* main content */}
+      <main className="flex-1">
+        
+        {/* Hero Header Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-7">
+              <h1 className="font-heading text-4xl sm:text-[46px] lg:text-[48px] font-extrabold text-[#1C1B1A] leading-[1.15] tracking-tight">
+                Plan today for the life you want tomorrow
+              </h1>
+            </div>
+            <div className="lg:col-span-5 lg:pt-3">
+              <p className="text-[#555D6E] text-[15px] sm:text-[16px] leading-[1.6] font-normal">
+                This retirement assessment helps you estimate future financial needs, evaluate your current preparedness, and discover the steps required to achieve long-term financial independence.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Hero Image Grid */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-7 overflow-hidden rounded-3xl shadow-sm border border-slate-100 group relative">
+              <img src="/src/8026db87385f5a9d50c991917190ea8e368ad5cb (2).png" alt="Advisor with couple" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+            </div>
+            <div className="md:col-span-5 overflow-hidden rounded-3xl shadow-sm border border-slate-100 group relative">
+              <img src="/src/f0f7eaffd28bff647ab71073c5e804a9bb36aec8.jpg" alt="Couple with laptop" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Bar */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="bg-[#FAF6F0] rounded-2xl sm:rounded-3xl p-6 sm:px-10 sm:py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-amber-50">
+            <div className="flex items-center gap-4">
+              <div className="flex -space-x-3">
+                <span className="inline-block w-8 h-8 rounded-full bg-amber-200 border-2 border-[#FAF6F0] flex items-center justify-center text-xs font-bold text-slate-700">KR</span>
+                <span className="inline-block w-8 h-8 rounded-full bg-blue-200 border-2 border-[#FAF6F0] flex items-center justify-center text-xs font-bold text-slate-700">AP</span>
+                <span className="inline-block w-8 h-8 rounded-full bg-emerald-200 border-2 border-[#FAF6F0] flex items-center justify-center text-xs font-bold text-slate-700">MD</span>
+                <span className="inline-block w-8 h-8 rounded-full bg-orange-300 border-2 border-[#FAF6F0] flex items-center justify-center text-[10px] font-extrabold text-white">+5k</span>
+              </div>
+              <p className="font-heading font-bold text-slate-800 text-sm sm:text-base">
+                Know exactly where you stand today
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-8 border-t lg:border-t-0 border-slate-200/50 pt-4 lg:pt-0">
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                <svg className="w-5 h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Takes 5-7 minutes</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                <svg className="w-5 h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>100% Secure</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                <svg className="w-5 h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Personalized Report</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Goal Section */}
+        <section className="bg-white border-y border-slate-100 py-16 sm:py-20 text-center">
+          <div className="max-w-3xl mx-auto px-4">
+            <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-brand-blue mb-4 leading-tight">
+              Build a Retirement Plan Designed Around Your Goals
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl mx-auto">
+              Understand whether you're on track to achieve financial independence and the lifestyle you envision. Our assessment helps uncover retirement income needs, future expenses, investment requirements, and potential planning gaps, all in just a few minutes.
+            </p>
+            <Link 
+              to="/assessment"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-orange to-brand-gold text-white px-8 py-4 rounded-xl text-base font-bold hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0 transition-all shadow-md"
+            >
+              Start Assessment &rarr;
+            </Link>
+          </div>
+        </section>
+
+        {/* Feature Grid */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <ReadinessIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Retirement Readiness Score</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Understand how prepared you are for retirement based on your current financial position and future goals.</p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <RoadmapIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Personalized Retirement Roadmap</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Receive a tailored retirement strategy based on your lifestyle aspirations, family needs, and financial resources.</p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <CorpusIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Future Corpus Estimation</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Know the retirement corpus required to maintain your desired lifestyle throughout retirement.</p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <InvestmentIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Investment Requirement Analysis</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Discover how much you may need to invest monthly to achieve all major life and retirement goals.</p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <ProtectionIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Insurance & Protection Review</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Identify potential protection gaps and understand the insurance coverage needed for long-term security.</p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <PlanningIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Goal-Based Financial Planning</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Plan for education, travel, second home, family protection, and retirement, all in one assessment.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Dark consultation block */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
+          <div className="bg-brand-dark rounded-3xl p-6 sm:p-10 flex flex-col gap-10 border border-slate-800">
+            <div className="w-full overflow-hidden rounded-2xl max-h-[360px] border border-slate-800">
+              <img src="/src/8dba846db002417c3fb9cb45eb6d1f275241dce8.png" alt="Office meeting" className="w-full h-full object-cover object-center" />
+            </div>
+            <div className="flex flex-col gap-8">
+              <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-white">Why we're the right choice</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                <div className="flex flex-col gap-2">
+                  <h4 className="font-heading text-base sm:text-lg font-bold text-white">Personalized to Your Life Goals</h4>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Tailored around your family, lifestyle, retirement goals, and financial priorities.</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <h4 className="font-heading text-base sm:text-lg font-bold text-white">Retirement Readiness</h4>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Know the corpus, investments, and protection needed for a secure retirement.</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <h4 className="font-heading text-base sm:text-lg font-bold text-white">Actionable Financial Roadmap</h4>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Get clear recommendations to achieve your future goals with confidence.</p>
+                </div>
+              </div>
+              <div className="pt-2">
+                <button onClick={() => alert("Book Consultation feature under development.")} className="inline-flex items-center gap-2 bg-white text-brand-dark px-5 py-3 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-all cursor-pointer">
+                  Book my free consultation &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-brand-beige border-t border-slate-200/50 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center gap-6">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium">
+            <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Your information is secure and private.</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm font-medium text-slate-600">
+            <a href="#careers" className="hover:text-brand-orange transition-colors">Careers</a>
+            <a href="#legal" className="hover:text-brand-orange transition-colors">Legal</a>
+            <a href="#contact" className="hover:text-brand-orange transition-colors">Contact</a>
+            <a href="#privacy" className="hover:text-brand-orange transition-colors">Privacy Policy</a>
+            <a href="#blog" className="hover:text-brand-orange transition-colors">Blog</a>
+            <a href="#faqs" className="hover:text-brand-orange transition-colors">FAQs</a>
+          </div>
+          <p className="text-[11px] sm:text-xs text-slate-400 font-light tracking-wide">&copy; 2026 Wealth Wisdom. All rights reserved.</p>
+        </div>
+      </footer>
+
+    </div>
+  );
+}

@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Montserrat', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+
+  --color-brand-blue: #1E2B49;
+  --color-brand-gold: #EAA850;
+  --color-brand-orange: #ED8B36;
+  --color-brand-dark: #1C1B1A;
+  --color-brand-light: #FBFBFA;
+  --color-brand-beige: #FAF8F5;
+  --color-brand-accent: #E56A1F;
+}
+
+html {
+  font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 18px;
+    /* ~112% zoom on tablet */
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 20px;
+    /* 125% zoom on desktop */
+  }
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #FBFBFA;
+  color: #1C1B1A;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Montserrat', sans-serif;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------
+   Global Neumorphic Styles
+--------------------------------------------------------------------*/
+:root {
+  --surface-color: #F4F1EA;
+  --text-dark: #2B2A28;
+  --text-muted: #8A8578;
+  --placeholder-color: #A8A094;
+  --orange-color: #F0883E;
+  --orange-dark-color: #E07A2E;
+  --orange-glow: rgba(240, 136, 62, 0.45);
+  --orange-border-color: rgba(240, 136, 62, 0.4);
+}
+
+body {
+  background-color: var(--surface-color) !important;
+  color: var(--text-dark);
+}
+
+.neu-field {
+  background-color: #F1EDE6 !important;
+  border: 1px solid #EFE9DF !important;
+  box-shadow: inset 5px 5px 6px rgba(221, 212, 199, 0.75), inset -5px -5px 6px rgba(255, 255, 255, 1) !important;
+  color: var(--text-dark) !important;
+  outline: none;
+  transition: all 150ms ease-in-out;
+}
+
+.neu-field::placeholder {
+  color: var(--placeholder-color) !important;
+}
+
+.neu-field:hover {
+  border-color: #EFE9DF !important;
+  box-shadow: inset 4px 4px 6px 2px rgba(240, 136, 62, 0.45), inset -4px -4px 6px rgba(255, 255, 255, 1) !important;
+}
+
+.neu-field:focus {
+  border-color: #EFE9DF !important;
+  box-shadow: inset 4px 4px 8px 3px rgba(240, 136, 62, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 1) !important;
+}
+
+.neu-field-filled {
+  background-color: #F1EDE6 !important;
+  border: 1px solid #EFE9DF !important;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-dark) !important;
+  outline: none;
+  transition: all 200ms ease-in-out;
+}
+
+.neu-field-filled::placeholder {
+  color: var(--placeholder-color) !important;
+}
+
+.neu-field-filled:hover {
+  border-color: #EFE9DF !important;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.12) !important;
+}
+
+.neu-field-filled:focus {
+  border-color: #EFE9DF !important;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.neu-prefix {
+  background-color: #F1EDE6;
+  border: 1px solid #EFE9DF;
+  box-shadow: inset 3px 3px 5px rgba(221, 212, 199, 0.75), inset -3px -3px 5px rgba(255, 255, 255, 1);
+  color: var(--text-dark);
+}
+
+.neu-checkbox {
+  background-color: #FFA500;
+  border: 1px solid #EFE9DF;
+  box-shadow: inset 3px 3px 5px rgba(221, 212, 199, 0.75), inset -3px -3px 5px rgba(255, 255, 255, 1);
+  transition: all 150ms ease-in-out;
+}
+
+.neu-checkbox:hover {
+  box-shadow: inset 3px 3px 5px rgba(240, 136, 62, 0.35), inset -3px -3px 5px rgba(255, 255, 255, 1);
+}
+
+/* Raised neumorphic button */
+/* Raised neumorphic button (Updated to match Figma) */
+/* ── Raised Neumorphic Button (Figma Colors + True Morphic Effect) ── */
+.neu-btn-raised {
+  background: linear-gradient(180deg, #F7AA5B 0%, #EE9640 100%), #F5A04D !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+
+  /* Outer raised shadows + subtle inner highlight + orange glow */
+  box-shadow:
+    8px 8px 16px #D9D4C7,
+    -8px -8px 16px #FFFFFF,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.4),
+    0 0 15px rgba(240, 136, 62, 0.3) !important;
+
+  color: #FFFFFF !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.neu-btn-raised:hover {
+  /* Lift the button slightly on hover */
+  box-shadow:
+    10px 10px 20px #D9D4C7,
+    -10px -10px 20px #FFFFFF,
+    inset 1px 1px 3px rgba(255, 255, 255, 0.5),
+    0 0 20px rgba(240, 136, 62, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+.neu-btn-raised:active {
+  /* Morphic Inset: Looks physically pressed into the surface */
+  box-shadow:
+    inset 6px 6px 12px rgba(200, 100, 30, 0.6),
+    inset -6px -6px 12px rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(1px) scale(0.98);
+}
+
+.neu-btn-raised:disabled {
+  background: #E7E3D9 !important;
+  border: 1px solid transparent !important;
+  box-shadow: 4px 4px 10px #D9D4C7, -4px -4px 10px #FFFFFF !important;
+  color: #B6B1A4 !important;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Flat/Soft neumorphic button (Active vs Inactive) */
+.neu-btn-flat-active {
+  background-color: #FFF6ED !important;
+  border: 1px solid var(--orange-color) !important;
+  box-shadow: inset 3px 3px 5px rgba(240, 136, 62, 0.15), inset -3px -3px 5px rgba(255, 255, 255, 1) !important;
+  color: var(--orange-color) !important;
+  font-weight: bold;
+}
+
+.neu-btn-flat-inactive {
+  background-color: #FAF7F2 !important;
+  border: 1px solid #EFE9DF !important;
+  box-shadow: 3px 3px 5px #D9D4C7, -3px -3px 5px #FFFFFF !important;
+  color: var(--text-muted) !important;
+}
+
+.neu-btn-flat-inactive:hover {
+  background-color: #F1EDE6 !important;
+}
+
+/* Card Neumorphic Raised */
+.neu-card-raised {
+  background-color: #FAF7F2 !important;
+  border: 1px solid #EFE9DF !important;
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Card Neumorphic Inset */
+.neu-card-inset {
+  background-color: #F1EDE6 !important;
+  border: 1px solid #EFE9DF !important;
+  box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.06) !important;
+}

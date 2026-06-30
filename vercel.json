@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://wealth-wisdom-six.vercel.app/api/:path*"
+    }
+  ]
+}

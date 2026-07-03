@@ -58,7 +58,7 @@ export default function Assessment() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] font-sans selection:bg-brand-gold/30 selection:text-brand-blue">
       
-      <Header currentStep={step} totalSteps={5} goToStep={goToStep} />
+      <Header currentStep={step} totalSteps={5} goToStep={goToStep} showReport={showReport} />
 
       <main className="flex-1 w-full py-10 sm:py-14" style={{ paddingLeft: 'clamp(16px, 5vw, 80px)', paddingRight: 'clamp(16px, 5vw, 80px)' }}>
         

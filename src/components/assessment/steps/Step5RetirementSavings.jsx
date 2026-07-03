@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
+import { validateStep5Fields } from '../../../hooks/useFormValidation';
 import { StepNavigation } from '../../ui/StepNavigation';
 import { FormField } from '../../ui/FormField';
 
@@ -12,11 +13,29 @@ export function Step5RetirementSavings() {
     isCalculating
   } = useAssessment();
 
+  const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  const errors = validateStep5Fields(formData);
+  const isValid = Object.keys(errors).length === 0;
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     updateFormData({
       [name]: type === 'checkbox' ? checked : value
     });
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+  };
+
+  const handleNext = () => {
+    setShowAllErrors(true);
+    if (isValid) {
+      submitStep5();
+    }
   };
 
   return (
@@ -46,6 +65,8 @@ export function Step5RetirementSavings() {
                   name="targetRetireAge"
                   value={formData.targetRetireAge}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.targetRetireAge || showAllErrors) ? errors.targetRetireAge : null}
                   placeholder="Enter target retirement age"
                   type="number"
                   required={false}
@@ -55,6 +76,8 @@ export function Step5RetirementSavings() {
                   name="yearsUntilRetirement"
                   value={formData.yearsUntilRetirement}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.yearsUntilRetirement || showAllErrors) ? errors.yearsUntilRetirement : null}
                   placeholder="Enter years remaining"
                   type="number"
                   required={false}
@@ -67,6 +90,8 @@ export function Step5RetirementSavings() {
                 name="requiredAnnualIncome"
                 value={formData.requiredAnnualIncome}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
+                error={(touched.requiredAnnualIncome || showAllErrors) ? errors.requiredAnnualIncome : null}
                 placeholder="Enter annual income required"
                 type="number"
                 required={false}
@@ -83,6 +108,8 @@ export function Step5RetirementSavings() {
                     name="epfEmployerShare"
                     value={formData.epfEmployerShare}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.epfEmployerShare || showAllErrors) ? errors.epfEmployerShare : null}
                     placeholder="Enter amount"
                     type="number"
                     required={false}
@@ -92,6 +119,8 @@ export function Step5RetirementSavings() {
                     name="epfEmployeeShare"
                     value={formData.epfEmployeeShare}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.epfEmployeeShare || showAllErrors) ? errors.epfEmployeeShare : null}
                     placeholder="Enter amount"
                     type="number"
                     required={false}
@@ -102,6 +131,8 @@ export function Step5RetirementSavings() {
                   name="epfTotalCorpus"
                   value={formData.epfTotalCorpus}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.epfTotalCorpus || showAllErrors) ? errors.epfTotalCorpus : null}
                   placeholder="Enter total accumulated amount"
                   type="number"
                   required={false}
@@ -119,6 +150,8 @@ export function Step5RetirementSavings() {
                     name="npsEmployerShare"
                     value={formData.npsEmployerShare}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.npsEmployerShare || showAllErrors) ? errors.npsEmployerShare : null}
                     placeholder="Enter amount"
                     type="number"
                     required={false}
@@ -128,6 +161,8 @@ export function Step5RetirementSavings() {
                     name="npsEmployeeShare"
                     value={formData.npsEmployeeShare}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.npsEmployeeShare || showAllErrors) ? errors.npsEmployeeShare : null}
                     placeholder="Enter amount"
                     type="number"
                     required={false}
@@ -138,6 +173,8 @@ export function Step5RetirementSavings() {
                   name="npsTotalCorpus"
                   value={formData.npsTotalCorpus}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.npsTotalCorpus || showAllErrors) ? errors.npsTotalCorpus : null}
                   placeholder="Enter total accumulated amount"
                   type="number"
                   required={false}
@@ -155,6 +192,8 @@ export function Step5RetirementSavings() {
                     name="superEmployerShare"
                     value={formData.superEmployerShare}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.superEmployerShare || showAllErrors) ? errors.superEmployerShare : null}
                     placeholder="Enter amount"
                     type="number"
                     required={false}
@@ -164,6 +203,8 @@ export function Step5RetirementSavings() {
                     name="superTotalCorpus"
                     value={formData.superTotalCorpus}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.superTotalCorpus || showAllErrors) ? errors.superTotalCorpus : null}
                     placeholder="Enter amount"
                     type="number"
                     required={false}
@@ -176,7 +217,8 @@ export function Step5RetirementSavings() {
             {/* Navigation Actions */}
             <StepNavigation
               onBack={prevStep}
-              onNext={submitStep5}
+              onNext={handleNext}
+              onSkip={submitStep5}
               nextLabel="Submit &rarr;"
               isDisabled={false}
               isLoading={isCalculating}

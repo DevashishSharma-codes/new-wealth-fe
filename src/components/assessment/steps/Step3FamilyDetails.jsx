@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
-import { validateStep3 } from '../../../hooks/useFormValidation';
+import { validateStep3Fields } from '../../../hooks/useFormValidation';
 import { StepNavigation } from '../../ui/StepNavigation';
 import { FormField } from '../../ui/FormField';
 import { NeumorphicDatePicker } from '../../ui/NeumorphicDatePicker';
@@ -20,6 +20,12 @@ export function Step3FamilyDetails() {
   const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
   const [selectedChildIndex, setSelectedChildIndex] = useState(0);
 
+  const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  const errors = validateStep3Fields(childrenData, childrenCount);
+  const isValid = Object.keys(errors).length === 0;
+
   const openEducationModal = (index) => {
     setSelectedChildIndex(index);
     setIsEducationModalOpen(true);
@@ -29,7 +35,16 @@ export function Step3FamilyDetails() {
     updateChild(index, { [field]: value });
   };
 
-  const isValid = validateStep3(childrenData, childrenCount);
+  const handleBlur = (childIndex, fieldName) => {
+    setTouched(prev => ({ ...prev, [`${childIndex}-${fieldName}`]: true }));
+  };
+
+  const handleNext = () => {
+    setShowAllErrors(true);
+    if (isValid) {
+      submitStep3();
+    }
+  };
 
   return (
     <div className="w-full flex-1 flex flex-col">
@@ -91,19 +106,12 @@ export function Step3FamilyDetails() {
                       name={`childName-${i}`}
                       value={child.name}
                       onChange={(e) => handleChildInputChange(i, 'name', e.target.value)}
+                      onBlur={() => handleBlur(i, 'name')}
+                      error={(touched[`${i}-name`] || showAllErrors) ? errors[i]?.name : null}
                       placeholder="Enter child's full name"
                       required={true}
                     />
 
-                    {/* Occupation */}
-                    <FormField
-                      label="Occupation"
-                      name={`childOccupation-${i}`}
-                      value={child.occupation}
-                      onChange={(e) => handleChildInputChange(i, 'occupation', e.target.value)}
-                      placeholder="Enter child's occupation"
-                      required={true}
-                    />
 
                     {/* Dependent & DOB Row */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -132,6 +140,8 @@ export function Step3FamilyDetails() {
                         name={`childDob-${i}`}
                         value={child.dob}
                         onChange={(e) => handleChildInputChange(i, 'dob', e.target.value)}
+                        onBlur={() => handleBlur(i, 'dob')}
+                        error={(touched[`${i}-dob`] || showAllErrors) ? errors[i]?.dob : null}
                         required={true}
                       />
                     </div>
@@ -164,9 +174,12 @@ export function Step3FamilyDetails() {
                         <select
                           value={child.goalType}
                           onChange={(e) => handleChildInputChange(i, 'goalType', e.target.value)}
+                          onBlur={() => handleBlur(i, 'goalType')}
                           className={`${
                             child.goalType ? 'neu-field-filled' : 'neu-field'
-                          } w-full px-5 py-4 pr-10 text-base font-semibold rounded-2xl outline-none transition-all duration-200 appearance-none cursor-pointer`}
+                          } w-full px-5 py-4 pr-10 text-base font-semibold rounded-2xl outline-none transition-all duration-200 appearance-none cursor-pointer ${
+                            (touched[`${i}-goalType`] || showAllErrors) && errors[i]?.goalType ? 'border-red-400' : ''
+                          }`}
                         >
                           <option value="">Select an option</option>
                           <option value="Higher Education">Higher Education</option>
@@ -181,6 +194,9 @@ export function Step3FamilyDetails() {
                           </svg>
                         </div>
                       </div>
+                      {(touched[`${i}-goalType`] || showAllErrors) && errors[i]?.goalType && (
+                        <span className="text-xs text-red-500 font-medium block mt-1">{errors[i].goalType}</span>
+                      )}
                     </div>
 
                     {/* Target Year & Today's Cost Row */}
@@ -190,6 +206,8 @@ export function Step3FamilyDetails() {
                         name={`childTargetYear-${i}`}
                         value={child.targetYear}
                         onChange={(e) => handleChildInputChange(i, 'targetYear', e.target.value)}
+                        onBlur={() => handleBlur(i, 'targetYear')}
+                        error={(touched[`${i}-targetYear`] || showAllErrors) ? errors[i]?.targetYear : null}
                         placeholder="Enter target year"
                         type="number"
                         required={true}
@@ -199,6 +217,8 @@ export function Step3FamilyDetails() {
                         name={`childTodaysCost-${i}`}
                         value={child.todaysCost}
                         onChange={(e) => handleChildInputChange(i, 'todaysCost', e.target.value)}
+                        onBlur={() => handleBlur(i, 'todaysCost')}
+                        error={(touched[`${i}-todaysCost`] || showAllErrors) ? errors[i]?.todaysCost : null}
                         placeholder="Enter today's cost"
                         type="number"
                         required={true}
@@ -235,8 +255,8 @@ export function Step3FamilyDetails() {
             {/* Navigation Actions */}
             <StepNavigation
               onBack={prevStep}
-              onNext={submitStep3}
-              isDisabled={!isValid}
+              onNext={handleNext}
+              isDisabled={false}
               isLoading={isSubmitting}
             />
 

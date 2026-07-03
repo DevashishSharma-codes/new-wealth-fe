@@ -1,7 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export function NeumorphicDatePicker({ label, name, value, onChange, placeholder = "DD/MM/YYYY", required = false }) {
+export function NeumorphicDatePicker({ 
+  label, 
+  name, 
+  value, 
+  onChange, 
+  placeholder = "DD/MM/YYYY", 
+  required = false,
+  error = null,
+  onBlur
+}) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showYearGrid, setShowYearGrid] = useState(false);
   const containerRef = useRef(null);
   
   // Parse date from "DD/MM/YYYY" format
@@ -36,13 +46,17 @@ export function NeumorphicDatePicker({ label, name, value, onChange, placeholder
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
+        setShowYearGrid(false);
+        if (onBlur) {
+          onBlur({ target: { name } });
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [name, onBlur]);
 
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
@@ -63,8 +77,8 @@ export function NeumorphicDatePicker({ label, name, value, onChange, placeholder
     setViewDate(new Date(currentYear, currentMonth + 1, 1));
   };
 
-  const handleYearChange = (e) => {
-    setViewDate(new Date(parseInt(e.target.value, 10), currentMonth, 1));
+  const handleYearChange = (yearVal) => {
+    setViewDate(new Date(yearVal, currentMonth, 1));
   };
 
   const handleMonthChange = (e) => {
@@ -83,6 +97,16 @@ export function NeumorphicDatePicker({ label, name, value, onChange, placeholder
       }
     });
     setIsOpen(false);
+    setShowYearGrid(false);
+  };
+
+  const toggleOpen = () => {
+    const nextOpen = !isOpen;
+    setIsOpen(nextOpen);
+    setShowYearGrid(false);
+    if (!nextOpen && onBlur) {
+      onBlur({ target: { name } });
+    }
   };
 
   // Generate days array
@@ -132,15 +156,17 @@ export function NeumorphicDatePicker({ label, name, value, onChange, placeholder
           type="text"
           name={name}
           value={value || ''}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleOpen}
           readOnly
           placeholder={placeholder}
           className={`${
             isFilled ? 'neu-field-filled' : 'neu-field'
-          } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 pr-10 cursor-pointer`}
+          } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 pr-10 cursor-pointer ${
+            error ? 'border-red-400 focus:box-shadow-none' : ''
+          }`}
         />
         <div 
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleOpen}
           className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#F0883E] cursor-pointer"
         >
           <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -158,71 +184,102 @@ export function NeumorphicDatePicker({ label, name, value, onChange, placeholder
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="w-7 h-7 rounded-lg flex items-center justify-center neu-btn-flat-inactive font-bold text-xs cursor-pointer select-none"
+              disabled={showYearGrid}
+              className="w-7 h-7 rounded-lg flex items-center justify-center neu-btn-flat-inactive font-bold text-xs cursor-pointer select-none disabled:opacity-30 disabled:cursor-not-allowed"
             >
               &larr;
             </button>
-            <div className="flex gap-1 items-center">
+            <div className="flex gap-1.5 items-center">
               <select
                 value={currentMonth}
                 onChange={handleMonthChange}
-                className="bg-[#FAF7F2] border border-[#EFE9DF] rounded-lg px-1 py-0.5 text-[11px] font-bold focus:outline-none cursor-pointer text-[#2B2A28]"
+                disabled={showYearGrid}
+                className="bg-[#FAF7F2] border border-[#EFE9DF] rounded-lg px-1.5 py-1 text-[11px] font-bold focus:outline-none cursor-pointer text-[#2B2A28] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {monthsList.map((m, idx) => (
                   <option key={m} value={idx}>{m}</option>
                 ))}
               </select>
-              <select
-                value={currentYear}
-                onChange={handleYearChange}
-                className="bg-[#FAF7F2] border border-[#EFE9DF] rounded-lg px-1 py-0.5 text-[11px] font-bold focus:outline-none cursor-pointer text-[#2B2A28]"
+              
+              <button
+                type="button"
+                onClick={() => setShowYearGrid(!showYearGrid)}
+                className="bg-[#FAF7F2] border border-[#EFE9DF] rounded-lg px-2 py-1 text-[11px] font-bold focus:outline-none cursor-pointer text-[#2B2A28] hover:bg-[#F1EDE6] transition-colors flex items-center gap-0.5"
               >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+                <span>{currentYear}</span>
+                <span className="text-[8px] text-[#F0883E]">{showYearGrid ? '▲' : '▼'}</span>
+              </button>
             </div>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="w-7 h-7 rounded-lg flex items-center justify-center neu-btn-flat-inactive font-bold text-xs cursor-pointer select-none"
+              disabled={showYearGrid}
+              className="w-7 h-7 rounded-lg flex items-center justify-center neu-btn-flat-inactive font-bold text-xs cursor-pointer select-none disabled:opacity-30 disabled:cursor-not-allowed"
             >
               &rarr;
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#8A8578] mb-2 select-none">
-            {weekdays.map(day => (
-              <div key={day}>{day}</div>
-            ))}
-          </div>
+          {showYearGrid ? (
+            <div className="max-h-[170px] overflow-y-auto grid grid-cols-4 gap-1 p-1 scrollbar-thin select-none">
+              {years.map((y) => {
+                const selected = y === currentYear;
+                return (
+                  <button
+                    key={y}
+                    type="button"
+                    onClick={() => {
+                      handleYearChange(y);
+                      setShowYearGrid(false);
+                    }}
+                    className={`py-1.5 text-[11px] rounded-lg font-bold transition-all cursor-pointer ${
+                      selected
+                        ? 'neu-btn-flat-active'
+                        : 'text-[#2B2A28] hover:bg-[#FAF7F2] hover:shadow-[inset_2px_2px_4px_#D9D4C7,inset_-2px_-2px_4px_#FFFFFF] hover:text-[#F0883E]'
+                    }`}
+                  >
+                    {y}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#8A8578] mb-2 select-none">
+                {weekdays.map(day => (
+                  <div key={day}>{day}</div>
+                ))}
+              </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {daysGrid.map((day, idx) => {
-              if (day === null) {
-                return <div key={`empty-${idx}`} className="w-8 h-8" />;
-              }
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {daysGrid.map((day, idx) => {
+                  if (day === null) {
+                    return <div key={`empty-${idx}`} className="w-8 h-8" />;
+                  }
 
-              const selected = isSelectedDay(day);
+                  const selected = isSelectedDay(day);
 
-              return (
-                <button
-                  key={`day-${day}`}
-                  type="button"
-                  onClick={() => handleDateSelect(day)}
-                  className={`w-8 h-8 text-[11px] rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                    selected
-                      ? 'neu-btn-flat-active'
-                      : 'text-[#2B2A28] hover:bg-[#FAF7F2] hover:shadow-[inset_2px_2px_4px_#D9D4C7,inset_-2px_-2px_4px_#FFFFFF] hover:text-[#F0883E]'
-                  }`}
-                >
-                  {day}
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button
+                      key={`day-${day}`}
+                      type="button"
+                      onClick={() => handleDateSelect(day)}
+                      className={`w-8 h-8 text-[11px] rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        selected
+                          ? 'neu-btn-flat-active'
+                          : 'text-[#2B2A28] hover:bg-[#FAF7F2] hover:shadow-[inset_2px_2px_4px_#D9D4C7,inset_-2px_-2px_4px_#FFFFFF] hover:text-[#F0883E]'
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
+      {error && <span className="text-xs text-red-500 font-medium block mt-1">{error}</span>}
     </div>
   );
 }

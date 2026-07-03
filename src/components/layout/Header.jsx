@@ -81,7 +81,7 @@ export function StepProgress({ currentStep = 1, totalSteps = 5, goToStep }) {
   );
 }
 
-export function Header({ currentStep = 1, totalSteps = 5, goToStep }) {
+export function Header({ currentStep = 1, totalSteps = 5, goToStep, showReport = false }) {
   return (
     <header className="py-8 bg-transparent flex flex-col items-center">
       {/* Centered Logo */}
@@ -91,11 +91,13 @@ export function Header({ currentStep = 1, totalSteps = 5, goToStep }) {
 
       {/* Title */}
       <h2 className="font-heading text-lg sm:text-xl font-semibold text-slate-800 mt-6 tracking-wide text-center px-4">
-        Retirement Planning Assessment
+        Goal Analysis Assessment
       </h2>
 
       {/* Step progress indicator (moved here from individual step pages) */}
-      <StepProgress currentStep={currentStep} totalSteps={totalSteps} goToStep={goToStep} />
+      {!showReport && (
+        <StepProgress currentStep={currentStep} totalSteps={totalSteps} goToStep={goToStep} />
+      )}
     </header>
   );
 }

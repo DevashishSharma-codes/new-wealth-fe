@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
-import { validateStep2 } from '../../../hooks/useFormValidation';
+import { validateStep2Fields } from '../../../hooks/useFormValidation';
 import { StepNavigation } from '../../ui/StepNavigation';
 import { FormField } from '../../ui/FormField';
 import { NeumorphicDatePicker } from '../../ui/NeumorphicDatePicker';
@@ -14,6 +14,12 @@ export function Step2PersonalDetails() {
     isSubmitting
   } = useAssessment();
 
+  const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  const errors = validateStep2Fields(formData);
+  const isValid = Object.keys(errors).length === 0;
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     updateFormData({
@@ -21,7 +27,17 @@ export function Step2PersonalDetails() {
     });
   };
 
-  const isValid = validateStep2(formData);
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+  };
+
+  const handleNext = () => {
+    setShowAllErrors(true);
+    if (isValid) {
+      submitStep2();
+    }
+  };
 
   return (
     <div className="w-full flex-1 flex flex-col">
@@ -55,6 +71,8 @@ export function Step2PersonalDetails() {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.name || showAllErrors) ? errors.name : null}
                   placeholder="Enter your full name"
                   required={true}
                 />
@@ -66,6 +84,8 @@ export function Step2PersonalDetails() {
                     name="occupation"
                     value={formData.occupation}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.occupation || showAllErrors) ? errors.occupation : null}
                     placeholder="Enter your occupation"
                     required={true}
                   />
@@ -74,6 +94,8 @@ export function Step2PersonalDetails() {
                     name="designation"
                     value={formData.designation}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.designation || showAllErrors) ? errors.designation : null}
                     placeholder="Enter your designation"
                     required={true}
                   />
@@ -86,6 +108,8 @@ export function Step2PersonalDetails() {
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.companyName || showAllErrors) ? errors.companyName : null}
                     placeholder="Enter your company name"
                     required={true}
                   />
@@ -94,6 +118,8 @@ export function Step2PersonalDetails() {
                     name="dob"
                     value={formData.dob}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.dob || showAllErrors) ? errors.dob : null}
                     required={true}
                   />
                 </div>
@@ -105,6 +131,8 @@ export function Step2PersonalDetails() {
                     name="monthlyExpense"
                     value={formData.monthlyExpense}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.monthlyExpense || showAllErrors) ? errors.monthlyExpense : null}
                     placeholder="Enter your monthly expense"
                     type="number"
                     required={true}
@@ -125,6 +153,8 @@ export function Step2PersonalDetails() {
                   name="spouseName"
                   value={formData.spouseName}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.spouseName || showAllErrors) ? errors.spouseName : null}
                   placeholder="Enter spouse's full name"
                   required={false}
                 />
@@ -136,6 +166,8 @@ export function Step2PersonalDetails() {
                     name="spouseOccupation"
                     value={formData.spouseOccupation}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.spouseOccupation || showAllErrors) ? errors.spouseOccupation : null}
                     placeholder="Enter spouse's occupation"
                     required={false}
                   />
@@ -144,6 +176,8 @@ export function Step2PersonalDetails() {
                     name="spouseDesignation"
                     value={formData.spouseDesignation}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.spouseDesignation || showAllErrors) ? errors.spouseDesignation : null}
                     placeholder="Enter spouse's designation"
                     required={false}
                   />
@@ -156,6 +190,8 @@ export function Step2PersonalDetails() {
                     name="spouseCompanyName"
                     value={formData.spouseCompanyName}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.spouseCompanyName || showAllErrors) ? errors.spouseCompanyName : null}
                     placeholder="Enter spouse's company name"
                     required={false}
                   />
@@ -164,6 +200,8 @@ export function Step2PersonalDetails() {
                     name="spouseDob"
                     value={formData.spouseDob}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.spouseDob || showAllErrors) ? errors.spouseDob : null}
                     required={false}
                   />
                 </div>
@@ -175,8 +213,8 @@ export function Step2PersonalDetails() {
             {/* Navigation Actions */}
             <StepNavigation
               onBack={prevStep}
-              onNext={submitStep2}
-              isDisabled={!isValid}
+              onNext={handleNext}
+              isDisabled={false}
               isLoading={isSubmitting}
             />
 

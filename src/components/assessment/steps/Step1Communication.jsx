@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
-import { validateStep1 } from '../../../hooks/useFormValidation';
+import { validateStep1Fields } from '../../../hooks/useFormValidation';
 import { StepNavigation } from '../../ui/StepNavigation';
 import { FormField } from '../../ui/FormField';
 
@@ -14,6 +14,12 @@ export function Step1Communication() {
     isSubmitting
   } = useAssessment();
 
+  const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  const errors = validateStep1Fields(formData);
+  const isValid = Object.keys(errors).length === 0;
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     updateFormData({
@@ -21,7 +27,17 @@ export function Step1Communication() {
     });
   };
 
-  const isValid = validateStep1(formData);
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+  };
+
+  const handleNext = () => {
+    setShowAllErrors(true);
+    if (isValid) {
+      submitStep1();
+    }
+  };
 
   return (
     <div className="w-full flex-1 flex flex-col" style={{ color: TEXT_DARK }}>
@@ -56,6 +72,8 @@ export function Step1Communication() {
                     name="mobile"
                     value={formData.mobile || ''}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.mobile || showAllErrors) ? errors.mobile : null}
                     placeholder="Enter your mobile number"
                     required={true}
                   />
@@ -64,6 +82,8 @@ export function Step1Communication() {
                     name="email"
                     value={formData.email || ''}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.email || showAllErrors) ? errors.email : null}
                     placeholder="Enter your email address"
                     type="email"
                     required={true}
@@ -76,6 +96,8 @@ export function Step1Communication() {
                   name="address"
                   value={formData.address || ''}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  error={(touched.address || showAllErrors) ? errors.address : null}
                   placeholder="Enter your residential address"
                   required={true}
                 />
@@ -94,6 +116,8 @@ export function Step1Communication() {
                     name="spouseMobile"
                     value={formData.spouseMobile || ''}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.spouseMobile || showAllErrors) ? errors.spouseMobile : null}
                     placeholder="Enter spouse's mobile number"
                     required={false}
                   />
@@ -102,6 +126,8 @@ export function Step1Communication() {
                     name="spouseEmail"
                     value={formData.spouseEmail || ''}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    error={(touched.spouseEmail || showAllErrors) ? errors.spouseEmail : null}
                     placeholder="Enter spouse's email address"
                     type="email"
                     required={false}
@@ -118,6 +144,7 @@ export function Step1Communication() {
                       name="consent"
                       checked={!!formData.consent}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
                       className="sr-only"
                     />
                     <div
@@ -140,14 +167,17 @@ export function Step1Communication() {
                     I consent to share the communication details and allow contact to save this assessment.
                   </span>
                 </label>
+                {(touched.consent || showAllErrors) && errors.consent && (
+                  <span className="text-xs text-red-500 font-medium block mt-1.5 ml-8">{errors.consent}</span>
+                )}
               </div>
 
             </div>
 
             {/* Navigation Actions */}
             <StepNavigation
-              onNext={submitStep1}
-              isDisabled={!isValid}
+              onNext={handleNext}
+              isDisabled={false}
               isLoading={isSubmitting}
             />
 

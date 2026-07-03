@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
-import { validateStep4 } from '../../../hooks/useFormValidation';
-import { StepNavigation } from '../../ui/StepNavigation';
+import { validateStep4Fields } from '../../../hooks/useFormValidation';
 import { GoalIcon } from '../../ui/GoalIcon';
 import { TripPlanModal } from '../modals/TripPlanModal';
 
@@ -10,7 +9,7 @@ import { TripPlanModal } from '../modals/TripPlanModal';
    Light source: top-left.
    Raised  -> shadow bottom-right (dark) + highlight top-left (light)
    Inset   -> inner shadow top-left (dark) + inner highlight bottom-right (light)
------------------------------------------------------------------- */
+ ------------------------------------------------------------------ */
 const SURFACE = '#F4F1EA';
 const FIELD_BG = '#F1EDE6';
 const FIELD_BORDER = '#EFE9DF';
@@ -48,6 +47,12 @@ export function Step4LifestyleGoals() {
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState(null);
 
+  const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  const errors = validateStep4Fields(activeGoals);
+  const isValid = Object.keys(errors).length === 0;
+
   const goalCategories = [
     'Home Purchase',
     'Car Purchase',
@@ -65,12 +70,21 @@ export function Step4LifestyleGoals() {
     updateGoal(id, { [field]: value });
   };
 
+  const handleBlur = (goalId, fieldName) => {
+    setTouched(prev => ({ ...prev, [`${goalId}-${fieldName}`]: true }));
+  };
+
+  const handleNext = () => {
+    setShowAllErrors(true);
+    if (isValid) {
+      submitStep4();
+    }
+  };
+
   const openTripModal = (goalId) => {
     setSelectedGoalId(goalId);
     setIsTripModalOpen(true);
   };
-
-  const isValid = validateStep4(activeGoals);
 
   return (
     <div
@@ -255,13 +269,19 @@ export function Step4LifestyleGoals() {
                               onChange={(e) =>
                                 handleGoalInputChange(goal.id, 'targetYear', e.target.value)
                               }
+                              onBlur={() => handleBlur(goal.id, 'targetYear')}
                               placeholder="Enter target year"
                               className={`${
                                 goal.targetYear !== undefined && goal.targetYear !== null && goal.targetYear.toString().length > 0
                                   ? 'neu-field-filled'
                                   : 'neu-field'
-                              } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200`}
+                              } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                                (touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear ? 'border-red-400' : ''
+                              }`}
                             />
+                            {(touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear && (
+                              <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].targetYear}</span>
+                            )}
                           </div>
 
                           <div className="space-y-1.5">
@@ -277,13 +297,19 @@ export function Step4LifestyleGoals() {
                               onChange={(e) =>
                                 handleGoalInputChange(goal.id, 'todaysCost', e.target.value)
                               }
+                              onBlur={() => handleBlur(goal.id, 'todaysCost')}
                               placeholder="Enter today's cost"
                               className={`${
                                 goal.todaysCost !== undefined && goal.todaysCost !== null && goal.todaysCost.toString().length > 0
                                   ? 'neu-field-filled'
                                   : 'neu-field'
-                              } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200`}
+                              } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                                (touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost ? 'border-red-400' : ''
+                              }`}
                             />
+                            {(touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost && (
+                              <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].todaysCost}</span>
+                            )}
                           </div>
                         </div>
 
@@ -360,9 +386,9 @@ export function Step4LifestyleGoals() {
 
               <button
                 type="button"
-                onClick={submitStep4}
-                disabled={!isValid || isSubmitting}
-                className={`flex items-center gap-2 text-sm font-bold px-8 py-3.5 rounded-2xl transition-all active:scale-95 ${isValid && !isSubmitting ? 's4-continue-active' : 's4-continue-disabled'
+                onClick={handleNext}
+                disabled={isSubmitting}
+                className={`flex items-center gap-2 text-sm font-bold px-8 py-3.5 rounded-2xl transition-all active:scale-95 ${!isSubmitting ? 's4-continue-active' : 's4-continue-disabled'
                   }`}
               >
                 {isSubmitting ? 'Please wait…' : 'Continue'}{' '}

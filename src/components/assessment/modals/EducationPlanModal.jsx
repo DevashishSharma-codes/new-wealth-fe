@@ -59,7 +59,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
 
   return (
     <div className="fixed inset-0 bg-[#1C1B1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-    <div className="bg-[#FAF7F2] border border-[#EFE9DF] w-full max-w-[500px] rounded-[32px] p-6 sm:p-8 relative shadow-[0_20px_40px_rgba(43,42,40,0.15)] space-y-6">
+    <div className="bg-[#FAF7F2] border border-[#EFE9DF] w-full max-w-[500px] max-h-[90vh] overflow-y-auto rounded-[32px] p-5 sm:p-8 relative shadow-[0_20px_40px_rgba(43,42,40,0.15)] space-y-6 scrollbar-thin">
         
         {/* Close Button */}
         <button 

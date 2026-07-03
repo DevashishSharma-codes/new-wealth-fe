@@ -4,12 +4,10 @@ export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "/api/v1";
 
 export const API_KEY =
-  import.meta.env.VITE_API_KEY ||
-  "e2d0098d7ad7aaa3efd03548db794b2b9a7cc2d66b25d554f1a53e11c3ac27b1";
+  import.meta.env.VITE_API_KEY || "";
 
 export const ADMIN_API_KEY =
-  import.meta.env.VITE_ADMIN_API_KEY ||
-  "1816ccd61807db177b050812d5ed59cb163956e8d5ec1244ca2b3c9da6fda545";
+  import.meta.env.VITE_ADMIN_API_KEY || "";
 
 const maskApiKey = (key) => {
   if (!key) return "<missing>";

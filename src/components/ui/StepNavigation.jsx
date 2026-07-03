@@ -3,12 +3,13 @@ import React from 'react';
 export function StepNavigation({
   onBack,
   onNext,
+  onSkip,
   nextLabel = "Continue →",
   isDisabled = false,
   isLoading = false
 }) {
   return (
-    <div className="flex items-center gap-6 pt-4">
+    <div className="flex flex-wrap items-center gap-6 pt-4">
       {onBack && (
         <button
           type="button"
@@ -36,6 +37,16 @@ export function StepNavigation({
           nextLabel
         )}
       </button>
+      {onSkip && (
+        <button
+          type="button"
+          onClick={onSkip}
+          disabled={isLoading}
+          className="neu-btn-flat-inactive flex items-center justify-center text-sm font-bold px-8 py-3.5 rounded-2xl transition-all active:scale-95 hover:text-[#F0883E] cursor-pointer disabled:cursor-not-allowed"
+        >
+          Skip Step
+        </button>
+      )}
     </div>
   );
 }

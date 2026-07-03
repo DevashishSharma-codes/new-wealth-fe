@@ -64,7 +64,7 @@ export default function Home() {
 
           {/* Title */}
           <h2 className="hidden md:block font-heading text-[19px] font-medium text-slate-700">
-            Retirement Planning Assessment
+            Goal Analysis Assessment
           </h2>
 
           {/* Get Started Button */}

@@ -14,20 +14,20 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 12.8px;
 }
 
 @media (min-width: 768px) {
   html {
-    font-size: 18px;
-    /* ~112% zoom on tablet */
+    font-size: 14.4px;
+    /* ~112% zoom on tablet scaled down */
   }
 }
 
 @media (min-width: 1024px) {
   html {
-    font-size: 20px;
-    /* 125% zoom on desktop */
+    font-size: 16px;
+    /* 125% zoom on desktop scaled down */
   }
 }
 

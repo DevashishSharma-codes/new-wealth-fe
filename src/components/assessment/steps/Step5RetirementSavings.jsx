@@ -218,7 +218,6 @@ export function Step5RetirementSavings() {
             <StepNavigation
               onBack={prevStep}
               onNext={handleNext}
-              onSkip={submitStep5}
               nextLabel="Submit &rarr;"
               isDisabled={false}
               isLoading={isCalculating}

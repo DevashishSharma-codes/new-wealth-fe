@@ -216,6 +216,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                   value={modalBudgetAmount}
                   onChange={(e) => setModalBudgetAmount(e.target.value)}
                   placeholder="Enter amount (e.g. 1500000)"
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none transition-all duration-150"
                 />
               </div>
@@ -230,6 +231,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
               value={modalTargetYear}
               onChange={(e) => setModalTargetYear(e.target.value)}
               placeholder="Enter expected admission year"
+              onWheel={(e) => e.currentTarget.blur()}
               className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none transition-all duration-150"
             />
           </div>

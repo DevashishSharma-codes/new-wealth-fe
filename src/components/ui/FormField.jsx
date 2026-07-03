@@ -31,6 +31,7 @@ export function FormField({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
+          onWheel={(e) => type === 'number' && e.currentTarget.blur()}
           className={`${
             isFilled ? 'neu-field-filled' : 'neu-field'
           } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${

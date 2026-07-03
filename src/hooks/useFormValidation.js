@@ -185,27 +185,21 @@ export const validateStep4Fields = (activeGoals) => {
 export const validateStep5Fields = (formData) => {
   const errors = {};
   
-  if (!formData.targetRetireAge?.toString().trim()) {
-    errors.targetRetireAge = "Retirement age is required";
-  } else {
+  if (formData.targetRetireAge !== undefined && formData.targetRetireAge !== null && formData.targetRetireAge.toString().trim() !== "") {
     const age = parseInt(formData.targetRetireAge, 10);
     if (isNaN(age) || age < 18 || age > 100) {
       errors.targetRetireAge = "Age must be between 18 and 100";
     }
   }
 
-  if (!formData.yearsUntilRetirement?.toString().trim()) {
-    errors.yearsUntilRetirement = "Years remaining is required";
-  } else {
+  if (formData.yearsUntilRetirement !== undefined && formData.yearsUntilRetirement !== null && formData.yearsUntilRetirement.toString().trim() !== "") {
     const yrs = parseInt(formData.yearsUntilRetirement, 10);
     if (isNaN(yrs) || yrs < 0 || yrs > 80) {
       errors.yearsUntilRetirement = "Years must be between 0 and 80";
     }
   }
 
-  if (!formData.requiredAnnualIncome?.toString().trim()) {
-    errors.requiredAnnualIncome = "Required income is required";
-  } else {
+  if (formData.requiredAnnualIncome !== undefined && formData.requiredAnnualIncome !== null && formData.requiredAnnualIncome.toString().trim() !== "") {
     const inc = parseFloat(formData.requiredAnnualIncome);
     if (isNaN(inc) || inc <= 0) {
       errors.requiredAnnualIncome = "Required income must be positive";

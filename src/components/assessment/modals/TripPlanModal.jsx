@@ -218,6 +218,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                   value={tripTargetYear}
                   onChange={(e) => setTripTargetYear(e.target.value)}
                   placeholder="Enter expected travel year"
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none transition-all duration-150"
                 />
               </div>
@@ -236,6 +237,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                     value={tripBudgetPerPerson}
                     onChange={(e) => setTripBudgetPerPerson(e.target.value)}
                     placeholder="Enter your travel budget per person"
+                    onWheel={(e) => e.currentTarget.blur()}
                     className="flex-1 neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none transition-all duration-150"
                   />
                   <button
@@ -260,6 +262,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                   value={tripTargetYear}
                   onChange={(e) => setTripTargetYear(e.target.value)}
                   placeholder="Enter expected travel year"
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none transition-all duration-150"
                 />
               </div>

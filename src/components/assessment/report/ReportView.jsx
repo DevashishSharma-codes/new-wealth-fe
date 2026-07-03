@@ -5,6 +5,7 @@ import { MetricCards } from './MetricCards';
 import { RetirementTable } from './RetirementTable';
 import { GoalsTable } from './GoalsTable';
 import { InsuranceTable } from './InsuranceTable';
+import client from '../../../api/client';
 
 export function ReportView() {
   const {
@@ -12,6 +13,7 @@ export function ReportView() {
     reportId,
     formData,
     childrenCount,
+    assessmentId,
     downloadReport
   } = useAssessment();
 
@@ -20,13 +22,25 @@ export function ReportView() {
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
-    alert("Thank you! Our expert financial advisor will get in touch with you shortly.");
-    setContactName('');
-    setContactMobile('');
-    setContactEmail('');
-    setContactMessage('');
+    try {
+      await client.post('/contact/get-in-touch', {
+        name: contactName,
+        mobile: contactMobile,
+        email: contactEmail,
+        message: contactMessage,
+        assessment_id: assessmentId
+      });
+      alert("Thank you! Our expert financial advisor will get in touch with you shortly.");
+      setContactName('');
+      setContactMobile('');
+      setContactEmail('');
+      setContactMessage('');
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit request: " + err.message);
+    }
   };
 
   let displayInsurance = '1.25';

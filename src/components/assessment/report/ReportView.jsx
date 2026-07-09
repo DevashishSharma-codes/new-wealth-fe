@@ -5,7 +5,7 @@ import { MetricCards } from './MetricCards';
 import { RetirementTable } from './RetirementTable';
 import { GoalsTable } from './GoalsTable';
 import { InsuranceTable } from './InsuranceTable';
-import client from '../../../api/client';
+import client from '../../../config/api';
 
 export function ReportView() {
   const {

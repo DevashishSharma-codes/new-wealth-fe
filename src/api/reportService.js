@@ -1,4 +1,4 @@
-import client, { API_BASE_URL, API_KEY } from "./client";
+import client, { API_BASE_URL, API_KEY } from "../config/api";
 
 export const generateReport = (assessmentId) => {
   console.log(`[API REQUEST] POST /report/${assessmentId}/generate`);

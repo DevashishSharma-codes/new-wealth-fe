@@ -1,13 +1,8 @@
 import axios from "axios";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "/api/v1";
-
-export const API_KEY =
-  import.meta.env.VITE_API_KEY || "";
-
-export const ADMIN_API_KEY =
-  import.meta.env.VITE_ADMIN_API_KEY || "";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+export const API_KEY = import.meta.env.VITE_API_KEY || "";
+export const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || "";
 
 const maskApiKey = (key) => {
   if (!key) return "<missing>";

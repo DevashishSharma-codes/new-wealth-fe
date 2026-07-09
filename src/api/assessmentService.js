@@ -1,4 +1,4 @@
-import client from "./client";
+import client from "../config/api";
 
 export const getRates = () => {
   console.log("[API REQUEST] GET /rates/");

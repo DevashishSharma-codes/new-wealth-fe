@@ -171,43 +171,43 @@ export default function Home() {
               <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
                 <ReadinessIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Retirement Readiness Score</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Understand how prepared you are for retirement based on your current financial position and future goals.</p>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Financial Health Check</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Get a comprehensive assessment of your financial health by analyzing your income, expenses, savings, investments, liabilities, and overall financial preparedness.</p>
             </div>
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
                 <RoadmapIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Personalized Retirement Roadmap</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Receive a tailored retirement strategy based on your lifestyle aspirations, family needs, and financial resources.</p>
-            </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
-                <CorpusIcon />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Future Corpus Estimation</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Know the retirement corpus required to maintain your desired lifestyle throughout retirement.</p>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Goal-Based Financial Planning</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Plan for your life goals such as buying a home, children's education, travel, retirement, and wealth creation with a personalized financial roadmap.</p>
             </div>
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
                 <InvestmentIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Investment Requirement Analysis</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Discover how much you may need to invest monthly to achieve all major life and retirement goals.</p>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Investment & Portfolio Review</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Evaluate your existing investments and receive recommendations to build a well-diversified portfolio aligned with your financial goals and risk profile.</p>
             </div>
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
                 <ProtectionIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Insurance & Protection Review</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Identify potential protection gaps and understand the insurance coverage needed for long-term security.</p>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Insurance & Risk Management</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Identify protection gaps and ensure adequate coverage through Term Insurance, Health Insurance, Personal Accident Cover, and Emergency Planning.</p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                <CorpusIcon />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Retirement Planning</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Estimate the retirement corpus required, assess your retirement readiness, and create a strategy for a financially independent retirement.</p>
             </div>
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
                 <PlanningIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Goal-Based Financial Planning</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Plan for education, travel, second home, family protection, and retirement, all in one assessment.</p>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Estate Planning (Will & Trust)</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Secure your family's future with proper estate planning, including Wills, Trusts, nominations, and seamless wealth transfer across generations.</p>
             </div>
           </div>
         </section>

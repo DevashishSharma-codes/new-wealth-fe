@@ -330,12 +330,10 @@ export default function AssessmentProvider({ children }) {
         }
       });
 
-      // If no goals were added, skip the API call to avoid the backend's "At least one goal is required" validation error
-      if (apiGoals.length > 0) {
-        await assessmentService.submitFlow4(assessmentId, {
-          goals: apiGoals,
-        });
-      }
+      // Submit goals (even if empty, as requested)
+      await assessmentService.submitFlow4(assessmentId, {
+        goals: apiGoals,
+      });
       nextStep();
     } catch (err) {
       console.error(err);

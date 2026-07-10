@@ -11,6 +11,7 @@ export function ReportView() {
   const {
     calculationResult,
     reportId,
+    reportMessage,
     formData,
     childrenCount,
     assessmentId,
@@ -130,11 +131,22 @@ export function ReportView() {
           </div>
           <div className="space-y-1">
             <h1 className="font-heading text-lg sm:text-xl lg:text-2xl font-extrabold text-[#1C1B1A] leading-tight">
-              Report Sent Successfully!
+              {reportMessage === "Report sent to your email" ? "Report Sent Successfully!" : reportMessage || "Report Sent Successfully!"}
             </h1>
             <p className="text-[#8E8A80] text-xs sm:text-sm font-light">
-              Your personalized retirement assessment report has been sent to:{' '}
-              <span className="font-semibold text-[#ED8B36]">{formData.email || '21spheres@gmail.com'}</span>
+              {reportMessage === "Report sent to your email" ? (
+                <>
+                  Your personalized retirement assessment report has been sent to:{' '}
+                  <span className="font-semibold text-[#ED8B36]">{formData.email}</span>
+                </>
+              ) : reportMessage === "Report downloaded successfully" ? (
+                "Your personalized retirement assessment report has been downloaded."
+              ) : (
+                <>
+                  Your personalized retirement assessment report has been sent to:{' '}
+                  <span className="font-semibold text-[#ED8B36]">{formData.email || '21spheres@gmail.com'}</span>
+                </>
+              )}
             </p>
           </div>
         </div>

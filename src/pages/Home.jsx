@@ -42,7 +42,7 @@ const PlanningIcon = () => (
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-brand-gold/30 selection:text-brand-blue">
-      
+
       {/* 1. Top Promotional Banner */}
       <div className="bg-[#FFF3E6] border-b border-orange-100 py-3 px-4 text-center">
         <p className="text-xs sm:text-sm text-[#E56A1F] font-medium tracking-wide">
@@ -56,7 +56,7 @@ export default function Home() {
       {/* 2. Navigation Header */}
       <header className="bg-white sticky top-0 z-40 border-b border-slate-100 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
-          
+
           {/* Logo */}
           <Link to="/" className="flex flex-col items-center text-center justify-center select-none shrink-0">
             <img src={wealthWisdomLogo} alt="Wealth Wisdom - Take Charge of Your Future" className="h-16 w-auto object-contain" />
@@ -68,7 +68,7 @@ export default function Home() {
           </h2>
 
           {/* Get Started Button */}
-          <Link 
+          <Link
             to="/assessment"
             className="inline-flex items-center gap-2 bg-[#1C1B1A] hover:bg-slate-800 text-white px-5 py-3 rounded-lg text-sm font-semibold tracking-wide transition-all shadow-xs"
           >
@@ -79,7 +79,7 @@ export default function Home() {
 
       {/* main content */}
       <main className="flex-1">
-        
+
         {/* Hero Header Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -100,7 +100,7 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-7 overflow-hidden rounded-3xl shadow-sm border border-slate-100 group relative">
-              <img src="/src/8026db87385f5a9d50c991917190ea8e368ad5cb (2).png" alt="Advisor with couple" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+              <img src="/src/hero_left.png" alt="Advisor with couple" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
             </div>
             <div className="md:col-span-5 overflow-hidden rounded-3xl shadow-sm border border-slate-100 group relative">
               <img src="/src/f0f7eaffd28bff647ab71073c5e804a9bb36aec8.jpg" alt="Couple with laptop" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
@@ -108,36 +108,53 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Trust Bar */}
+        {/* Trust Bar / Mini Testimonial Strip */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <div className="bg-[#FAF6F0] rounded-2xl sm:rounded-3xl p-6 sm:px-10 sm:py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-amber-50">
-            <div className="flex items-center gap-4">
-              <div className="flex -space-x-3">
-                <span className="inline-block w-8 h-8 rounded-full bg-amber-200 border-2 border-[#FAF6F0] flex items-center justify-center text-xs font-bold text-slate-700">KR</span>
-                <span className="inline-block w-8 h-8 rounded-full bg-blue-200 border-2 border-[#FAF6F0] flex items-center justify-center text-xs font-bold text-slate-700">AP</span>
-                <span className="inline-block w-8 h-8 rounded-full bg-emerald-200 border-2 border-[#FAF6F0] flex items-center justify-center text-xs font-bold text-slate-700">MD</span>
-                <span className="inline-block w-8 h-8 rounded-full bg-orange-300 border-2 border-[#FAF6F0] flex items-center justify-center text-[10px] font-extrabold text-white">+5k</span>
+          <div className="bg-[#FAF6F0] rounded-2xl sm:rounded-3xl px-6 py-6 sm:px-10 sm:py-7 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-10 border border-amber-50">
+
+            {/* Avatars + Text (mini testimonial) */}
+            <div className="flex items-center gap-4 justify-center lg:justify-start text-center lg:text-left">
+              <div className="flex -space-x-3 items-center shrink-0">
+                <img
+                  className="inline-block w-9 h-9 sm:w-10 sm:h-10 rounded-full ring-2 ring-[#FAF6F0] object-cover"
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
+                  alt="Client Avatar 1"
+                />
+                <img
+                  className="inline-block w-9 h-9 sm:w-10 sm:h-10 rounded-full ring-2 ring-[#FAF6F0] object-cover"
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80"
+                  alt="Client Avatar 2"
+                />
+                <img
+                  className="inline-block w-9 h-9 sm:w-10 sm:h-10 rounded-full ring-2 ring-[#FAF6F0] object-cover"
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80"
+                  alt="Client Avatar 3"
+                />
+                <span className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#ED8B36] ring-2 ring-[#FAF6F0] text-[11px] sm:text-xs font-bold text-white">
+                  +5k
+                </span>
               </div>
-              <p className="font-heading font-bold text-slate-800 text-sm sm:text-base">
+              <p className="font-heading font-semibold text-slate-800 text-sm sm:text-[15px] leading-snug">
                 Know exactly where you stand today
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-8 border-t lg:border-t-0 border-slate-200/50 pt-4 lg:pt-0">
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                <svg className="w-5 h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            {/* Feature badges */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-x-8 gap-y-3 lg:border-l lg:border-slate-200/70 lg:pl-8">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-medium">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Takes 5-7 minutes</span>
+                <span>5-7 minutes</span>
               </div>
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                <svg className="w-5 h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-medium">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
                 <span>100% Secure</span>
               </div>
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                <svg className="w-5 h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-medium">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span>Personalized Report</span>
@@ -155,7 +172,7 @@ export default function Home() {
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl mx-auto">
               Understand whether you're on track to achieve financial independence and the lifestyle you envision. Our assessment helps uncover retirement income needs, future expenses, investment requirements, and potential planning gaps, all in just a few minutes.
             </p>
-            <Link 
+            <Link
               to="/assessment"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-orange to-brand-gold text-white px-8 py-4 rounded-xl text-base font-bold hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0 transition-all shadow-md"
             >

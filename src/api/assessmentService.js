@@ -57,3 +57,11 @@ export const calculateRetirement = (assessmentId, payload) => {
     return res;
   });
 };
+
+export const getAssessment = (assessmentId) => {
+  console.log(`[API REQUEST] GET /assessment/${assessmentId}`);
+  return client.get(`/assessment/${assessmentId}`).then((res) => {
+    console.log(`[API RESPONSE] GET /assessment/${assessmentId} Status: 200`, res);
+    return res;
+  });
+};

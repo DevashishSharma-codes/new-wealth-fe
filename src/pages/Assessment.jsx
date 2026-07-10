@@ -55,6 +55,10 @@ export default function Assessment() {
     }
   };
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step, showReport]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] font-sans selection:bg-brand-gold/30 selection:text-brand-blue">
       

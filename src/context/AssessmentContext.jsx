@@ -54,10 +54,13 @@ export default function AssessmentProvider({ children }) {
   const [activeGoals, setActiveGoals] = useState(initialGoals);
   const [calculationResult, setCalculationResult] = useState(null);
   const [reportId, setReportId] = useState(null);
+  const [reportMessage, setReportMessage] = useState(null);
   const [showReport, setShowReport] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [apiError, setApiError] = useState(null);
+
+
 
   const updateFormData = (fields) => {
     setFormData((prev) => {
@@ -143,6 +146,7 @@ export default function AssessmentProvider({ children }) {
     if (n < 5) {
       setShowReport(false);
       setReportId(null);
+      setReportMessage(null);
     }
   };
 
@@ -168,6 +172,7 @@ export default function AssessmentProvider({ children }) {
         const createRes = await assessmentService.createAssessment();
         currentId = createRes.data.assessment_id;
         setAssessmentId(currentId);
+        localStorage.setItem("ww_assessment_id", currentId);
       }
       const payload = {
         mobile: formData.mobile,
@@ -325,7 +330,7 @@ export default function AssessmentProvider({ children }) {
         }
       });
 
-      // If no goals were added, skip the API call and proceed
+      // If no goals were added, skip the API call to avoid the backend's "At least one goal is required" validation error
       if (apiGoals.length > 0) {
         await assessmentService.submitFlow4(assessmentId, {
           goals: apiGoals,
@@ -395,38 +400,40 @@ export default function AssessmentProvider({ children }) {
       setCalculationResult(calcRes.data);
       setShowReport(true);
 
-      // 3. Generate Report PDF in the background.
+      // 3. Generate Report PDF and handle email/download.
       try {
-        const reportRes = await reportService.generateReport(assessmentId);
-        if (reportRes && reportRes.data && reportRes.data.job_id) {
-          const jobId = reportRes.data.job_id;
-          
-          // Poll for completion asynchronously
-          (async () => {
-            let reportDone = false;
-            let checkCount = 0;
-            const maxChecks = 45; // 45 seconds max timeout
-            
-            while (!reportDone && checkCount < maxChecks) {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              checkCount++;
-              try {
-                const statusRes = await reportService.checkReportStatus(assessmentId, jobId);
-                if (statusRes.status === "success" && statusRes.data.status === "completed") {
-                  setReportId(statusRes.data.report_id);
-                  reportDone = true;
-                } else if (statusRes.status === "failed") {
-                  console.error("Report generation failed:", statusRes.data.message);
-                  break;
-                }
-              } catch (pollErr) {
-                console.error("Error polling report status:", pollErr);
-              }
-            }
-          })();
+        setReportMessage("Generating report...");
+        const responseBlob = await reportService.generateReport(assessmentId);
+        
+        if (responseBlob.type === "application/json") {
+          // Case 1: JSON response
+          const text = await responseBlob.text();
+          const resData = JSON.parse(text);
+          const deliveryMode = resData?.delivery_mode || resData?.data?.delivery_mode;
+          if (deliveryMode === "email") {
+            setReportMessage("Report sent to your email");
+          } else {
+            setReportMessage("Report generated successfully");
+          }
+          const rId = resData?.report_id || resData?.data?.report_id;
+          if (rId) {
+            setReportId(rId);
+          }
+        } else {
+          // Case 2: File response (PDF, HTML, etc.)
+          const url = URL.createObjectURL(responseBlob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `wealth-wisdom-report-${assessmentId}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setReportMessage("Report downloaded successfully");
         }
       } catch (reportErr) {
-        console.error("Failed to start report generation:", reportErr);
+        console.error("Failed to generate report:", reportErr);
+        setReportMessage("Failed to generate report.");
+        setApiError(reportErr.message || "Failed to generate report.");
       }
     } catch (err) {
       console.error(err);
@@ -461,6 +468,7 @@ export default function AssessmentProvider({ children }) {
     activeGoals,
     calculationResult,
     reportId,
+    reportMessage,
     showReport,
     isSubmitting,
     isCalculating,

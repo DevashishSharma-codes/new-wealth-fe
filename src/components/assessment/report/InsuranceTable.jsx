@@ -26,14 +26,14 @@ export function InsuranceTable({ calculationResult }) {
             {calculationResult.insurance.items.map((ins, idx) => (
               <tr key={idx} className="bg-white/60 hover:bg-white/90 transition-colors">
                 <td className="px-4 py-3 font-semibold">{ins.need}</td>
-                <td className="px-4 py-3 text-center text-slate-600">{ins.years} Years</td>
-                <td className="px-4 py-3 text-right font-medium">{ins.amount.inr}</td>
-                <td className="px-4 py-3 text-center">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-50 text-[#ED8B36] border border-orange-100 font-sans">
+                <td className="px-4 py-3 text-center text-slate-600 whitespace-nowrap">{ins.years} Years</td>
+                <td className="px-4 py-3 text-right font-medium whitespace-nowrap">{ins.amount.inr}</td>
+                <td className="px-4 py-3 text-center whitespace-nowrap">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-50 text-[#ED8B36] border border-orange-100 font-sans whitespace-nowrap inline-block">
                     {ins.type}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right font-bold">{ins.pv.inr}</td>
+                <td className="px-4 py-3 text-right font-bold whitespace-nowrap">{ins.pv.inr}</td>
               </tr>
             ))}
             <tr className="bg-[#FAF7F2]/60 font-bold border-t border-[#EFE9DF]">

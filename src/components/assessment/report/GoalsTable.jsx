@@ -26,10 +26,10 @@ export function GoalsTable({ calculationResult }) {
             {calculationResult.goals.items.map((g, idx) => (
               <tr key={idx} className="bg-white/60 hover:bg-white/90 transition-colors">
                 <td className="px-4 py-3 font-semibold">{g.goal}</td>
-                <td className="px-4 py-3 text-center text-slate-600">{g.target_year}</td>
-                <td className="px-4 py-3 text-right font-medium">{g.current_cost.inr}</td>
-                <td className="px-4 py-3 text-right font-medium">{g.future_cost.inr}</td>
-                <td className="px-4 py-3 text-right font-bold text-[#ED8B36]">{g.monthly_sip.inr}</td>
+                <td className="px-4 py-3 text-center text-slate-600 whitespace-nowrap">{g.target_year}</td>
+                <td className="px-4 py-3 text-right font-medium whitespace-nowrap">{g.current_cost.inr}</td>
+                <td className="px-4 py-3 text-right font-medium whitespace-nowrap">{g.future_cost.inr}</td>
+                <td className="px-4 py-3 text-right font-bold text-[#ED8B36] whitespace-nowrap">{g.monthly_sip.inr}</td>
               </tr>
             ))}
             <tr className="bg-[#FAF7F2]/60 font-bold border-t border-[#EFE9DF]">

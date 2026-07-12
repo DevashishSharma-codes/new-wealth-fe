@@ -397,42 +397,42 @@ export default function AssessmentProvider({ children }) {
       const calcRes = await assessmentService.calculateRetirement(assessmentId, calcPayload);
       setCalculationResult(calcRes.data);
       setShowReport(true);
+      setIsCalculating(false);
 
-      // 3. Generate Report PDF and handle email/download.
-      try {
-        setReportMessage("Generating report...");
-        const responseBlob = await reportService.generateReport(assessmentId);
-        
-        if (responseBlob.type === "application/json") {
-          // Case 1: JSON response
-          const text = await responseBlob.text();
-          const resData = JSON.parse(text);
-          const deliveryMode = resData?.delivery_mode || resData?.data?.delivery_mode;
-          if (deliveryMode === "email") {
-            setReportMessage("Report sent to your email");
+      // 3. Generate Report PDF and handle email/download in background
+      setReportMessage("Generating report...");
+      reportService.generateReport(assessmentId)
+        .then(async (responseBlob) => {
+          if (responseBlob.type === "application/json") {
+            // Case 1: JSON response
+            const text = await responseBlob.text();
+            const resData = JSON.parse(text);
+            const deliveryMode = resData?.delivery_mode || resData?.data?.delivery_mode;
+            if (deliveryMode === "email") {
+              setReportMessage("Report sent to your email");
+            } else {
+              setReportMessage("Report generated successfully");
+            }
+            const rId = resData?.report_id || resData?.data?.report_id;
+            if (rId) {
+              setReportId(rId);
+            }
           } else {
-            setReportMessage("Report generated successfully");
+            // Case 2: File response (PDF, HTML, etc.)
+            const url = URL.createObjectURL(responseBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `wealth-wisdom-report-${assessmentId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setReportMessage("Report downloaded successfully");
           }
-          const rId = resData?.report_id || resData?.data?.report_id;
-          if (rId) {
-            setReportId(rId);
-          }
-        } else {
-          // Case 2: File response (PDF, HTML, etc.)
-          const url = URL.createObjectURL(responseBlob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = `wealth-wisdom-report-${assessmentId}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          setReportMessage("Report downloaded successfully");
-        }
-      } catch (reportErr) {
-        console.error("Failed to generate report:", reportErr);
-        setReportMessage("Failed to generate report.");
-        setApiError(reportErr.message || "Failed to generate report.");
-      }
+        })
+        .catch((reportErr) => {
+          console.error("Failed to generate report:", reportErr);
+          setReportMessage("Failed to generate report.");
+        });
     } catch (err) {
       console.error(err);
       setApiError(err.message || "Failed to calculate retirement plan. Please review your settings.");

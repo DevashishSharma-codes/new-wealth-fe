@@ -154,9 +154,17 @@ export const validateStep3Fields = (childrenData, childrenCount) => {
 export const validateStep4Fields = (activeGoals) => {
   const errors = {};
   activeGoals.forEach((goal) => {
+    const hasTargetYear = goal.targetYear?.toString().trim();
+    const hasTodaysCost = goal.todaysCost?.toString().trim();
+    
+    // If nothing has been filled in this goal, remove/skip validation for it
+    if (!hasTargetYear && !hasTodaysCost) {
+      return;
+    }
+
     const goalErrors = {};
     
-    if (!goal.targetYear?.toString().trim()) {
+    if (!hasTargetYear) {
       goalErrors.targetYear = "Target year is required";
     } else {
       const year = parseInt(goal.targetYear, 10);
@@ -166,7 +174,7 @@ export const validateStep4Fields = (activeGoals) => {
       }
     }
 
-    if (!goal.todaysCost?.toString().trim()) {
+    if (!hasTodaysCost) {
       goalErrors.todaysCost = "Cost is required";
     } else {
       const val = parseFloat(goal.todaysCost);

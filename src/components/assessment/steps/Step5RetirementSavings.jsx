@@ -229,7 +229,7 @@ export function Step5RetirementSavings() {
           <div className="w-full self-stretch flex items-start justify-center pt-8">
             <div className="md:sticky md:top-32 w-full max-w-[280px] sm:max-w-[360px] lg:max-w-[420px] select-none pointer-events-none drop-shadow-md">
               <img 
-                src="/src/retirement_chair_neu.png" 
+                src="/assets/retirement_chair_neu.png" 
                 alt="3D Rocking chair retirement illustration"
                 className="w-full h-auto object-contain animate-float"
               />

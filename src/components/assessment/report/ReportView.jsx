@@ -75,7 +75,7 @@ export function ReportView() {
         <div className="flex items-center gap-3 text-center md:text-left flex-col md:flex-row w-full md:w-auto">
           <div className="hidden md:block w-14 h-14 lg:w-16 lg:h-16 shrink-0 select-none pointer-events-none drop-shadow-xs">
             <img
-              src="/src/thank_you_envelope.png"
+              src="/assets/thank_you_envelope.png"
               alt="3D Envelope Thank You illustration"
               className="w-full h-auto object-contain animate-float"
             />
@@ -188,7 +188,7 @@ export function ReportView() {
         <div className="flex-1 lg:flex-initial flex flex-col items-center justify-center gap-4 shrink-0 w-full lg:w-auto">
           <div className="w-full max-w-[200px] select-none pointer-events-none drop-shadow-md">
             <img
-              src="/src/financial_plan_badge.png"
+              src="/assets/financial_plan_badge.png"
               alt="3D Document & Shield Financial Plan illustration"
               className="w-full h-auto object-contain animate-float"
             />
@@ -371,7 +371,7 @@ export function ReportView() {
       <div className="block md:hidden text-center py-5 border-t border-[#EFE9DF] mt-2 select-none">
         <div className="w-16 h-16 mx-auto select-none pointer-events-none drop-shadow-sm">
           <img
-            src="/src/thank_you_envelope.png"
+            src="/assets/thank_you_envelope.png"
             alt="3D Envelope Thank You illustration"
             className="w-full h-auto object-contain animate-float"
           />

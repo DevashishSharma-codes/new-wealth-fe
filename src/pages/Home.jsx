@@ -100,10 +100,10 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-7 overflow-hidden rounded-3xl shadow-sm border border-slate-100 group relative">
-              <img src="/src/hero_left.png" alt="Advisor with couple" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+              <img src="/assets/hero_left.png" alt="Advisor with couple" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
             </div>
             <div className="md:col-span-5 overflow-hidden rounded-3xl shadow-sm border border-slate-100 group relative">
-              <img src="/src/f0f7eaffd28bff647ab71073c5e804a9bb36aec8.jpg" alt="Couple with laptop" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+              <img src="/assets/f0f7eaffd28bff647ab71073c5e804a9bb36aec8.jpg" alt="Couple with laptop" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
             </div>
           </div>
         </section>
@@ -233,7 +233,7 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
           <div className="bg-brand-dark rounded-3xl p-6 sm:p-10 flex flex-col gap-10 border border-slate-800">
             <div className="w-full overflow-hidden rounded-2xl max-h-[360px] border border-slate-800">
-              <img src="/src/8dba846db002417c3fb9cb45eb6d1f275241dce8.png" alt="Office meeting" className="w-full h-full object-cover object-center" />
+              <img src="/assets/8dba846db002417c3fb9cb45eb6d1f275241dce8.png" alt="Office meeting" className="w-full h-full object-cover object-center" />
             </div>
             <div className="flex flex-col gap-8">
               <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-white">Why we're the right choice</h2>

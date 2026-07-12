@@ -401,7 +401,7 @@ export function Step4LifestyleGoals() {
           <div className="w-full self-stretch flex items-start justify-center pt-8">
             <div className="md:sticky md:top-32 w-full max-w-[280px] sm:max-w-[360px] lg:max-w-[420px] select-none pointer-events-none drop-shadow-md">
               <img
-                src="/src/target_neu.png"
+                src="/assets/target_neu.png"
                 alt="3D Target goals illustration"
                 className="w-full h-auto object-contain animate-float"
               />

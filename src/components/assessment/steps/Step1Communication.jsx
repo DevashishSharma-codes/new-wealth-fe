@@ -187,7 +187,7 @@ export function Step1Communication() {
           <div className="flex items-center justify-center w-full">
             <div className="w-full max-w-[280px] sm:max-w-[360px] lg:max-w-[420px] select-none pointer-events-none drop-shadow-md">
               <img
-                src="/src/chat_bubbles_neu.png"
+                src="/assets/chat_bubbles_neu.png"
                 alt="3D Chat bubbles illustration"
                 className="w-full h-auto object-contain animate-float"
               />

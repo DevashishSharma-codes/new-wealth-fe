@@ -2,9 +2,7 @@ import client, { API_BASE_URL, API_KEY } from "../config/api";
 
 export const generateReport = (assessmentId) => {
   console.log(`[API REQUEST] POST /report/${assessmentId}/generate`);
-  return client.post(`/report/${assessmentId}/generate`, null, {
-    responseType: "blob",
-  });
+  return client.post(`/report/${assessmentId}/generate`);
 };
 
 export const getDownloadUrl = (assessmentId, reportId) => {

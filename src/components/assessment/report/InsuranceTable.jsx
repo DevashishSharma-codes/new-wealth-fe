@@ -18,7 +18,7 @@ export function InsuranceTable({ calculationResult }) {
               <th className="px-4 py-3.5">Insurance Need Type</th>
               <th className="px-4 py-3.5 text-center">Duration</th>
               <th className="px-4 py-3.5 text-right">Required Cover</th>
-              <th className="px-4 py-3.5 text-center">Protection Type</th>
+              <th className="px-4 py-3.5 text-center min-w-[130px]" style={{ minWidth: '130px' }}>Protection Type</th>
               <th className="px-4 py-3.5 text-right">Present Value (PV)</th>
             </tr>
           </thead>
@@ -28,8 +28,11 @@ export function InsuranceTable({ calculationResult }) {
                 <td className="px-4 py-3 font-semibold">{ins.need}</td>
                 <td className="px-4 py-3 text-center text-slate-600 whitespace-nowrap">{ins.years} Years</td>
                 <td className="px-4 py-3 text-right font-medium whitespace-nowrap">{ins.amount.inr}</td>
-                <td className="px-4 py-3 text-center whitespace-nowrap">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-50 text-[#ED8B36] border border-orange-100 font-sans whitespace-nowrap inline-block">
+                <td className="px-4 py-3 text-center whitespace-nowrap min-w-[130px]" style={{ minWidth: '130px' }}>
+                  <span
+                    className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-[#ED8B36] border border-orange-100 font-sans inline-flex items-center justify-center"
+                    style={{ whiteSpace: 'nowrap', display: 'inline-flex' }}
+                  >
                     {ins.type}
                   </span>
                 </td>

@@ -399,40 +399,81 @@ export default function AssessmentProvider({ children }) {
       setShowReport(true);
       setIsCalculating(false);
 
-      // 3. Generate Report PDF and handle email/download in background
+      // 3. Generate PDF Report in background with polling
       setReportMessage("Generating report...");
-      reportService.generateReport(assessmentId)
-        .then(async (responseBlob) => {
-          if (responseBlob.type === "application/json") {
-            // Case 1: JSON response
-            const text = await responseBlob.text();
-            const resData = JSON.parse(text);
-            const deliveryMode = resData?.delivery_mode || resData?.data?.delivery_mode;
-            if (deliveryMode === "email") {
-              setReportMessage("Report sent to your email");
-            } else {
-              setReportMessage("Report generated successfully");
-            }
-            const rId = resData?.report_id || resData?.data?.report_id;
-            if (rId) {
-              setReportId(rId);
-            }
+      try {
+        console.log("[submitStep5] Triggering reportService.generateReport for assessmentId:", assessmentId);
+        const reportRes = await reportService.generateReport(assessmentId);
+        console.log("[submitStep5] generateReport response:", reportRes);
+        const reportData = reportRes?.data || reportRes;
+        console.log("[submitStep5] reportData:", reportData);
+
+        if (reportData && (reportData.report_id || reportData.data?.report_id)) {
+          const finalReportId = reportData.report_id || reportData.data?.report_id;
+          console.log("[submitStep5] Report generated synchronously. Setting reportId directly to:", finalReportId);
+          setReportId(finalReportId);
+          const deliveryMode = reportData.delivery_mode || reportData.data?.delivery_mode;
+          if (deliveryMode === "email") {
+            setReportMessage("Report sent to your email");
           } else {
-            // Case 2: File response (PDF, HTML, etc.)
-            const url = URL.createObjectURL(responseBlob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `wealth-wisdom-report-${assessmentId}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            setReportMessage("Report downloaded successfully");
+            setReportMessage("Report generated successfully");
           }
-        })
-        .catch((reportErr) => {
-          console.error("Failed to generate report:", reportErr);
+        } else if (reportData && (reportData.job_id || reportData.data?.job_id)) {
+          const jobId = reportData.job_id || reportData.data?.job_id;
+          console.log("[submitStep5] Polling job ID:", jobId);
+
+          // Poll asynchronously
+          (async () => {
+            let reportDone = false;
+            let checkCount = 0;
+            const maxChecks = 45;
+
+            while (!reportDone && checkCount < maxChecks) {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              checkCount++;
+              try {
+                console.log(`[polling] Check #${checkCount} status for jobId: ${jobId}`);
+                const statusRes = await reportService.checkReportStatus(assessmentId, jobId);
+                console.log(`[polling] Check #${checkCount} statusRes:`, statusRes);
+                const statusData = statusRes?.data || statusRes;
+
+                const currentJobStatus = statusData?.status || statusRes?.status;
+
+                if (currentJobStatus === "completed" || currentJobStatus === "success") {
+                  const finalReportId = statusData?.report_id || statusData?.id || statusRes?.report_id || statusRes?.id;
+                  console.log(`[polling] Report generation completed! Setting reportId to:`, finalReportId);
+                  setReportId(finalReportId);
+                  
+                  const deliveryMode = statusData?.delivery_mode || statusRes?.delivery_mode;
+                  if (deliveryMode === "email") {
+                    setReportMessage("Report sent to your email");
+                  } else {
+                    setReportMessage("Report generated successfully");
+                  }
+                  reportDone = true;
+                } else if (currentJobStatus === "failed") {
+                  console.error("[polling] Report generation failed on backend.");
+                  setReportMessage("Failed to generate report.");
+                  break;
+                }
+              } catch (pollErr) {
+                console.error("[polling] Error in polling check:", pollErr);
+              }
+            }
+
+            if (!reportDone) {
+              console.warn("[polling] Polling finished or timed out without report completion.");
+              setReportMessage("Report generation timed out.");
+            }
+          })();
+        } else {
+          console.warn("[submitStep5] Missing report_id or job_id in report response:", reportData);
           setReportMessage("Failed to generate report.");
-        });
+        }
+      } catch (reportErr) {
+        console.error("Failed to generate PDF:", reportErr);
+        setReportMessage("Failed to generate report.");
+      }
     } catch (err) {
       console.error(err);
       setApiError(err.message || "Failed to calculate retirement plan. Please review your settings.");

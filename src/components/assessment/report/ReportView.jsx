@@ -44,77 +44,28 @@ export function ReportView() {
     }
   };
 
-  let displayInsurance = '1.25';
-  let displayCorpus = '6.80';
-  let displayMonthly = '48,500';
-
-  const calculatedSavings = (parseFloat(formData.epfTotalCorpus) || 0) +
-    (parseFloat(formData.npsTotalCorpus) || 0) +
-    (parseFloat(formData.superTotalCorpus) || 0);
-  const targetCorpusAmount = (calculateCorpus(formData) || 6.8) * 10000000;
-  const gap = Math.max(0, targetCorpusAmount - calculatedSavings);
-  const years = parseInt(formData.yearsUntilRetirement, 10) || 30;
-
-  const isMockupDefault = formData.requiredAnnualIncome === '1200000' || !formData.requiredAnnualIncome || formData.requiredAnnualIncome === '1250000';
-
-  if (calculationResult) {
-    const insRaw = calculationResult.insurance?.total_required?.raw || 0;
-    displayInsurance = (insRaw / 10000000).toFixed(2);
-
-    const clientCorpus = calculationResult.client?.corpus?.raw || 0;
-    const spouseCorpus = calculationResult.spouse?.corpus?.raw || 0;
-    displayCorpus = ((clientCorpus + spouseCorpus) / 10000000).toFixed(2);
-
-    const clientSip = calculationResult.client?.monthly_sip?.raw || 0;
-    const spouseSip = calculationResult.spouse?.monthly_sip?.raw || 0;
-    const goalsSip = calculationResult.goals?.total_monthly_sip?.raw || 0;
-    displayMonthly = Math.round(clientSip + spouseSip + goalsSip).toLocaleString('en-IN');
-  } else {
-    displayInsurance = isMockupDefault ? '1.25' : ((parseFloat(formData.requiredAnnualIncome) * 10) / 10000000).toFixed(2);
-    displayCorpus = isMockupDefault ? '6.80' : calculateCorpus(formData).toFixed(2);
-    displayMonthly = isMockupDefault ? '48,500' : Math.round(gap / (years * 12 * 2.2)).toLocaleString('en-IN');
+  if (!calculationResult) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center gap-4 text-center">
+        <div className="w-12 h-12 rounded-full border-4 border-orange-100 border-t-[#ED8B36] animate-spin" />
+        <p className="text-sm text-slate-400">Loading calculation results...</p>
+      </div>
+    );
   }
 
-  // Fallback calculationResult so tables ALWAYS render
-  const activeCalculationResult = calculationResult || {
-    client: {
-      years_to_retirement: years,
-      retirement_period: 30,
-      expenses_today_pm: { inr: "₹ " + Math.round((parseFloat(formData.requiredAnnualIncome) || 1200000) / 12).toLocaleString('en-IN') },
-      expenses_at_retirement_pm: { inr: "₹ " + Math.round(((parseFloat(formData.requiredAnnualIncome) || 1200000) / 12) * Math.pow(1.06, years)).toLocaleString('en-IN') },
-      corpus: { inr: "₹ " + Math.round(targetCorpusAmount).toLocaleString('en-IN'), raw: targetCorpusAmount },
-      pf_corpus: { inr: "₹ " + Math.round(calculatedSavings).toLocaleString('en-IN') },
-      net_corpus: { inr: "₹ " + Math.round(gap).toLocaleString('en-IN') },
-      monthly_sip: { inr: "₹ " + displayMonthly },
-      lump_sum: { inr: "₹ " + Math.round(gap / 12).toLocaleString('en-IN') }
-    },
-    goals: {
-      items: (formData.number_of_children > 0 || childrenCount > 0) ? [
-        {
-          goal: "Higher Education for Child 1",
-          target_year: new Date().getFullYear() + 10,
-          current_cost: { inr: "₹ 10,000" },
-          future_cost: { inr: "₹ 17,900" },
-          monthly_sip: { inr: "₹ 1,500" }
-        }
-      ] : [],
-      total_monthly_sip: { inr: "₹ 0" }
-    },
-    insurance: {
-      items: [
-        {
-          need: "Income Replacement",
-          years: years,
-          amount: { inr: "₹ " + Math.round(parseFloat(displayInsurance) * 10000000).toLocaleString('en-IN') },
-          type: "Term Insurance",
-          pv: { inr: "₹ " + Math.round(parseFloat(displayInsurance) * 10000000).toLocaleString('en-IN') }
-        }
-      ],
-      total_required: { inr: "₹ " + Math.round(parseFloat(displayInsurance) * 10000000).toLocaleString('en-IN'), raw: parseFloat(displayInsurance) * 10000000 }
-    }
-  };
+  const insRaw = calculationResult.insurance?.total_required?.raw || 0;
+  const displayInsurance = (insRaw / 10000000).toFixed(2);
 
-  const hasGoals = activeCalculationResult.goals?.items?.length > 0;
+  const clientCorpus = calculationResult.client?.corpus?.raw || 0;
+  const spouseCorpus = calculationResult.spouse?.corpus?.raw || 0;
+  const displayCorpus = ((clientCorpus + spouseCorpus) / 10000000).toFixed(2);
+
+  const clientSip = calculationResult.client?.monthly_sip?.raw || 0;
+  const spouseSip = calculationResult.spouse?.monthly_sip?.raw || 0;
+  const goalsSip = calculationResult.goals?.total_monthly_sip?.raw || 0;
+  const displayMonthly = Math.round(clientSip + spouseSip + goalsSip).toLocaleString('en-IN');
+
+  const hasGoals = calculationResult.goals?.items?.length > 0;
 
   return (
     <div className="w-full max-w-[1440px] mx-auto space-y-4 sm:space-y-5 animate-fade-in px-3 sm:px-4 lg:px-6">
@@ -186,7 +137,7 @@ export function ReportView() {
         {/* Retirement Targets — full width, this is the densest block */}
         <RetirementTable
           formData={formData}
-          calculationResult={activeCalculationResult}
+          calculationResult={calculationResult}
         />
 
         {/* Goals + Insurance: side-by-side ONLY when Goals actually has data.
@@ -194,12 +145,12 @@ export function ReportView() {
             like it's stuck in a half-empty column. */}
         {hasGoals ? (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            <GoalsTable calculationResult={activeCalculationResult} />
-            <InsuranceTable calculationResult={activeCalculationResult} />
+            <GoalsTable calculationResult={calculationResult} />
+            <InsuranceTable calculationResult={calculationResult} />
           </div>
         ) : (
           <div className="w-full">
-            <InsuranceTable calculationResult={activeCalculationResult} />
+            <InsuranceTable calculationResult={calculationResult} />
           </div>
         )}
       </div>

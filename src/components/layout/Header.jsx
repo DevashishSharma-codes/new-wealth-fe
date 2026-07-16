@@ -90,7 +90,7 @@ export function Header({ currentStep = 1, totalSteps = 5, goToStep, showReport =
       </Link>
 
       {/* Title */}
-      <h2 className="font-heading text-lg sm:text-xl font-semibold text-slate-800 mt-6 tracking-wide text-center px-4">
+      <h2 className="font-heading text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-extrabold tracking-tight mt-6 text-center px-4 animate-fade-in-up animate-text-wave select-none leading-normal">
         Goal Analysis Assessment
       </h2>
 

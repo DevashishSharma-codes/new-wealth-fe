@@ -120,26 +120,63 @@ export const validateStep3Fields = (childrenData, childrenCount) => {
       }
     }
 
-    if (!child.goalType?.trim()) {
-      childErrors.goalType = "Goal type is required";
-    }
+    if (child.goals && Array.isArray(child.goals)) {
+      const goalsErrors = [];
+      child.goals.forEach((goal, gIdx) => {
+        const goalErrors = {};
+        if (!goal.goalType?.trim()) {
+          goalErrors.goalType = "Goal type is required";
+        }
 
-    if (!child.targetYear?.toString().trim()) {
-      childErrors.targetYear = "Target year is required";
-    } else {
-      const year = parseInt(child.targetYear, 10);
-      const currentYear = new Date().getFullYear();
-      if (isNaN(year) || year < currentYear || year > currentYear + 60) {
-        childErrors.targetYear = `Year must be between ${currentYear} and ${currentYear + 60}`;
+        if (!goal.targetYear?.toString().trim()) {
+          goalErrors.targetYear = "Target year is required";
+        } else {
+          const year = parseInt(goal.targetYear, 10);
+          const currentYear = new Date().getFullYear();
+          if (isNaN(year) || year < currentYear || year > currentYear + 60) {
+            goalErrors.targetYear = `Year must be between ${currentYear} and ${currentYear + 60}`;
+          }
+        }
+
+        if (!goal.todaysCost?.toString().trim()) {
+          goalErrors.todaysCost = "Today's cost is required";
+        } else {
+          const val = parseFloat(goal.todaysCost);
+          if (isNaN(val) || val <= 0) {
+            goalErrors.todaysCost = "Cost must be a positive number";
+          }
+        }
+
+        if (Object.keys(goalErrors).length > 0) {
+          goalsErrors[gIdx] = goalErrors;
+        }
+      });
+
+      if (goalsErrors.filter(Boolean).length > 0) {
+        childErrors.goals = goalsErrors;
       }
-    }
-
-    if (!child.todaysCost?.toString().trim()) {
-      childErrors.todaysCost = "Today's cost is required";
     } else {
-      const val = parseFloat(child.todaysCost);
-      if (isNaN(val) || val <= 0) {
-        childErrors.todaysCost = "Cost must be a positive number";
+      if (!child.goalType?.trim()) {
+        childErrors.goalType = "Goal type is required";
+      }
+
+      if (!child.targetYear?.toString().trim()) {
+        childErrors.targetYear = "Target year is required";
+      } else {
+        const year = parseInt(child.targetYear, 10);
+        const currentYear = new Date().getFullYear();
+        if (isNaN(year) || year < currentYear || year > currentYear + 60) {
+          childErrors.targetYear = `Year must be between ${currentYear} and ${currentYear + 60}`;
+        }
+      }
+
+      if (!child.todaysCost?.toString().trim()) {
+        childErrors.todaysCost = "Today's cost is required";
+      } else {
+        const val = parseFloat(child.todaysCost);
+        if (isNaN(val) || val <= 0) {
+          childErrors.todaysCost = "Cost must be a positive number";
+        }
       }
     }
 

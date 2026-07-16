@@ -37,10 +37,10 @@ const initialFormData = {
 };
 
 const initialChildren = [
-  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "" },
-  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "" },
-  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "" },
-  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "" },
+  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "", goals: [{ id: "g-init-1", goalType: "", targetYear: "", todaysCost: "" }] },
+  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "", goals: [{ id: "g-init-2", goalType: "", targetYear: "", todaysCost: "" }] },
+  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "", goals: [{ id: "g-init-3", goalType: "", targetYear: "", todaysCost: "" }] },
+  { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "", goals: [{ id: "g-init-4", goalType: "", targetYear: "", todaysCost: "" }] },
 ];
 
 const initialGoals = [];
@@ -88,7 +88,35 @@ export default function AssessmentProvider({ children }) {
   const updateChild = (index, fields) => {
     setChildrenData((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], ...fields };
+      if (!updated[index]) {
+        updated[index] = { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "", goals: [{ id: Date.now() + Math.random(), goalType: "", targetYear: "", todaysCost: "" }] };
+      }
+      
+      const child = { ...updated[index], ...fields };
+
+      if (!child.goals || !Array.isArray(child.goals)) {
+        child.goals = [{ id: Date.now() + Math.random(), goalType: child.goalType || "", targetYear: child.targetYear || "", todaysCost: child.todaysCost || "" }];
+      }
+
+      if (fields.hasOwnProperty("goalType") || fields.hasOwnProperty("targetYear") || fields.hasOwnProperty("todaysCost")) {
+        const updatedGoals = [...child.goals];
+        if (updatedGoals[0]) {
+          updatedGoals[0] = {
+            ...updatedGoals[0],
+            ...(fields.hasOwnProperty("goalType") ? { goalType: fields.goalType } : {}),
+            ...(fields.hasOwnProperty("targetYear") ? { targetYear: fields.targetYear } : {}),
+            ...(fields.hasOwnProperty("todaysCost") ? { todaysCost: fields.todaysCost } : {}),
+          };
+          child.goals = updatedGoals;
+        }
+      }
+
+      if (fields.hasOwnProperty("goals") && fields.goals.length > 0) {
+        const firstGoal = fields.goals[0];
+        child.goalType = firstGoal.goalType || "";
+        child.targetYear = firstGoal.targetYear || "";
+        child.todaysCost = firstGoal.todaysCost || "";
+      }
 
       if (fields.hasOwnProperty("dob") && fields.dob) {
         const parts = fields.dob.split("/");
@@ -105,14 +133,15 @@ export default function AssessmentProvider({ children }) {
             if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
               ageVal--;
             }
-            updated[index].age = ageVal >= 0 ? `${ageVal} Years` : "0 Years";
+            child.age = ageVal >= 0 ? `${ageVal} Years` : "0 Years";
           } else {
-            updated[index].age = "";
+            child.age = "";
           }
         } else {
-          updated[index].age = "";
+          child.age = "";
         }
       }
+      updated[index] = child;
       return updated;
     });
   };
@@ -290,25 +319,33 @@ export default function AssessmentProvider({ children }) {
 
       // Child education goals
       childrenData.slice(0, childrenCount).forEach((c) => {
-        if (c.goalType && c.targetYear && c.todaysCost) {
-          const mappedType =
-            c.goalType === "Higher Education"
-              ? "Graduation"
-              : c.goalType === "Marriage"
-              ? "Marriage"
-              : "Other";
-          const goalObj = {
-            category: "child_goal",
-            goal_type: mappedType,
-            target_year: parseInt(c.targetYear),
-            today_cost: parseFloat(c.todaysCost),
-            inflation_rate: 0.06,
-          };
-          if (c.id) {
-            goalObj.child_id = c.id;
+        if (!c) return;
+        
+        const goalsToSubmit = c.goals && Array.isArray(c.goals) ? c.goals : [
+          { goalType: c.goalType, targetYear: c.targetYear, todaysCost: c.todaysCost }
+        ];
+
+        goalsToSubmit.forEach((g) => {
+          if (g.goalType && g.targetYear && g.todaysCost) {
+            const mappedType =
+              g.goalType === "Higher Education"
+                ? "Graduation"
+                : g.goalType === "Marriage"
+                ? "Marriage"
+                : "Other";
+            const goalObj = {
+              category: "child_goal",
+              goal_type: mappedType,
+              target_year: parseInt(g.targetYear),
+              today_cost: parseFloat(g.todaysCost),
+              inflation_rate: 0.06,
+            };
+            if (c.id) {
+              goalObj.child_id = c.id;
+            }
+            apiGoals.push(goalObj);
           }
-          apiGoals.push(goalObj);
-        }
+        });
       });
 
       // Lifestyle goals

@@ -64,6 +64,59 @@ h6 {
   animation: float 4s ease-in-out infinite;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes text-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-text-shine {
+  background-size: 200% auto;
+  animation: text-shine 5s ease-in-out infinite;
+}
+
+@keyframes wave-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-text-wave {
+  background: linear-gradient(120deg, #1E2B49 0%, #9C3A03 25%, #C28020 50%, #9C3A03 75%, #1E2B49 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wave-animation 7s ease-in-out infinite;
+}
+
 /* ------------------------------------------------------------------
    Global Neumorphic Styles
 --------------------------------------------------------------------*/
@@ -225,4 +278,16 @@ body {
   background-color: #F1EDE6 !important;
   border: 1px solid #EFE9DF !important;
   box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Neumorphic Embossed Text Effect */
+.neu-text-embossed {
+  text-shadow: 1.5px 1.5px 3px rgba(221, 212, 199, 0.8), -1.5px -1.5px 3px rgba(255, 255, 255, 1) !important;
+}
+
+/* Orangish-whitish premium neumorphic card bg (Classic Neumorphism - Inset) */
+.neu-card-orange-classic {
+  background-color: #FFEBD6 !important; /* Soft warm orange bg */
+  border: 1px solid #EFE9DF !important;
+  box-shadow: inset 5px 5px 8px rgba(214, 203, 186, 0.85), inset -5px -5px 8px rgba(255, 255, 255, 1) !important; /* Inset light/dark shadows */
 }

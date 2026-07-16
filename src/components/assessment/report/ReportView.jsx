@@ -23,6 +23,48 @@ export function ReportView() {
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
 
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  const handleDownloadClick = async () => {
+    if (!reportId) return;
+
+    // 1. Check for the 20-minute cooldown (1,200,000 milliseconds)
+    const now = Date.now();
+    const lastDownloadStr = localStorage.getItem(`last_download_${reportId}`);
+    if (lastDownloadStr) {
+      const lastDownload = parseInt(lastDownloadStr, 10);
+      const diffMs = now - lastDownload;
+      const cooldownMs = 20 * 60 * 1000; // 20 minutes
+      if (diffMs < cooldownMs) {
+        const remainingMinutes = Math.ceil((cooldownMs - diffMs) / (60 * 1000));
+        alert(`This report was already downloaded recently. To protect server resources, please wait ${remainingMinutes} minute(s) before downloading again.`);
+        return;
+      }
+    }
+
+    // 2. Set visual 20-second active UI cooldown to prevent double clicks
+    setCooldownSeconds(20);
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    try {
+      await downloadReport();
+      localStorage.setItem(`last_download_${reportId}`, Date.now().toString());
+    } catch (err) {
+      console.error("Download failed:", err);
+      clearInterval(interval);
+      setCooldownSeconds(0);
+      alert("Download failed: " + err.message);
+    }
+  };
+
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -82,20 +124,18 @@ export function ReportView() {
           </div>
           <div className="space-y-1">
             <h1 className="font-heading text-lg sm:text-xl lg:text-2xl font-extrabold text-[#1C1B1A] leading-tight">
-              {reportMessage === "Report sent to your email" ? "Report Sent Successfully!" : reportMessage || "Report Sent Successfully!"}
+              Your Financial Blueprint is Ready!
             </h1>
             <p className="text-[#8E8A80] text-xs sm:text-sm font-light">
-              {reportMessage === "Report sent to your email" ? (
+              {reportId ? (
                 <>
-                  Your personalized retirement assessment report has been sent to:{' '}
-                  <span className="font-semibold text-[#ED8B36]">{formData.email}</span>
+                  Your comprehensive financial assessment report has been sent to your email:{' '}
+                  <span className="font-semibold text-[#ED8B36]">{formData.email}</span>. You can also download it directly.
                 </>
-              ) : reportMessage === "Report downloaded successfully" ? (
-                "Your personalized retirement assessment report has been downloaded."
               ) : (
                 <>
-                  Your personalized retirement assessment report has been sent to:{' '}
-                  <span className="font-semibold text-[#ED8B36]">{formData.email || '21spheres@gmail.com'}</span>
+                  A detailed PDF report of your assessment is being prepared and will be delivered to your email:{' '}
+                  <span className="font-semibold text-[#ED8B36]">{formData.email}</span> within a minute.
                 </>
               )}
             </p>
@@ -105,13 +145,18 @@ export function ReportView() {
         {reportId && (
           <button
             type="button"
-            onClick={downloadReport}
-            className="bg-[#1C1B1A] hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 cursor-pointer w-full md:w-auto justify-center shrink-0"
+            disabled={cooldownSeconds > 0}
+            onClick={handleDownloadClick}
+            className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 ${
+              cooldownSeconds > 0
+                ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                : "bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer"
+            }`}
           >
             <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Download PDF Report
+            {cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : "Download PDF Report"}
           </button>
         )}
       </div>
@@ -162,7 +207,7 @@ export function ReportView() {
             Ready to Build Your Complete Financial Plan?
           </h2>
           <p className="text-blue-100/80 text-xs sm:text-[13px] leading-relaxed font-light">
-            Your retirement assessment provides a strong starting point, but a personalized financial strategy can help you optimize investments, retirement income, insurance, tax efficiency, estate planning, and long-term wealth preservation.
+            Your goal-based financial assessment provides a strong starting point, but a personalized financial strategy can help you optimize investments, future wealth, insurance coverage, tax efficiency, estate planning, and long-term milestone achievements.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 pt-1">
@@ -197,13 +242,18 @@ export function ReportView() {
             {reportId && (
               <button
                 type="button"
-                onClick={downloadReport}
-                className="bg-white hover:bg-slate-50 text-[#1E2B49] border border-[#E5E2DA] px-6 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs hover:shadow-md flex items-center gap-2 cursor-pointer w-full sm:w-auto justify-center"
+                disabled={cooldownSeconds > 0}
+                onClick={handleDownloadClick}
+                className={`px-6 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs hover:shadow-md flex items-center gap-2 w-full sm:w-auto justify-center border ${
+                  cooldownSeconds > 0
+                    ? "bg-slate-300 border-slate-300 text-slate-500 cursor-not-allowed"
+                    : "bg-white hover:bg-slate-50 text-[#1E2B49] border-[#E5E2DA] cursor-pointer"
+                }`}
               >
                 <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Download PDF Report
+                {cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : "Download PDF Report"}
               </button>
             )}
             <button
@@ -219,7 +269,7 @@ export function ReportView() {
 
       {/* Get In Touch Contact Area */}
       <div className="space-y-1 pt-2">
-        <h2 className="font-heading text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#1C1B1A] text-center">Get In Touch</h2>
+        <h2 className="font-heading text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#1C1B1A] text-center">Get In Touch For Detailed Investment Planning</h2>
         <p className="text-[#8E8A80] text-xs sm:text-sm text-center">We're here to help you plan a financially secure future.</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
@@ -233,9 +283,10 @@ export function ReportView() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 flex flex-col">
                 <span className="text-[9px] font-bold text-[#A69E90] tracking-wider uppercase block">PHONE</span>
-                <a href="tel:+91942222162" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline">+91 94222 22162</a>
+                <a href="tel:+919422203162" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline leading-tight">+91 94222 03162</a>
+                <a href="tel:+918623912149" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline leading-tight pt-0.5">+91 86239 12149</a>
               </div>
             </div>
 
@@ -247,7 +298,7 @@ export function ReportView() {
               </div>
               <div className="space-y-0.5">
                 <span className="text-[9px] font-bold text-[#A69E90] tracking-wider uppercase block">WHATSAPP</span>
-                <a href="https://wa.me/919503192225" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline">+91 95031 92225</a>
+                <a href="https://wa.me/919561115408" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline">+91 95611 15408</a>
               </div>
             </div>
 
@@ -259,8 +310,8 @@ export function ReportView() {
               </div>
               <div className="space-y-0.5">
                 <span className="text-[9px] font-bold text-[#A69E90] tracking-wider uppercase block">EMAIL</span>
-                <a href="mailto:kallashmalpani@wealthwisdom.com" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline block leading-tight font-sans">kallashmalpani@wealthwisdom.com</a>
-                <a href="mailto:wealthwisdom86@gmail.com" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline block leading-tight pt-0.5 font-sans">wealthwisdom86@gmail.com</a>
+                <a href="mailto:kailashmalpani@wealthswisdom.com" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline block leading-tight font-sans">kailashmalpani@wealthswisdom.com</a>
+                <a href="mailto:keshavmalpani@wealthswisdom.com" className="text-xs sm:text-sm font-bold text-[#1C1B1A] hover:underline block leading-tight pt-0.5 font-sans">keshavmalpani@wealthswisdom.com</a>
               </div>
             </div>
 
@@ -274,7 +325,7 @@ export function ReportView() {
               <div className="space-y-0.5">
                 <span className="text-[9px] font-bold text-[#A69E90] tracking-wider uppercase block">ADDRESS</span>
                 <p className="text-xs sm:text-sm font-semibold text-[#1C1B1A] leading-relaxed">
-                  D-184, FREEDOM TOWERS, Behind Asian Hospital, Akashwani Square, Chhatrapati Sambhaji Nagar (Aurangabad) 431005
+                  D 614, FREEDOM TOWERS, Behind Asian Hospital, Akashwani square, Chhatrapati Sambhaji Nagar (Aurangabad) 431005
                 </p>
               </div>
             </div>
@@ -288,7 +339,7 @@ export function ReportView() {
               <div className="space-y-0.5">
                 <span className="text-[9px] font-bold text-[#A69E90] tracking-wider uppercase block">BRANCH OFFICE</span>
                 <p className="text-xs sm:text-sm font-semibold text-[#1C1B1A] leading-relaxed">
-                  1st Floor, MADSM Building More Chowk, Bajaj MIDC Ctr, Sambhajinagar (Aurangabad) - 431136
+                  1st Floor, MASSIA Building More Chowk, Waluj MIDC Chh. Sambhajinagar (Aurangabad) – 431136
                 </p>
               </div>
             </div>
@@ -359,7 +410,7 @@ export function ReportView() {
               type="submit"
               className="w-full neu-btn-raised py-3 font-bold text-xs sm:text-sm cursor-pointer mt-1"
             >
-              Get My Complete Retirement Roadmap &rarr;
+              Get My Complete Financial Roadmap &rarr;
             </button>
 
           </form>

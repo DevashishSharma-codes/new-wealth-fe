@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import wealthWisdomLogo from '../assets/wealth-wisdom-logo.png';
+import client from '../config/api';
 
 // Custom SVG Icons for Features
 const ReadinessIcon = () => (
@@ -40,13 +41,43 @@ const PlanningIcon = () => (
 );
 
 export default function Home() {
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactMobile, setContactMobile] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await client.post('/contact/get-in-touch', {
+        name: contactName,
+        mobile: contactMobile,
+        email: contactEmail,
+        message: contactMessage
+      });
+      alert("Thank you! Our expert financial advisor will get in touch with you shortly.");
+      setContactName('');
+      setContactMobile('');
+      setContactEmail('');
+      setContactMessage('');
+      setIsContactModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit request: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-brand-gold/30 selection:text-brand-blue">
 
       {/* 1. Top Promotional Banner */}
       <div className="bg-[#FFF3E6] border-b border-orange-100 py-3 px-4 text-center">
         <p className="text-xs sm:text-sm text-[#E56A1F] font-medium tracking-wide">
-          Take charge of your future with a personalized retirement plan &rarr;{' '}
+          Take charge of your future with a personalized goal-based financial plan &rarr;{' '}
           <Link to="/assessment" className="underline hover:text-brand-orange font-bold transition-colors">
             Start your assessment today!
           </Link>
@@ -63,7 +94,7 @@ export default function Home() {
           </Link>
 
           {/* Title */}
-          <h2 className="hidden md:block font-heading text-[19px] font-medium text-slate-700">
+          <h2 className="hidden sm:block font-heading text-xl md:text-3xl lg:text-[34px] font-extrabold tracking-tight animate-fade-in-up animate-text-wave select-none leading-normal">
             Goal Analysis Assessment
           </h2>
 
@@ -85,12 +116,12 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7">
               <h1 className="font-heading text-4xl sm:text-[46px] lg:text-[48px] font-extrabold text-[#1C1B1A] leading-[1.15] tracking-tight">
-                Plan today for the life you want tomorrow
+                Turn Your Dreams into Achievable Financial Goals
               </h1>
             </div>
             <div className="lg:col-span-5 lg:pt-3">
               <p className="text-[#555D6E] text-[15px] sm:text-[16px] leading-[1.6] font-normal">
-                This retirement assessment helps you estimate future financial needs, evaluate your current preparedness, and discover the steps required to achieve long-term financial independence.
+                Achieve your aspirations with a flexible framework built for multiple goals, different timelines, and smarter planning. Discover the steps required to turn your dreams into reality.
               </p>
             </div>
           </div>
@@ -167,10 +198,10 @@ export default function Home() {
         <section className="bg-white border-y border-slate-100 py-16 sm:py-20 text-center">
           <div className="max-w-3xl mx-auto px-4">
             <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-brand-blue mb-4 leading-tight">
-              Build a Retirement Plan Designed Around Your Goals
+              A Financial Plan Built Around Your Life Milestones
             </h2>
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl mx-auto">
-              Understand whether you're on track to achieve financial independence and the lifestyle you envision. Our assessment helps uncover retirement income needs, future expenses, investment requirements, and potential planning gaps, all in just a few minutes.
+              Understand whether you're on track to achieve all of your life goals and the future you envision. Our assessment helps uncover your funding requirements, target timelines, investment needs, and potential planning gaps, all in just a few minutes.
             </p>
             <Link
               to="/assessment"
@@ -240,11 +271,11 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
                 <div className="flex flex-col gap-2">
                   <h4 className="font-heading text-base sm:text-lg font-bold text-white">Personalized to Your Life Goals</h4>
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Tailored around your family, lifestyle, retirement goals, and financial priorities.</p>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Tailored around your family, lifestyle, milestone goals, and financial priorities.</p>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <h4 className="font-heading text-base sm:text-lg font-bold text-white">Retirement Readiness</h4>
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Know the corpus, investments, and protection needed for a secure retirement.</p>
+                  <h4 className="font-heading text-base sm:text-lg font-bold text-white">Goal Readiness</h4>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-light">Know the funding requirements, target timelines, and investments needed to hit every target.</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <h4 className="font-heading text-base sm:text-lg font-bold text-white">Actionable Financial Roadmap</h4>
@@ -252,7 +283,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="pt-2">
-                <button onClick={() => alert("Book Consultation feature under development.")} className="inline-flex items-center gap-2 bg-white text-brand-dark px-5 py-3 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-all cursor-pointer">
+                <button onClick={() => setIsContactModalOpen(true)} className="inline-flex items-center gap-2 bg-white text-brand-dark px-5 py-3 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-all cursor-pointer">
                   Book my free consultation &rarr;
                 </button>
               </div>
@@ -282,6 +313,101 @@ export default function Home() {
           <p className="text-[11px] sm:text-xs text-slate-400 font-light tracking-wide">&copy; 2026 Wealth Wisdom. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Get In Touch Modal */}
+      {isContactModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in select-none">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-[#1C1B1A]/40 backdrop-blur-xs transition-opacity cursor-pointer" 
+            onClick={() => setIsContactModalOpen(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative w-full max-w-lg bg-[#F4F1EA] border border-[#EFE9DF] rounded-[2rem] shadow-xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto z-10 text-left">
+            {/* Close Button */}
+            <button 
+              type="button"
+              onClick={() => setIsContactModalOpen(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full flex items-center justify-center neu-btn-flat-inactive cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Form */}
+            <form onSubmit={handleContactSubmit} className="space-y-4">
+              <div className="text-[11px] font-bold text-[#F0883E] tracking-wider uppercase mb-1">
+                GET EXPERT GUIDANCE FOR YOUR FINANCIAL FUTURE
+              </div>
+              <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#1C1B1A] leading-tight mb-2">
+                Book Your Consultation
+              </h3>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A4740]">Your Name*</label>
+                <input
+                  type="text"
+                  required
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Enter your full name"
+                  className={`${contactName ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A4740]">Email address*</label>
+                <input
+                  type="email"
+                  required
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className={`${contactEmail ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A4740]">Mobile Number*</label>
+                <div className="flex gap-2">
+                  <div className="neu-prefix rounded-xl px-3 py-3 text-xs sm:text-sm font-semibold select-none shrink-0 flex items-center justify-center font-sans">
+                    +91
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    value={contactMobile}
+                    onChange={(e) => setContactMobile(e.target.value)}
+                    placeholder="Enter your mobile number"
+                    className={`${contactMobile ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A4740]">Message</label>
+                <textarea
+                  rows="3"
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  placeholder="Enter your message (optional)"
+                  className={`${contactMessage ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200 resize-none`}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full neu-btn-raised py-3 font-bold text-xs sm:text-sm cursor-pointer mt-2 disabled:opacity-50"
+              >
+                {isSubmitting ? "Submitting..." : "Get My Complete Financial Roadmap ➔"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

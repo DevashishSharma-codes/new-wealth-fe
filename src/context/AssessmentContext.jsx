@@ -600,9 +600,11 @@ export default function AssessmentProvider({ children }) {
   const downloadReport = async () => {
     if (!assessmentId || !reportId) {
       console.error("[DOWNLOAD ERROR] assessmentId or reportId missing:", { assessmentId, reportId });
-      return;
+      throw new Error("Your report is not ready to download yet.");
     }
-    console.log("[API REQUEST] Protected report download initiated:", { assessmentId, reportId });
+
+    // The download endpoint requires the X-API-Key request header. A native link
+    // cannot attach that header, so fetch the authenticated PDF before saving it.
     const reportBlob = await reportService.downloadGeneratedReport(assessmentId, reportId);
     const download = reportService.createReportDownload(reportBlob, assessmentId);
     const link = document.createElement("a");
@@ -611,6 +613,7 @@ export default function AssessmentProvider({ children }) {
     document.body.appendChild(link);
     link.click();
     link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(download.url), 60_000);
   };
 
   const contextValue = {

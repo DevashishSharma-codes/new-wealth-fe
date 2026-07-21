@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
 import { calculateCorpus } from '../../../utils/formatters';
 import { MetricCards } from './MetricCards';
@@ -22,45 +22,23 @@ export function ReportView() {
   const [contactMobile, setContactMobile] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
-
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const downloadLockedUntilRef = useRef(0);
 
   const handleDownloadClick = async () => {
     if (!reportId) return;
 
-    // 1. Check for the 20-minute cooldown (1,200,000 milliseconds)
+    // Silently ignore repeat clicks. This is deliberately not reflected in the
+    // customer UI; the report endpoint remains responsible for durable
+    // idempotency across tabs, sessions, and devices.
     const now = Date.now();
-    const lastDownloadStr = localStorage.getItem(`last_download_${reportId}`);
-    if (lastDownloadStr) {
-      const lastDownload = parseInt(lastDownloadStr, 10);
-      const diffMs = now - lastDownload;
-      const cooldownMs = 20 * 60 * 1000; // 20 minutes
-      if (diffMs < cooldownMs) {
-        const remainingMinutes = Math.ceil((cooldownMs - diffMs) / (60 * 1000));
-        alert(`This report was already downloaded recently. To protect server resources, please wait ${remainingMinutes} minute(s) before downloading again.`);
-        return;
-      }
-    }
-
-    // 2. Set visual 20-second active UI cooldown to prevent double clicks
-    setCooldownSeconds(20);
-    const interval = setInterval(() => {
-      setCooldownSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (now < downloadLockedUntilRef.current) return;
+    downloadLockedUntilRef.current = now + 20_000;
 
     try {
       await downloadReport();
-      localStorage.setItem(`last_download_${reportId}`, Date.now().toString());
     } catch (err) {
       console.error("Download failed:", err);
-      clearInterval(interval);
-      setCooldownSeconds(0);
+      downloadLockedUntilRef.current = 0;
       alert("Download failed: " + err.message);
     }
   };
@@ -162,18 +140,13 @@ export function ReportView() {
         {reportId && (
           <button
             type="button"
-            disabled={cooldownSeconds > 0}
             onClick={handleDownloadClick}
-            className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 ${
-              cooldownSeconds > 0
-                ? "bg-slate-300 text-slate-500 cursor-not-allowed"
-                : "bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer"
-            }`}
+            className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer"
           >
             <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            {cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : "Download PDF Report"}
+            Download PDF Report
           </button>
         )}
       </div>
@@ -261,18 +234,13 @@ export function ReportView() {
             {reportId && (
               <button
                 type="button"
-                disabled={cooldownSeconds > 0}
                 onClick={handleDownloadClick}
-                className={`px-6 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs hover:shadow-md flex items-center gap-2 w-full sm:w-auto justify-center border ${
-                  cooldownSeconds > 0
-                    ? "bg-slate-300 border-slate-300 text-slate-500 cursor-not-allowed"
-                    : "bg-white hover:bg-slate-50 text-[#1E2B49] border-[#E5E2DA] cursor-pointer"
-                }`}
+                className="px-6 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs hover:shadow-md flex items-center gap-2 w-full sm:w-auto justify-center border bg-white hover:bg-slate-50 text-[#1E2B49] border-[#E5E2DA] cursor-pointer"
               >
                 <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                {cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : "Download PDF Report"}
+                Download PDF Report
               </button>
             )}
             <button

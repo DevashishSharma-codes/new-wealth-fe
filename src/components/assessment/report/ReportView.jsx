@@ -95,17 +95,34 @@ export function ReportView() {
     );
   }
 
-  const insRaw = calculationResult.insurance?.total_required?.raw || 0;
-  const displayInsurance = (insRaw / 10000000).toFixed(2);
+  const getMoneyDisplay = (money) => {
+    if (!money) return "₹0";
+    if (money.raw === 0) return "₹0";
+    return money.inr || "₹0";
+  };
 
-  const clientCorpus = calculationResult.client?.corpus?.raw || 0;
-  const spouseCorpus = calculationResult.spouse?.corpus?.raw || 0;
-  const displayCorpus = ((clientCorpus + spouseCorpus) / 10000000).toFixed(2);
+  let displayInsurance = "₹0";
+  let displayCorpus = "₹0";
+  let displayMonthly = "₹0";
 
-  const clientSip = calculationResult.client?.monthly_sip?.raw || 0;
-  const spouseSip = calculationResult.spouse?.monthly_sip?.raw || 0;
-  const goalsSip = calculationResult.goals?.total_monthly_sip?.raw || 0;
-  const displayMonthly = Math.round(clientSip + spouseSip + goalsSip).toLocaleString('en-IN');
+  if (calculationResult.summary) {
+    displayInsurance = getMoneyDisplay(calculationResult.summary.average_insurance_required);
+    displayCorpus = getMoneyDisplay(calculationResult.summary.total_retirement_corpus_required);
+    displayMonthly = getMoneyDisplay(calculationResult.summary.monthly_investment_required);
+  } else {
+    const insRaw = calculationResult.insurance?.total_required?.raw || 0;
+    displayInsurance = `₹${(insRaw / 10000000).toFixed(2)} Cr`;
+
+    const clientCorpus = calculationResult.client?.corpus?.raw || 0;
+    const spouseCorpus = calculationResult.spouse?.corpus?.raw || 0;
+    displayCorpus = `₹${((clientCorpus + spouseCorpus) / 10000000).toFixed(2)} Cr`;
+
+    const clientSip = calculationResult.client?.monthly_sip?.raw || 0;
+    const spouseSip = calculationResult.spouse?.monthly_sip?.raw || 0;
+    const goalsSip = calculationResult.goals?.total_monthly_sip?.raw || 0;
+    displayMonthly = `₹${Math.round(clientSip + spouseSip + goalsSip).toLocaleString('en-IN')}`;
+  }
+
 
   const hasGoals = calculationResult.goals?.items?.length > 0;
 
@@ -169,36 +186,38 @@ export function ReportView() {
       />
 
       {/* Detailed Financial Blueprint Report */}
-      <div className="neu-card-raised rounded-[1.5rem] p-4 sm:p-6 space-y-5 animate-fade-in w-full">
-        <div className="border-b border-[#EFE9DF] pb-3">
-          <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[#1E2B49] leading-tight">
-            Your Personalized Financial Blueprint
-          </h2>
-          <p className="text-[#8E8A80] text-xs sm:text-sm mt-1">
-            A detailed breakdown of your retirement calculations, life protection, and future goals.
-          </p>
+      {false && (
+        <div className="neu-card-raised rounded-[1.5rem] p-4 sm:p-6 space-y-5 animate-fade-in w-full">
+          <div className="border-b border-[#EFE9DF] pb-3">
+            <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[#1E2B49] leading-tight">
+              Your Personalized Financial Blueprint
+            </h2>
+            <p className="text-[#8E8A80] text-xs sm:text-sm mt-1">
+              A detailed breakdown of your retirement calculations, life protection, and future goals.
+            </p>
+          </div>
+
+          {/* Retirement Targets — full width, this is the densest block */}
+          <RetirementTable
+            formData={formData}
+            calculationResult={calculationResult}
+          />
+
+          {/* Goals + Insurance: side-by-side ONLY when Goals actually has data.
+              Otherwise Insurance takes the full width so it never looks
+              like it's stuck in a half-empty column. */}
+          {hasGoals ? (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              <GoalsTable calculationResult={calculationResult} />
+              <InsuranceTable calculationResult={calculationResult} />
+            </div>
+          ) : (
+            <div className="w-full">
+              <InsuranceTable calculationResult={calculationResult} />
+            </div>
+          )}
         </div>
-
-        {/* Retirement Targets — full width, this is the densest block */}
-        <RetirementTable
-          formData={formData}
-          calculationResult={calculationResult}
-        />
-
-        {/* Goals + Insurance: side-by-side ONLY when Goals actually has data.
-            Otherwise Insurance takes the full width so it never looks
-            like it's stuck in a half-empty column. */}
-        {hasGoals ? (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            <GoalsTable calculationResult={calculationResult} />
-            <InsuranceTable calculationResult={calculationResult} />
-          </div>
-        ) : (
-          <div className="w-full">
-            <InsuranceTable calculationResult={calculationResult} />
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Ready to Build Plan Banner */}
       <div className="bg-[#111E6C] rounded-[1.5rem] p-6 sm:p-8 relative overflow-hidden flex flex-col lg:flex-row items-center gap-6 border border-blue-900/10 shadow-lg text-white w-full">

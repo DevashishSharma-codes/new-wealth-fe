@@ -36,6 +36,17 @@ export default function Assessment() {
     }
   };
 
+  // If the user reloads/refreshes the page, send them back to the landing page.
+  // We detect a reload via the Navigation Timing API.
+  React.useEffect(() => {
+    const navEntries = performance.getEntriesByType("navigation");
+    if (navEntries.length > 0 && navEntries[0].type === "reload") {
+      // Clear stored assessment state so a fresh start is clean
+      try { sessionStorage.removeItem("ww_assessment_state"); } catch { /* noop */ }
+      window.location.replace("/");
+    }
+  }, []);
+
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [step, showReport]);

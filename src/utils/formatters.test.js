@@ -64,8 +64,8 @@ describe('formatters - new-wealth-fe', () => {
       };
 
       const expected = {
-        client_epf_annual: (5000 + 5000 + 2000 + 2000 + 1000) * 12, // 15000 * 12 = 180000
-        client_epf_accum: 500000 + 300000 + 200000, // 1000000
+        client_epf_annual: (5000 + 5000 + 2000 + 2000 + 1000) * 12,
+        client_epf_accum: 500000 + 300000 + 200000,
         client_annual_ret_reqd: 1000000,
         spouse_epf_annual: 0,
         spouse_epf_accum: 0,
@@ -90,7 +90,7 @@ describe('formatters - new-wealth-fe', () => {
         client_epf_annual: (5000 + 5000) * 12, // 120000
         client_epf_accum: 500000,
         client_annual_ret_reqd: 1000000 * 0.6, // 600000
-        spouse_epf_annual: 7200,
+        spouse_epf_annual: 0,
         spouse_epf_accum: 0,
         spouse_annual_ret_reqd: 1000000 * 0.4, // 400000
         household_monthly: 40000,
@@ -99,10 +99,15 @@ describe('formatters - new-wealth-fe', () => {
       expect(buildCalcPayload(formData)).toEqual(expected);
     });
 
-    test('should use fallbacks when formData properties are missing', () => {
+    test('should return empty object when all retirement fields are missing', () => {
       const payload = buildCalcPayload({});
-      expect(payload.client_annual_ret_reqd).toBe(1200000);
-      expect(payload.household_monthly).toBe(30000);
+      expect(payload).toEqual({});
+    });
+
+    test('should return payload with 0 fallbacks if at least one field is provided', () => {
+      const payload = buildCalcPayload({ requiredAnnualIncome: '1000000' });
+      expect(payload.client_annual_ret_reqd).toBe(1000000);
+      expect(payload.household_monthly).toBe(0);
       expect(payload.spouse_epf_annual).toBe(0);
     });
   });

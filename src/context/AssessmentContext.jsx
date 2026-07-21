@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import * as assessmentService from "../api/assessmentService";
 import * as reportService from "../api/reportService";
 import { buildCalcPayload } from "../utils/formatters";
@@ -45,20 +45,81 @@ const initialChildren = [
 
 const initialGoals = [];
 
+// --- sessionStorage helpers ---
+const SS_KEY = "ww_assessment_state";
+
+function loadFromSession() {
+  try {
+    const raw = sessionStorage.getItem(SS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveToSession(patch) {
+  try {
+    const existing = loadFromSession() || {};
+    sessionStorage.setItem(SS_KEY, JSON.stringify({ ...existing, ...patch }));
+  } catch { /* ignore quota errors */ }
+}
+// --------------------------------
+
 export default function AssessmentProvider({ children }) {
-  const [step, setStep] = useState(1);
-  const [assessmentId, setAssessmentId] = useState(null);
-  const [formData, setFormData] = useState(initialFormData);
-  const [childrenCount, setChildrenCountState] = useState(2);
-  const [childrenData, setChildrenData] = useState(initialChildren);
-  const [activeGoals, setActiveGoals] = useState(initialGoals);
-  const [calculationResult, setCalculationResult] = useState(null);
-  const [reportId, setReportId] = useState(null);
-  const [reportMessage, setReportMessage] = useState(null);
-  const [showReport, setShowReport] = useState(false);
+  const [step, setStepState] = useState(() => {
+    const urlStep = parseInt(new URLSearchParams(window.location.search).get("step")) || 1;
+    return urlStep >= 1 && urlStep <= 5 ? urlStep : 1;
+  });
+
+  // Use pushState so each step creates a browser history entry,
+  // meaning the browser back button navigates between steps.
+  // sessionStorage persistence (below) ensures formData survives any remount.
+  const setStep = (n) => {
+    setStepState(n);
+    const url = new URL(window.location);
+    url.searchParams.set("step", n);
+    window.history.pushState({ step: n }, "", url);
+  };
+
+  // Restore all persisted state from sessionStorage on mount
+  const _session = loadFromSession();
+
+  const [assessmentId, setAssessmentId] = useState(() => _session?.assessmentId || localStorage.getItem("ww_assessment_id") || null);
+  const [formData, setFormData] = useState(() => _session?.formData ? { ...initialFormData, ..._session.formData } : initialFormData);
+  const [childrenCount, setChildrenCountState] = useState(() => _session?.childrenCount ?? 2);
+  const [childrenData, setChildrenData] = useState(() => _session?.childrenData || initialChildren);
+  const [activeGoals, setActiveGoals] = useState(() => _session?.activeGoals || initialGoals);
+  const [calculationResult, setCalculationResult] = useState(() => _session?.calculationResult || null);
+  const [reportId, setReportId] = useState(() => _session?.reportId || null);
+  const [reportMessage, setReportMessage] = useState(() => _session?.reportMessage || null);
+  const [showReport, setShowReport] = useState(() => _session?.showReport || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [apiError, setApiError] = useState(null);
+
+  // Persist critical state to sessionStorage whenever it changes
+  useEffect(() => { saveToSession({ assessmentId }); }, [assessmentId]);
+  useEffect(() => { saveToSession({ formData }); }, [formData]);
+  useEffect(() => { saveToSession({ childrenCount }); }, [childrenCount]);
+  useEffect(() => { saveToSession({ childrenData }); }, [childrenData]);
+  useEffect(() => { saveToSession({ activeGoals }); }, [activeGoals]);
+  useEffect(() => { saveToSession({ calculationResult }); }, [calculationResult]);
+  useEffect(() => { saveToSession({ reportId }); }, [reportId]);
+  useEffect(() => { saveToSession({ reportMessage }); }, [reportMessage]);
+  useEffect(() => { saveToSession({ showReport }); }, [showReport]);
+
+  // Block browser back/forward — we manage navigation via replaceState
+  useEffect(() => {
+    const handlePopState = (e) => {
+      // Prevent browser from going to a different route;
+      // just re-sync step from URL if it's still on /assessment
+      const urlStep = parseInt(new URLSearchParams(window.location.search).get("step")) || 1;
+      const validStep = urlStep >= 1 && urlStep <= 5 ? urlStep : 1;
+      setStepState(validStep);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
 
 
@@ -180,13 +241,13 @@ export default function AssessmentProvider({ children }) {
   };
 
   const nextStep = () => {
-    setStep((prev) => prev + 1);
+    setStep(step + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const prevStep = () => {
     if (step > 1) {
-      setStep((prev) => prev - 1);
+      setStep(step - 1);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -197,6 +258,8 @@ export default function AssessmentProvider({ children }) {
     try {
       let currentId = assessmentId;
       if (!currentId) {
+        // Clear any stale session from a previous assessment run
+        try { sessionStorage.removeItem(SS_KEY); } catch { /* noop */ }
         await assessmentService.getRates();
         const createRes = await assessmentService.createAssessment();
         currentId = createRes.data.assessment_id;
@@ -238,7 +301,7 @@ export default function AssessmentProvider({ children }) {
         client_company: formData.companyName,
         client_dob: formData.dob,
         client_retirement_age: parseInt(formData.targetRetireAge) || 60,
-        spouse_retirement_age: 55,
+        spouse_retirement_age: 0,
       };
       if (formData.spouseName && formData.spouseName.trim()) {
         payload.spouse_name = formData.spouseName;
@@ -256,6 +319,7 @@ export default function AssessmentProvider({ children }) {
         payload.spouse_dob = formData.spouseDob;
       }
       await assessmentService.submitFlow2(assessmentId, payload);
+      console.log("%c ✅ [STEP 2 DONE] monthlyExpense in formData =", "background:#1a1a1a;color:#ED8B36;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;", formData.monthlyExpense, "| Full formData snapshot:", JSON.parse(JSON.stringify(formData)));
       nextStep();
     } catch (err) {
       console.error(err);
@@ -272,7 +336,7 @@ export default function AssessmentProvider({ children }) {
       const activeChildren = childrenData.slice(0, childrenCount).map((c, idx) => {
         const childObj = {
           child_number: idx + 1,
-          full_name: c.name,
+          child_name: c.name,
           financially_dependent: c.dependent === "Yes",
         };
         if (c.occupation && c.occupation.trim()) {
@@ -387,19 +451,25 @@ export default function AssessmentProvider({ children }) {
 
     // Use "0" for any empty numeric fields instead of hardcoded defaults
     let finalFormData = { ...formData };
-    const numericFields = [
-      'targetRetireAge', 'yearsUntilRetirement', 'requiredAnnualIncome',
-      'epfEmployerShare', 'epfEmployeeShare', 'epfTotalCorpus',
-      'npsEmployerShare', 'npsEmployeeShare', 'npsTotalCorpus',
-      'superEmployerShare', 'superTotalCorpus',
-    ];
-    numericFields.forEach((field) => {
-      if (!finalFormData[field] || !finalFormData[field].toString().trim()) {
-        finalFormData[field] = "0";
-      }
-    });
+    const isRetEmpty = !formData.targetRetireAge && !formData.yearsUntilRetirement && !formData.requiredAnnualIncome &&
+                       !formData.epfEmployerShare && !formData.epfEmployeeShare && !formData.epfTotalCorpus &&
+                       !formData.npsEmployerShare && !formData.npsEmployeeShare && !formData.npsTotalCorpus &&
+                       !formData.superEmployerShare && !formData.superTotalCorpus;
 
-    setFormData(finalFormData);
+    if (!isRetEmpty) {
+      const numericFields = [
+        'targetRetireAge', 'yearsUntilRetirement', 'requiredAnnualIncome',
+        'epfEmployerShare', 'epfEmployeeShare', 'epfTotalCorpus',
+        'npsEmployerShare', 'npsEmployeeShare', 'npsTotalCorpus',
+        'superEmployerShare', 'superTotalCorpus',
+      ];
+      numericFields.forEach((field) => {
+        if (!finalFormData[field] || !finalFormData[field].toString().trim()) {
+          finalFormData[field] = "0";
+        }
+      });
+      setFormData(finalFormData);
+    }
 
     try {
       // 1. Submit Flow 2 again with final retirement age (just in case target retirement age changed in step 5)
@@ -409,8 +479,8 @@ export default function AssessmentProvider({ children }) {
         client_designation: finalFormData.designation,
         client_company: finalFormData.companyName,
         client_dob: finalFormData.dob,
-        client_retirement_age: parseInt(finalFormData.targetRetireAge) || 60,
-        spouse_retirement_age: 55,
+        client_retirement_age: finalFormData.targetRetireAge ? (parseInt(finalFormData.targetRetireAge) || 60) : 60,
+        spouse_retirement_age: 0,
       };
       if (finalFormData.spouseName && finalFormData.spouseName.trim()) {
         flow2Payload.spouse_name = finalFormData.spouseName;
@@ -431,6 +501,14 @@ export default function AssessmentProvider({ children }) {
 
       // 2. Perform calculation payload building & API call
       const calcPayload = buildCalcPayload(finalFormData);
+      console.log("%c 🧮 [STEP 5 CALC PAYLOAD]", "background:#1a1a1a;color:#4ade80;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;", {
+        household_monthly: calcPayload.household_monthly,
+        client_annual_ret_reqd: calcPayload.client_annual_ret_reqd,
+        client_epf_annual: calcPayload.client_epf_annual,
+        fullPayload: calcPayload,
+        monthlyExpense_fromFormData: finalFormData.monthlyExpense,
+        requiredAnnualIncome_fromFormData: finalFormData.requiredAnnualIncome,
+      });
       const calcRes = await assessmentService.calculateRetirement(assessmentId, calcPayload);
       setCalculationResult(calcRes.data);
       setShowReport(true);

@@ -5,6 +5,15 @@ import { StepNavigation } from '../../ui/StepNavigation';
 import { FormField } from '../../ui/FormField';
 import { NeumorphicDatePicker } from '../../ui/NeumorphicDatePicker';
 import { EducationPlanModal } from '../modals/EducationPlanModal';
+import { FloatingDropdownModal } from '../../ui/FloatingDropdownModal';
+
+const CHILD_GOAL_TYPE_OPTIONS = [
+  { label: 'Higher Education', value: 'Higher Education', subtext: 'University, degree & college funding', icon: '🎓' },
+  { label: 'Marriage', value: 'Marriage', subtext: 'Wedding expenses & celebration fund', icon: '💍' },
+  { label: 'Business Setup', value: 'Business Setup', subtext: 'Seed capital & startup funding for child', icon: '💼' },
+  { label: 'Career Fund', value: 'Career Fund', subtext: 'Professional training, skills & certifications', icon: '🚀' },
+  { label: 'Others', value: 'Others', subtext: 'Other long-term milestone goals', icon: '⭐' },
+];
 
 export function Step3FamilyDetails() {
   const {
@@ -21,8 +30,11 @@ export function Step3FamilyDetails() {
   const [selectedChildIndex, setSelectedChildIndex] = useState(0);
   const [selectedGoalIndex, setSelectedGoalIndex] = useState(0);
 
+  const [activeGoalTypeTarget, setActiveGoalTypeTarget] = useState(null);
+
   const [touched, setTouched] = useState({});
   const [showAllErrors, setShowAllErrors] = useState(false);
+
 
   const errors = validateStep3Fields(childrenData, childrenCount);
   const isValid = Object.keys(errors).length === 0;
@@ -286,30 +298,33 @@ export function Step3FamilyDetails() {
                                 <label className="block text-[13px] font-bold text-[#2B2A28] tracking-wide select-none">
                                   Goal Type<span className="text-[#F0883E] font-bold ml-0.5">*</span>
                                 </label>
-                                <div className="relative">
-                                  <select
-                                    value={g.goalType}
-                                    onChange={(e) => handleChildGoalChange(i, gIdx, 'goalType', e.target.value)}
-                                    onBlur={() => handleBlur(i, `goals-${gIdx}-goalType`)}
-                                    className={`${
-                                      g.goalType ? 'neu-field-filled' : 'neu-field'
-                                    } w-full px-5 py-4 pr-10 text-base font-semibold rounded-2xl outline-none transition-all duration-200 appearance-none cursor-pointer ${
-                                      (touched[`${i}-goals-${gIdx}-goalType`] || showAllErrors) && hasGoalTypeErr ? 'border-red-400' : ''
-                                    }`}
-                                  >
-                                    <option value="">Select an option</option>
-                                    <option value="Higher Education">Higher Education</option>
-                                    <option value="Marriage">Marriage</option>
-                                    <option value="Business Setup">Business Setup</option>
-                                    <option value="Career Fund">Career Fund</option>
-                                    <option value="Others">Others</option>
-                                  </select>
-                                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#F0883E]">
-                                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </div>
-                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveGoalTypeTarget({ childIndex: i, goalIndex: gIdx })}
+                                  className={`${
+                                    g.goalType ? 'neu-field-filled' : 'neu-field'
+                                  } w-full px-5 py-4 pr-10 text-base font-semibold rounded-2xl outline-none transition-all duration-200 text-left flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 ${
+                                    (touched[`${i}-goals-${gIdx}-goalType`] || showAllErrors) && hasGoalTypeErr ? 'border-red-400' : ''
+                                  }`}
+                                >
+                                  <span className={g.goalType ? 'text-[#2B2A28]' : 'text-[#8A8578]'}>{g.goalType || 'Select an option'}</span>
+                                  <svg className="w-4.5 h-4.5 text-[#F0883E] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+                                <FloatingDropdownModal
+                                  isOpen={activeGoalTypeTarget?.childIndex === i && activeGoalTypeTarget?.goalIndex === gIdx}
+                                  onClose={() => setActiveGoalTypeTarget(null)}
+                                  title="Select Child Goal Type"
+                                  subtitle="Choose milestone financial goal for your child"
+                                  placeholder="Search goal type..."
+                                  selectedValue={g.goalType}
+                                  onSelect={(opt) => {
+                                    handleChildGoalChange(i, gIdx, 'goalType', opt.value);
+                                    handleBlur(i, `goals-${gIdx}-goalType`);
+                                  }}
+                                  options={CHILD_GOAL_TYPE_OPTIONS}
+                                />
                                 {(touched[`${i}-goals-${gIdx}-goalType`] || showAllErrors) && hasGoalTypeErr && (
                                   <span className="text-xs text-red-500 font-medium block mt-1">{hasGoalTypeErr}</span>
                                 )}

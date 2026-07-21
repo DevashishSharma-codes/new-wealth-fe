@@ -291,3 +291,26 @@ body {
   border: 1px solid #EFE9DF !important;
   box-shadow: inset 5px 5px 8px rgba(214, 203, 186, 0.85), inset -5px -5px 8px rgba(255, 255, 255, 1) !important; /* Inset light/dark shadows */
 }
+
+/* ── Glassmorphic Floating Popup Modal Styles ── */
+@keyframes popupScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-popup-scale {
+  animation: popupScaleIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.glass-popup-panel {
+  background-color: #FAF7F2 !important;
+  border: 1px solid #EFE9DF !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.10) !important;
+  border-radius: 28px !important;
+}

@@ -36,24 +36,39 @@ export default function Assessment() {
     }
   };
 
-  // If the user reloads/refreshes the page, send them back to the landing page.
-  // We detect a reload via the Navigation Timing API.
-  React.useEffect(() => {
-    const navEntries = performance.getEntriesByType("navigation");
-    if (navEntries.length > 0 && navEntries[0].type === "reload") {
-      // Clear stored assessment state so a fresh start is clean
-      try { sessionStorage.removeItem("ww_assessment_state"); } catch { /* noop */ }
-      window.location.replace("/");
-    }
-  }, []);
+
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [step, showReport]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F1EA] font-sans selection:bg-brand-gold/30 selection:text-brand-blue">
+    <div className="min-h-screen flex flex-col bg-[#F4F1EA] font-sans selection:bg-brand-gold/30 selection:text-brand-blue relative">
       
+      {showReport && (
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem("ww_assessment_state");
+              localStorage.removeItem("ww_assessment_id");
+              window.location.href = "/";
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all text-xs sm:text-sm font-bold cursor-pointer hover:opacity-80"
+            style={{
+              background: "#F5F3ED",
+              color: "#7B7B7B",
+              boxShadow: "inset 4px 4px 6px rgba(212,196,176,0.8), inset -4px -4px 6px rgba(255,255,255,1)",
+            }}
+          >
+            <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Go to Home Page
+          </button>
+        </div>
+      )}
+
       <Header currentStep={step} totalSteps={5} goToStep={goToStep} showReport={showReport} />
 
       <main className="flex-1 w-full py-10 sm:py-14" style={{ paddingLeft: 'clamp(16px, 5vw, 80px)', paddingRight: 'clamp(16px, 5vw, 80px)' }}>

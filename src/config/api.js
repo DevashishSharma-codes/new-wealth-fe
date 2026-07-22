@@ -36,6 +36,37 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+const extractErrorMessage = (data) => {
+  if (!data) return null;
+  if (typeof data === "string") return data;
+  if (Array.isArray(data)) return data.map(extractErrorMessage).filter(Boolean).join("; ");
+  if (typeof data === "object") {
+    if (data.message && typeof data.message === "string") return data.message;
+    if (data.detail && typeof data.detail === "string") return data.detail;
+
+    const messages = [];
+    const collect = (obj) => {
+      if (!obj) return;
+      if (typeof obj === "string") {
+        messages.push(obj);
+        return;
+      }
+      if (Array.isArray(obj)) {
+        obj.forEach(collect);
+        return;
+      }
+      if (typeof obj === "object") {
+        Object.values(obj).forEach(collect);
+      }
+    };
+
+    const targetObj = data.error || data.detail || data;
+    collect(targetObj);
+    if (messages.length > 0) return messages.join("; ");
+  }
+  return null;
+};
+
 client.interceptors.response.use(
   (response) => {
     console.log("[API DEBUG] Response received", {
@@ -47,10 +78,7 @@ client.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status;
-    const backendMessage =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.response?.data?.detail;
+    const backendMessage = extractErrorMessage(error.response?.data);
     const message =
       backendMessage ||
       (status ? `Request failed with status ${status}` : error.message || "Something went wrong");

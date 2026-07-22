@@ -112,6 +112,17 @@ return renderIcon(
 </>
 );
 
+case "Other":
+case "Others":
+case "Custom Goal":
+return renderIcon(
+<>
+<circle cx="12" cy="12" r="9"/>
+<circle cx="12" cy="12" r="5"/>
+<circle cx="12" cy="12" r="1.5"/>
+</>
+);
+
 default:
 return renderIcon(
 <>

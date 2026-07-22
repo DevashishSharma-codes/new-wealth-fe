@@ -3,6 +3,8 @@ import { useAssessment } from '../../../hooks/useAssessment';
 import { validateStep4Fields } from '../../../hooks/useFormValidation';
 import { GoalIcon } from '../../ui/GoalIcon';
 import { TripPlanModal } from '../modals/TripPlanModal';
+import { CustomGoalModal } from '../modals/CustomGoalModal';
+import { StepNavigation } from '../../ui/StepNavigation';
 
 /* ------------------------------------------------------------------
    Neumorphic design tokens — identical to Step1Communication
@@ -45,6 +47,7 @@ export function Step4LifestyleGoals() {
   } = useAssessment();
 
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
+  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState(null);
 
   const [touched, setTouched] = useState({});
@@ -65,6 +68,10 @@ export function Step4LifestyleGoals() {
     'Big Purchases',
     'Estate For Children',
   ];
+
+  const customGoals = activeGoals.filter(
+    (g) => g.type === 'Other' || g.type === 'Others' || (!goalCategories.includes(g.type) && g.type)
+  );
 
   const handleGoalInputChange = (id, field, value) => {
     updateGoal(id, { [field]: value });
@@ -363,11 +370,129 @@ export function Step4LifestyleGoals() {
               })}
             </div>
 
+            {/* ── Custom Goals List ── */}
+            {customGoals.length > 0 && (
+              <div className="space-y-4 pt-2">
+                {customGoals.map((goal, idx) => (
+                  <div
+                    key={goal.id}
+                    className="s4-card w-full rounded-[2rem] p-5 sm:p-6 relative space-y-5"
+                  >
+                    {/* Card header */}
+                    <div className="s4-card-header flex items-center justify-between pb-3.5">
+                      <div
+                        className="flex items-center gap-3 font-bold text-sm sm:text-base"
+                        style={{ color: TEXT_DARK }}
+                      >
+                        <GoalIcon type="Other" />
+                        <span className="flex items-center gap-2">
+                          {goal.goalName || goal.name || `Custom Goal #${idx + 1}`}
+                          <span className="text-[11px] font-normal text-[#8A8578] bg-[#F1EDE6] px-2.5 py-0.5 rounded-full border border-[#EFE9DF]">
+                            Custom
+                          </span>
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeGoal(goal.id)}
+                        className="s4-close-btn w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold select-none outline-none cursor-pointer"
+                      >
+                        &times;
+                      </button>
+                    </div>
+
+                    {/* Input grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Goal Name */}
+                      <div className="space-y-1.5 sm:col-span-1">
+                        <label
+                          className="block text-[13px] font-bold tracking-wide select-none"
+                          style={{ color: TEXT_DARK }}
+                        >
+                          Goal Name
+                        </label>
+                        <input
+                          type="text"
+                          value={goal.goalName || ''}
+                          onChange={(e) =>
+                            handleGoalInputChange(goal.id, 'goalName', e.target.value)
+                          }
+                          placeholder="e.g. World Cup Trip"
+                          className={`${
+                            goal.goalName ? 'neu-field-filled' : 'neu-field'
+                          } w-full px-4 py-3.5 text-base font-medium rounded-2xl outline-none transition-all duration-200`}
+                        />
+                      </div>
+
+                      {/* Target Year */}
+                      <div className="space-y-1.5">
+                        <label
+                          className="block text-[13px] font-bold tracking-wide select-none"
+                          style={{ color: TEXT_DARK }}
+                        >
+                          Target Year
+                        </label>
+                        <input
+                          type="number"
+                          value={goal.targetYear || ''}
+                          onChange={(e) =>
+                            handleGoalInputChange(goal.id, 'targetYear', e.target.value)
+                          }
+                          onBlur={() => handleBlur(goal.id, 'targetYear')}
+                          placeholder="Target year"
+                          className={`${
+                            goal.targetYear !== undefined && goal.targetYear !== null && goal.targetYear.toString().length > 0
+                              ? 'neu-field-filled'
+                              : 'neu-field'
+                          } w-full px-4 py-3.5 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                            (touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear ? 'border-red-400' : ''
+                          }`}
+                        />
+                        {(touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear && (
+                          <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].targetYear}</span>
+                        )}
+                      </div>
+
+                      {/* Today's Cost */}
+                      <div className="space-y-1.5">
+                        <label
+                          className="block text-[13px] font-bold tracking-wide select-none"
+                          style={{ color: TEXT_DARK }}
+                        >
+                          Today's Cost
+                        </label>
+                        <input
+                          type="number"
+                          value={goal.todaysCost || ''}
+                          onChange={(e) =>
+                            handleGoalInputChange(goal.id, 'todaysCost', e.target.value)
+                          }
+                          onBlur={() => handleBlur(goal.id, 'todaysCost')}
+                          placeholder="Today's cost"
+                          className={`${
+                            goal.todaysCost !== undefined && goal.todaysCost !== null && goal.todaysCost.toString().length > 0
+                              ? 'neu-field-filled'
+                              : 'neu-field'
+                          } w-full px-4 py-3.5 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                            (touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost ? 'border-red-400' : ''
+                          }`}
+                        />
+                        {(touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost && (
+                          <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].todaysCost}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* "Add Other" button */}
             <div className="pt-2">
               <button
                 type="button"
-                onClick={() => addGoal('Foreign Tour')}
+                onClick={() => setIsCustomModalOpen(true)}
                 className="s4-secondary-btn text-xs font-bold px-6 py-3.5 rounded-2xl cursor-pointer"
               >
                 + Add Other
@@ -375,26 +500,11 @@ export function Step4LifestyleGoals() {
             </div>
 
             {/* ── Navigation ── */}
-            <div className="flex items-center justify-between pt-4">
-              <button
-                type="button"
-                onClick={prevStep}
-                className="s4-back-btn flex items-center gap-2 text-sm font-bold px-2 py-2 rounded-xl transition-transform active:scale-95"
-              >
-                <span aria-hidden="true">←</span> Back
-              </button>
-
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={isSubmitting}
-                className={`flex items-center gap-2 text-sm font-bold px-8 py-3.5 rounded-2xl transition-all active:scale-95 ${!isSubmitting ? 's4-continue-active' : 's4-continue-disabled'
-                  }`}
-              >
-                {isSubmitting ? 'Please wait…' : 'Continue'}{' '}
-                <span aria-hidden="true">→</span>
-              </button>
-            </div>
+            <StepNavigation
+              onBack={prevStep}
+              onNext={handleNext}
+              isLoading={isSubmitting}
+            />
           </div>
 
           {/* ── Right Column: 3D Illustration ── */}
@@ -420,6 +530,15 @@ export function Step4LifestyleGoals() {
         onSave={(data) => {
           updateGoal(selectedGoalId, data);
           setIsTripModalOpen(false);
+        }}
+      />
+
+      {/* ── Custom Goal Modal ── */}
+      <CustomGoalModal
+        isOpen={isCustomModalOpen}
+        onClose={() => setIsCustomModalOpen(false)}
+        onAddGoal={(customData) => {
+          addGoal('Other', customData);
         }}
       />
     </div>

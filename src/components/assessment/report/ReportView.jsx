@@ -64,6 +64,12 @@ export function ReportView() {
     }
   };
 
+  const handleGoHome = () => {
+    sessionStorage.removeItem("ww_assessment_state");
+    localStorage.removeItem("ww_assessment_id");
+    window.location.href = "/";
+  };
+
   if (!calculationResult) {
     return (
       <div className="py-20 flex flex-col items-center justify-center gap-4 text-center">
@@ -106,6 +112,7 @@ export function ReportView() {
 
   return (
     <div className="w-full max-w-[1440px] mx-auto space-y-4 sm:space-y-5 animate-fade-in px-3 sm:px-4 lg:px-6">
+
 
       {/* Thank You Envelope & Title Banner */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#FAF7F2] border border-[#EFE9DF] p-4 sm:p-5 rounded-[1.5rem] shadow-xs select-none">

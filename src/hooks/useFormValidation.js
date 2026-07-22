@@ -133,8 +133,8 @@ export const validateStep3Fields = (childrenData, childrenCount) => {
         } else {
           const year = parseInt(goal.targetYear, 10);
           const currentYear = new Date().getFullYear();
-          if (isNaN(year) || year < currentYear || year > currentYear + 60) {
-            goalErrors.targetYear = `Year must be between ${currentYear} and ${currentYear + 60}`;
+          if (isNaN(year) || year <= currentYear || year > currentYear + 60) {
+            goalErrors.targetYear = `Year must be in the future (between ${currentYear + 1} and ${currentYear + 60})`;
           }
         }
 
@@ -165,8 +165,8 @@ export const validateStep3Fields = (childrenData, childrenCount) => {
       } else {
         const year = parseInt(child.targetYear, 10);
         const currentYear = new Date().getFullYear();
-        if (isNaN(year) || year < currentYear || year > currentYear + 60) {
-          childErrors.targetYear = `Year must be between ${currentYear} and ${currentYear + 60}`;
+        if (isNaN(year) || year <= currentYear || year > currentYear + 60) {
+          childErrors.targetYear = `Year must be in the future (between ${currentYear + 1} and ${currentYear + 60})`;
         }
       }
 
@@ -206,8 +206,8 @@ export const validateStep4Fields = (activeGoals) => {
     } else {
       const year = parseInt(goal.targetYear, 10);
       const currentYear = new Date().getFullYear();
-      if (isNaN(year) || year < currentYear || year > currentYear + 60) {
-        goalErrors.targetYear = `Year must be between ${currentYear} and ${currentYear + 60}`;
+      if (isNaN(year) || year <= currentYear || year > currentYear + 60) {
+        goalErrors.targetYear = `Year must be in the future (between ${currentYear + 1} and ${currentYear + 60})`;
       }
     }
 

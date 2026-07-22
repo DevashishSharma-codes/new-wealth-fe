@@ -94,10 +94,8 @@ export function Header({ currentStep = 1, totalSteps = 5, goToStep, showReport =
         Goal Analysis Assessment
       </h2>
 
-      {/* Step progress indicator (moved here from individual step pages) */}
-      {!showReport && (
-        <StepProgress currentStep={currentStep} totalSteps={totalSteps} goToStep={goToStep} />
-      )}
+      {/* Step progress indicator */}
+      <StepProgress currentStep={showReport ? 5 : currentStep} totalSteps={totalSteps} goToStep={goToStep} />
     </header>
   );
 }

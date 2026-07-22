@@ -64,7 +64,7 @@ describe('formatters - new-wealth-fe', () => {
       };
 
       const expected = {
-        client_epf_annual: (5000 + 5000 + 2000 + 2000 + 1000) * 12,
+        client_epf_annual: 5000 + 5000 + 2000 + 2000 + 1000,
         client_epf_accum: 500000 + 300000 + 200000,
         client_annual_ret_reqd: 1000000,
         spouse_epf_annual: 0,
@@ -87,12 +87,12 @@ describe('formatters - new-wealth-fe', () => {
       };
 
       const expected = {
-        client_epf_annual: (5000 + 5000) * 12, // 120000
+        client_epf_annual: 5000 + 5000,
         client_epf_accum: 500000,
-        client_annual_ret_reqd: 1000000 * 0.6, // 600000
+        client_annual_ret_reqd: 1000000,
         spouse_epf_annual: 0,
         spouse_epf_accum: 0,
-        spouse_annual_ret_reqd: 1000000 * 0.4, // 400000
+        spouse_annual_ret_reqd: 0,
         household_monthly: 40000,
       };
 

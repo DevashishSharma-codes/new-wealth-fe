@@ -211,12 +211,14 @@ export default function AssessmentProvider({ children }) {
     setChildrenCountState(n);
   };
 
-  const addGoal = (type) => {
+  const addGoal = (type, customData = {}) => {
     const newGoal = {
       id: Date.now() + Math.random(),
       type,
-      targetYear: "",
-      todaysCost: "",
+      targetYear: customData.targetYear || "",
+      todaysCost: customData.todaysCost || "",
+      goalName: customData.goalName || "",
+      ...customData,
     };
     setActiveGoals((prev) => [...prev, newGoal]);
   };
@@ -421,13 +423,17 @@ export default function AssessmentProvider({ children }) {
           } else if (mappedType === "Others" || mappedType === "Other") {
             mappedType = "Other";
           }
-          apiGoals.push({
+          const goalObj = {
             category: "lifestyle",
             goal_type: mappedType,
             target_year: parseInt(g.targetYear),
             today_cost: parseFloat(g.todaysCost),
             inflation_rate: 0.06,
-          });
+          };
+          if (g.goalName || g.name || mappedType === "Other") {
+            goalObj.goal_name = g.goalName || g.name || "Custom Goal";
+          }
+          apiGoals.push(goalObj);
         }
       });
 

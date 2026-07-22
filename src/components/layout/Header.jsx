@@ -95,7 +95,9 @@ export function Header({ currentStep = 1, totalSteps = 5, goToStep, showReport =
       </h2>
 
       {/* Step progress indicator */}
-      <StepProgress currentStep={showReport ? 5 : currentStep} totalSteps={totalSteps} goToStep={goToStep} />
+      {!showReport && (
+        <StepProgress currentStep={currentStep} totalSteps={totalSteps} goToStep={goToStep} />
+      )}
     </header>
   );
 }

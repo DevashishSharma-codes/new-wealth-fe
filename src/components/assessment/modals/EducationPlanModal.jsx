@@ -326,26 +326,26 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
 
   const modalJSX = (
     <div
-      className="fixed inset-0 z-[9999] bg-[#1C1B1A]/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 lg:p-8 overflow-hidden select-none animate-fade-in text-[#2B2A28]"
+      className="fixed inset-0 z-[9999] bg-[#1C1B1A]/40 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 lg:p-8 overflow-hidden select-none animate-fade-in text-[#2B2A28]"
       aria-modal="true"
       role="dialog"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-7xl max-h-[92vh] bg-[#FAF7F2] border border-[#EFE9DF] rounded-[32px] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.25)] relative"
+        className="w-full max-w-7xl h-[95dvh] sm:h-auto sm:max-h-[92vh] bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[32px] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.25)] relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="shrink-0 h-16 sm:h-20 px-6 sm:px-10 border-b border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-4 z-10">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFF6ED] border border-[#EFE9DF] flex items-center justify-center text-[#F0883E] shrink-0 shadow-inner">
+        <div className="shrink-0 min-h-[56px] sm:h-20 px-4 sm:px-10 border-b border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-3 z-10 py-2 sm:py-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#FFF6ED] border border-[#EFE9DF] flex items-center justify-center text-[#F0883E] shrink-0 shadow-inner">
               <GraduationCapIcon className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-heading text-base sm:text-xl font-extrabold text-[#2B2A28] leading-tight">
+              <h3 className="font-heading text-sm sm:text-xl font-extrabold text-[#2B2A28] leading-tight">
                 Child Education Planning
               </h3>
-              <p className="text-xs text-[#8A8578] font-medium mt-0.5">
+              <p className="text-[11px] sm:text-xs text-[#8A8578] font-medium mt-0.5 hidden sm:block">
                 Plan higher education target budget & dream colleges
               </p>
             </div>
@@ -354,18 +354,18 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             type="button"
             onClick={onClose}
             aria-label="Close panel"
-            className="w-10 h-10 rounded-full flex items-center justify-center neu-btn-flat-inactive transition-all cursor-pointer text-[#2B2A28] hover:text-[#F0883E] outline-none shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center neu-btn-flat-inactive transition-all cursor-pointer text-[#2B2A28] hover:text-[#F0883E] outline-none shrink-0"
           >
             <XIcon className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-10 scrollbar-thin bg-[#FAF7F2]">
-          <div className="max-w-7xl mx-auto space-y-8">
+        {/* Scrollable Content (Hidden Scrollbars) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-10 no-scrollbar scrollbar-none bg-[#FAF7F2]">
+          <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
             {/* Mode Switcher Tabs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto">
               {[
                 { key: 'college', label: 'Dream College', sub: 'Select colleges for cost estimate', icon: BuildingIcon },
                 { key: 'budget', label: 'Set a Budget', sub: 'Filter top matching programs', icon: DollarSignIcon },
@@ -376,16 +376,16 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                     key={key}
                     type="button"
                     onClick={() => setModalPlanningType(key)}
-                    className={`p-4 rounded-3xl transition-all cursor-pointer flex items-center gap-3.5 text-left ${
+                    className={`p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl transition-all cursor-pointer flex items-center gap-3 text-left ${
                       active ? 'neu-btn-flat-active' : 'neu-btn-flat-inactive'
                     }`}
                   >
-                    <div className={`p-2.5 rounded-xl border border-[#EFE9DF] ${active ? 'bg-[#FFF6ED] text-[#F0883E]' : 'bg-[#FAF7F2] text-[#8A8578]'}`}>
-                      <Icon className="w-5 h-5" />
+                    <div className={`p-2 sm:p-2.5 rounded-xl border border-[#EFE9DF] shrink-0 ${active ? 'bg-[#FFF6ED] text-[#F0883E]' : 'bg-[#FAF7F2] text-[#8A8578]'}`}>
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <div>
                       <div className={`text-xs sm:text-sm font-extrabold ${active ? 'text-[#F0883E]' : 'text-[#2B2A28]'}`}>{label}</div>
-                      <div className="text-[11px] text-[#8A8578] font-medium mt-0.5">{sub}</div>
+                      <div className="text-[10px] sm:text-[11px] text-[#8A8578] font-medium mt-0.5">{sub}</div>
                     </div>
                   </button>
                 );
@@ -393,15 +393,15 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             </div>
 
             {/* 2-Column Split Grid with Neumorphic Dual Shadows */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
               {/* Left Column (7 cols): Filters & College / Budget Search */}
               <div
-                className="lg:col-span-7 space-y-6 bg-[#FAF7F2] p-6 sm:p-8 rounded-[32px] border border-[#EFE9DF]"
+                className="lg:col-span-7 space-y-5 sm:space-y-6 bg-[#FAF7F2] p-4 sm:p-8 rounded-2xl sm:rounded-[32px] border border-[#EFE9DF]"
                 style={{ boxShadow: '8px 8px 20px #E5DFD3, -8px -8px 20px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.8)' }}
               >
                 {/* Category & Country filters */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Course Category (Normal Dropdown) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Course Category */}
                   <div>
                     <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-1.5">
                       <BookOpenIcon className="w-4 h-4 text-[#F0883E]" /> Course Category
@@ -409,7 +409,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                     <button
                       type="button"
                       onClick={() => setCatDropdownOpen(true)}
-                      className="neu-field w-full px-4 py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
+                      className="neu-field w-full px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
                     >
                       <span className={selectedCourseCategory ? 'text-[#2B2A28] truncate' : 'text-[#8A8578] truncate'}>
                         {selectedCourseCategory || 'All Categories'}
@@ -432,7 +432,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                     />
                   </div>
 
-                  {/* Country (Normal Dropdown) */}
+                  {/* Country */}
                   <div>
                     <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-1.5">
                       <GlobeIcon className="w-4 h-4 text-[#F0883E]" /> Country
@@ -440,7 +440,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                     <button
                       type="button"
                       onClick={() => setCountryDropdownOpen(true)}
-                      className="neu-field w-full px-4 py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
+                      className="neu-field w-full px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
                     >
                       <span className={selectedCountry ? 'text-[#2B2A28] truncate' : 'text-[#8A8578] truncate'}>
                         {selectedCountry || 'All Countries'}
@@ -474,9 +474,9 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                       <button
                         type="button"
                         onClick={() => setCollegeDropdownOpen(true)}
-                        className="neu-field w-full px-4 py-3.5 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
+                        className="neu-field w-full px-3.5 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
                       >
-                        <span className="text-[#8A8578]">Search colleges or universities...</span>
+                        <span className="text-[#8A8578] truncate">Search colleges or universities...</span>
                         <ChevronDown open={collegeDropdownOpen} />
                       </button>
                       <FloatingDropdownModal
@@ -533,7 +533,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                         }}
                         placeholder="e.g. 1500000"
                         onWheel={(e) => e.currentTarget.blur()}
-                        className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none"
+                        className="neu-field w-full px-3.5 sm:px-4 py-3 sm:py-3.5 text-sm font-semibold rounded-2xl outline-none"
                       />
                     </div>
 
@@ -557,13 +557,13 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                                   key={opt.id}
                                   type="button"
                                   onClick={() => selectMatchingCollege(opt)}
-                                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${
+                                  className={`w-full flex items-center gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl border text-left transition-all ${
                                     isSelected
                                       ? 'border-[#F0883E] bg-[#FFF6ED] shadow-inner'
                                       : 'border-[#EFE9DF] bg-white/50 hover:bg-[#FFF6ED]/80 hover:border-[#F0883E]/40 cursor-pointer'
                                   }`}
                                 >
-                                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs"
+                                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs"
                                     style={{ background: isSelected ? '#F0883E' : '#EFE9DF', color: isSelected ? '#fff' : '#8A8578' }}>
                                     {isSelected ? <CheckIcon className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
                                   </div>
@@ -589,10 +589,10 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
 
               {/* Right Column (5 cols): Summary & Projection Card */}
               <div
-                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-[32px] p-6 sm:p-8 space-y-6 flex flex-col justify-between"
+                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[32px] p-4 sm:p-8 space-y-5 sm:space-y-6 flex flex-col justify-between"
                 style={{ boxShadow: '8px 8px 20px #E5DFD3, -8px -8px 20px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.8)' }}
               >
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                   <div className="text-xs font-extrabold text-[#2B2A28] border-b border-[#EFE9DF] pb-3 flex items-center gap-2">
                     <SparklesIcon className="w-4 h-4 text-[#F0883E]" /> Education Plan Summary
                   </div>
@@ -603,7 +603,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                       Selected Institutions
                     </label>
                     {modalSelectedColleges.length === 0 ? (
-                      <div className="p-5 text-center text-xs text-[#8A8578] neu-field rounded-2xl">
+                      <div className="p-4 sm:p-5 text-center text-xs text-[#8A8578] neu-field rounded-2xl">
                         No colleges selected yet.
                       </div>
                     ) : (
@@ -611,10 +611,10 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                         {modalSelectedColleges.map((col) => (
                           <div
                             key={col.id}
-                            className="bg-[#FFF6ED] border border-[#EFE9DF] text-[#F0883E] rounded-2xl px-3.5 py-2 text-xs font-bold flex items-center gap-2 shadow-sm"
+                            className="bg-[#FFF6ED] border border-[#EFE9DF] text-[#F0883E] rounded-2xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold flex items-center gap-2 shadow-sm"
                           >
-                            <BuildingIcon className="w-4 h-4" />
-                            <span>{col.name}</span>
+                            <BuildingIcon className="w-4 h-4 shrink-0" />
+                            <span className="truncate max-w-[160px] sm:max-w-none">{col.name}</span>
                             {Number.isFinite(col.cost) && col.cost > 0 && (
                               <span className="text-[10px] text-[#8A8578] font-semibold">{formatINR(col.cost)}</span>
                             )}
@@ -642,16 +642,16 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                       onChange={(e) => setModalTargetYear(e.target.value)}
                       placeholder="e.g. 2035"
                       onWheel={(e) => e.currentTarget.blur()}
-                      className="neu-field w-full px-4 py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none"
+                      className="neu-field w-full px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Projected Cost Card */}
                 {projVal ? (
-                  <div className="p-5 bg-[#FFF6ED] border border-[#EFE9DF] rounded-2xl text-center space-y-1.5 shadow-inner">
+                  <div className="p-4 sm:p-5 bg-[#FFF6ED] border border-[#EFE9DF] rounded-2xl text-center space-y-1 sm:space-y-1.5 shadow-inner mt-4">
                     <p className="text-[10px] font-bold text-[#8A8578] uppercase tracking-wider">Projected Future Cost</p>
-                    <p className="text-3xl font-black text-[#2B2A28]">{formatINR(projVal)}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-[#2B2A28]">{formatINR(projVal)}</p>
                     {sipVal && (
                       <p className="text-xs font-semibold text-[#2B2A28]/70">
                         Required Monthly SIP: <span className="text-[#F0883E] font-bold">{formatINR(sipVal)}</span>
@@ -660,7 +660,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                     <p className="text-xs font-medium text-[#F0883E]">For admission in {modalTargetYear}</p>
                   </div>
                 ) : (
-                  <div className="p-5 neu-field rounded-2xl text-center text-xs text-[#8A8578] font-medium">
+                  <div className="p-4 sm:p-5 neu-field rounded-2xl text-center text-xs text-[#8A8578] font-medium mt-4">
                     Select a college or enter budget and target year to calculate future cost.
                   </div>
                 )}
@@ -670,25 +670,25 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="shrink-0 h-16 sm:h-20 px-6 sm:px-10 border-t border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-4 z-10">
-          <div className="text-xs sm:text-sm font-semibold text-[#8A8578]">
-            {saveError && <span className="text-red-600 font-semibold">{saveError}</span>}
+        {/* Responsive Footer (Always Visible & Accessible on Mobile) */}
+        <div className="shrink-0 py-3 sm:py-0 sm:h-20 px-4 sm:px-10 border-t border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-3 z-10">
+          <div className="text-xs sm:text-sm font-semibold text-[#8A8578] truncate max-w-[140px] sm:max-w-none">
+            {saveError && <span className="text-red-600 font-semibold truncate block">{saveError}</span>}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 text-xs font-bold neu-btn-flat-inactive transition-all cursor-pointer text-[#2B2A28] rounded-2xl"
+              className="px-4 sm:px-6 py-2.5 text-xs font-bold neu-btn-flat-inactive transition-all cursor-pointer text-[#2B2A28] rounded-xl sm:rounded-2xl shrink-0"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="neu-btn-raised flex items-center gap-2 text-xs sm:text-sm font-bold px-8 py-3 rounded-2xl transition-all cursor-pointer"
+              className="neu-btn-raised flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all cursor-pointer whitespace-nowrap shrink-0"
             >
-              Save Education Goal <ArrowRightIcon className="w-4 h-4" />
+              Save Education Goal <ArrowRightIcon className="w-4 h-4 shrink-0" />
             </button>
           </div>
         </div>

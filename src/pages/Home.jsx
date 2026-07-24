@@ -40,6 +40,14 @@ const PlanningIcon = () => (
   </svg>
 );
 
+// Reusable bento card shadow classes — inset (inner) shadow for the "bubbly" pressed-in neumorphic look.
+// Hover noticeably deepens the press-in (bigger inset spread + darker shadow), nudges the bg tone
+// slightly darker/warmer, and scales down a touch — like the card is being physically pushed in.
+const bentoCardShadow =
+  "bg-[#F4F1EA] hover:bg-[#EFE9DC] scale-100 hover:scale-[0.98] " +
+  "shadow-[2px_2px_6px_rgba(180,172,158,0.3),inset_4px_4px_10px_rgba(180,172,158,0.45),inset_-4px_-4px_10px_rgba(255,255,255,0.9)] " +
+  "hover:shadow-[1px_1px_4px_rgba(180,172,158,0.25),inset_10px_10px_20px_rgba(170,160,144,0.7),inset_-10px_-10px_20px_rgba(255,255,255,1)]";
+
 export default function Home() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactName, setContactName] = useState('');
@@ -195,7 +203,7 @@ export default function Home() {
         </section>
 
         {/* Goal Section */}
-        <section className="bg-white border-y border-slate-100 py-16 sm:py-20 text-center">
+        <section className="bg-[#F4F1EA] border-y border-slate-100 py-16 sm:py-20 text-center">
           <div className="max-w-3xl mx-auto px-4">
             <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-brand-blue mb-4 leading-tight">
               A Financial Plan Built Around Your Life Milestones
@@ -212,51 +220,66 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Feature Grid */}
+        {/* Feature Bento Grid */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5">
+
+            {/* Card 1 — Large (spans 7 cols) */}
+            <div className={`lg:col-span-7 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col gap-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <ReadinessIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Financial Health Check</h3>
+              <h3 className="font-heading text-xl font-bold text-[#1E2B49]">Financial Health Check</h3>
               <p className="text-slate-500 text-sm leading-relaxed">Get a comprehensive assessment of your financial health by analyzing your income, expenses, savings, investments, liabilities, and overall financial preparedness.</p>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+
+            {/* Card 2 — Medium (spans 5 cols) */}
+            <div className={`lg:col-span-5 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col gap-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <RoadmapIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Goal-Based Financial Planning</h3>
+              <h3 className="font-heading text-xl font-bold text-[#1E2B49]">Goal-Based Financial Planning</h3>
               <p className="text-slate-500 text-sm leading-relaxed">Plan for your life goals such as buying a home, children's education, travel, retirement, and wealth creation with a personalized financial roadmap.</p>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+
+            {/* Card 3 — Small (spans 4 cols) */}
+            <div className={`lg:col-span-4 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col gap-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <InvestmentIcon />
               </div>
               <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Investment & Portfolio Review</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Evaluate your existing investments and receive recommendations to build a well-diversified portfolio aligned with your financial goals and risk profile.</p>
+              <p className="text-slate-500 text-sm leading-relaxed">Evaluate your existing investments and receive recommendations to build a well-diversified portfolio aligned with your goals and risk profile.</p>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+
+            {/* Card 4 — Small (spans 4 cols) */}
+            <div className={`lg:col-span-4 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col gap-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <ProtectionIcon />
               </div>
               <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Insurance & Risk Management</h3>
               <p className="text-slate-500 text-sm leading-relaxed">Identify protection gaps and ensure adequate coverage through Term Insurance, Health Insurance, Personal Accident Cover, and Emergency Planning.</p>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+
+            {/* Card 5 — Medium (spans 4 cols) */}
+            <div className={`lg:col-span-4 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col gap-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <CorpusIcon />
               </div>
               <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Retirement Planning</h3>
               <p className="text-slate-500 text-sm leading-relaxed">Estimate the retirement corpus required, assess your retirement readiness, and create a strategy for a financially independent retirement.</p>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:border-slate-200/60 transition-all duration-300 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+
+            {/* Card 6 — Featured Full Width */}
+            <div className={`lg:col-span-12 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shrink-0 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <PlanningIcon />
               </div>
-              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Estate Planning (Will & Trust)</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Secure your family's future with proper estate planning, including Wills, Trusts, nominations, and seamless wealth transfer across generations.</p>
+              <div className="flex flex-col gap-1">
+                <h3 className="font-heading text-lg sm:text-xl font-bold text-[#1E2B49]">Estate Planning (Will & Trust)</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">Secure your family's future with proper estate planning, including Wills, Trusts, nominations, and seamless wealth transfer across generations.</p>
+              </div>
             </div>
+
           </div>
         </section>
 

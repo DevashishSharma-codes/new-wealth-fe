@@ -1,11 +1,79 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import client from '../../../config/api';
 import { FloatingDropdownModal } from '../../ui/FloatingDropdownModal';
+
+/* Pure Inline SVG Icons for new-wealth-fe */
+const GraduationCapIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+  </svg>
+);
+
+const BuildingIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+  </svg>
+);
+
+const GlobeIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zM2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+  </svg>
+);
+
+const CalendarIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+);
+
+const DollarSignIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 1v22m5-18H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+  </svg>
+);
+
+const BookOpenIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  </svg>
+);
+
+const SparklesIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+  </svg>
+);
+
+const XIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+const CheckIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+const ArrowRightIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+  </svg>
+);
+
+const ChevronDown = ({ open }) => (
+  <svg className={`w-4 h-4 text-[#F0883E] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
 
 const formatINR = (value) => {
   if (!Number.isFinite(value) || value === 0) return null;
   if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)} Cr`;
-  if (value >= 100000) return `₹${(value / 100000).toFixed(1)} L`;
+  if (value >= 100000)   return `₹${(value / 100000).toFixed(1)} L`;
   return `₹${value.toLocaleString('en-IN')}`;
 };
 
@@ -33,7 +101,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
   const [loadingBudgetOptions, setLoadingBudgetOptions] = useState(false);
   const [projectedCost, setProjectedCost] = useState(null);
   const [saveError, setSaveError] = useState('');
-
 
   useEffect(() => {
     if (isOpen) {
@@ -89,7 +156,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
           duration: item.duration || '',
         }));
 
-        // Client-side filter — handles API ignoring query params
         const filtered = mapped.filter(item => {
           const catMatch = !selectedCourseCategory ||
             item.category.toLowerCase() === selectedCourseCategory.toLowerCase() ||
@@ -99,9 +165,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             item.country.toLowerCase() === selectedCountry.toLowerCase() ||
             item.country.toLowerCase().includes(selectedCountry.toLowerCase());
 
-          // "Include Foreign Colleges" toggle:
-          // unchecked → only show India colleges
-          // checked   → show all countries
           const foreignMatch = modalIncludeForeign ||
             item.country.toLowerCase() === 'india' ||
             item.country === '';
@@ -114,9 +177,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
       .catch(err => console.error('Failed to load programs:', err));
   }, [isOpen, selectedCourseCategory, selectedCountry, modalIncludeForeign]);
 
-
   useEffect(() => {
-    console.log('[Budget Effect] triggered', { isOpen, modalBudgetAmount, modalPlanningType, selectedCourseCategory, selectedCountry });
     if (!isOpen || !modalBudgetAmount || modalPlanningType !== 'budget') {
       setBudgetOptions([]);
       return;
@@ -128,11 +189,9 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
     setLoadingBudgetOptions(true);
 
     const t = setTimeout(() => {
-      // Use programs endpoint with a large pool — we sort client-side by closest match
       let url = `/education/programs?per_page=200`;
       if (selectedCourseCategory) url += `&course_category=${encodeURIComponent(selectedCourseCategory)}`;
       if (selectedCountry) url += `&country=${encodeURIComponent(selectedCountry)}`;
-      console.log('[Budget Effect] fetching:', url);
 
       client.get(url)
         .then(res => {
@@ -143,7 +202,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             Array.isArray(payload?.programs) ? payload.programs :
             Array.isArray(payload?.results) ? payload.results :
             [];
-          console.log('[Budget API] raw count:', rawList.length);
 
           const mapped = rawList.map((item, i) => ({
             id: item.id || `bprog-${i}`,
@@ -155,7 +213,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             duration: item.duration || '',
           }));
 
-          // Client-side filter by category/country (in case API ignores those params)
           const filtered = mapped.filter(item => {
             const catMatch = !selectedCourseCategory ||
               item.category.toLowerCase() === selectedCourseCategory.toLowerCase() ||
@@ -166,12 +223,10 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             return catMatch && countryMatch;
           });
 
-          // Sort by closest cost to the entered budget → always get 5 results
           const sorted = filtered
             .filter(item => Number.isFinite(item.cost) && item.cost > 0)
             .sort((a, b) => Math.abs(a.cost - budget) - Math.abs(b.cost - budget));
 
-          console.log('[Budget API] after filter+sort:', sorted.length, 'top5:', sorted.slice(0, 5).map(i => `${i.name} ₹${i.cost}`));
           setBudgetOptions(sorted.slice(0, 5));
         })
         .catch(err => console.error('Budget search failed:', err))
@@ -179,7 +234,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
     }, 400);
     return () => clearTimeout(t);
   }, [modalBudgetAmount, modalPlanningType, isOpen, selectedCourseCategory, selectedCountry]);
-
 
   useEffect(() => {
     if (modalSelectedColleges.length > 0 && modalTargetYear && isOpen) {
@@ -198,7 +252,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
     }
   }, [modalSelectedColleges, modalTargetYear, isOpen]);
 
-  // College tab — selects college and updates budget (bidirectional)
   const selectCollege = (college) => {
     if (modalSelectedColleges.some(s => s.id === college.id)) return;
     setSaveError('');
@@ -212,7 +265,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
     setCollegeDropdownOpen(false);
   };
 
-  // Budget tab — clicking a match does NOT overwrite typed budget
   const selectMatchingCollege = (college) => {
     setSaveError('');
     setAddingId(college.id);
@@ -269,246 +321,380 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-[#1C1B1A]/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[#FAF7F2] border border-[#EFE9DF] w-full max-w-[520px] max-h-[90vh] overflow-y-auto rounded-[32px] p-5 sm:p-8 relative shadow-2xl shadow-black/10 space-y-5 scrollbar-thin">
+  const projVal = getProjectedValue();
+  const sipVal = getSIPValue();
 
-        <button type="button" onClick={onClose} className="absolute right-6 top-6 w-8 h-8 rounded-full flex items-center justify-center neu-btn-flat-inactive transition-all cursor-pointer text-lg font-bold select-none outline-none hover:text-[#F0883E]">&times;</button>
-
+  const modalJSX = (
+    <div
+      className="fixed inset-0 z-[9999] bg-[#1C1B1A]/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 lg:p-8 overflow-hidden select-none animate-fade-in text-[#2B2A28]"
+      aria-modal="true"
+      role="dialog"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-7xl max-h-[92vh] bg-[#FAF7F2] border border-[#EFE9DF] rounded-[32px] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.25)] relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="space-y-1 pt-2 text-center select-none">
-          <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#2B2A28] flex items-center justify-center gap-2">
-            <svg className="w-5 h-5 text-[#F0883E]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            </svg>
-            Child Education Planning
-          </h3>
-          <p className="text-[#8A8578] text-[11px] leading-relaxed max-w-sm mx-auto font-normal">Plan your child's dream education — choose a college or set a budget to estimate future funding needs.</p>
-        </div>
-
-        {/* Mode Tabs */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { key: 'college', label: 'Dream College', sub: 'Pick a college, we estimate funding.', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /> },
-            { key: 'budget', label: 'Set a Budget', sub: 'Enter budget, we show top matches.', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /> },
-          ].map(({ key, label, sub, icon }) => (
-            <button key={key} type="button" onClick={() => setModalPlanningType(key)}
-              className={`flex flex-col items-center text-center p-4 rounded-3xl transition-all cursor-pointer ${modalPlanningType === key ? 'neu-btn-flat-active' : 'neu-btn-flat-inactive'}`}>
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[#F0883E] ${modalPlanningType !== key && 'opacity-50'}`}>
-                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">{icon}</svg>
-              </div>
-              <span className={`text-[12px] font-bold mt-2 ${modalPlanningType === key ? 'text-[#F0883E]' : 'text-[#8A8578]'}`}>{label}</span>
-              <span className="text-[9.5px] leading-tight font-normal text-[#8A8578] mt-1">{sub}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Category & Country filters */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Course Category */}
-          <div>
-            <label className="block text-[13px] font-bold text-[#2B2A28] mb-1.5 select-none">Course Category</label>
-            <button type="button" onClick={() => setCatDropdownOpen(true)}
-              className="neu-field w-full px-3 py-2.5 text-xs font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer gap-1 hover:border-[#F0883E]/50 transition-all">
-              <span className={selectedCourseCategory ? 'text-[#2B2A28] truncate' : 'text-[#8A8578] truncate'}>{selectedCourseCategory || 'All Categories'}</span>
-              <svg className="w-3.5 h-3.5 shrink-0 text-[#F0883E]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <FloatingDropdownModal
-              isOpen={catDropdownOpen}
-              onClose={() => setCatDropdownOpen(false)}
-              title="Select Course Category"
-              subtitle="Filter programs by stream or degree type"
-              placeholder="Search category..."
-              selectedValue={selectedCourseCategory}
-              onSelect={(opt) => setSelectedCourseCategory(opt.value)}
-              options={[
-                { label: 'All Categories', value: '', subtext: 'View programs across all fields', icon: '🎓' },
-                ...courseCategories.map((c) => ({
-                  label: c,
-                  value: c,
-                  subtext: `${c} degree programs`,
-                  icon: '📚',
-                })),
-              ]}
-            />
-          </div>
-
-          {/* Country */}
-          <div>
-            <label className="block text-[13px] font-bold text-[#2B2A28] mb-1.5 select-none">Country</label>
-            <button type="button" onClick={() => setCountryDropdownOpen(true)}
-              className="neu-field w-full px-3 py-2.5 text-xs font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer gap-1 hover:border-[#F0883E]/50 transition-all">
-              <span className={selectedCountry ? 'text-[#2B2A28] truncate' : 'text-[#8A8578] truncate'}>{selectedCountry || 'All Countries'}</span>
-              <svg className="w-3.5 h-3.5 shrink-0 text-[#F0883E]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <FloatingDropdownModal
-              isOpen={countryDropdownOpen}
-              onClose={() => setCountryDropdownOpen(false)}
-              title="Select Country"
-              subtitle="Filter programs by study location"
-              placeholder="Search country..."
-              selectedValue={selectedCountry}
-              onSelect={(opt) => setSelectedCountry(opt.value)}
-              options={[
-                { label: 'All Countries', value: '', subtext: 'Global institutions', icon: '🌐' },
-                ...countries.map((c) => ({
-                  label: c,
-                  value: c,
-                  subtext: `Institutions in ${c}`,
-                  icon: '📍',
-                })),
-              ]}
-            />
-          </div>
-        </div>
-
-        {/* Content by mode */}
-        <div className="space-y-4">
-          {modalPlanningType === 'college' ? (
-            <>
-              <div className="text-[10px] font-bold text-[#F0883E] tracking-wider uppercase select-none">SELECT YOUR COLLEGE</div>
-
-              {/* Custom college dropdown */}
-              <div>
-                <label className="block text-[13px] font-bold text-[#2B2A28] mb-1.5 select-none">Select Dream College</label>
-                <button type="button" onClick={() => setCollegeDropdownOpen(true)}
-                  className="neu-field w-full px-4 py-3 text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all">
-                  <span className="text-[#8A8578]">Search colleges or universities...</span>
-                  <svg className="w-4 h-4 text-[#F0883E]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <FloatingDropdownModal
-                  isOpen={collegeDropdownOpen}
-                  onClose={() => setCollegeDropdownOpen(false)}
-                  title="Select Dream College"
-                  subtitle="Browse top institutions and estimated course budgets"
-                  placeholder="Type college name, country or degree..."
-                  emptyMessage="No colleges found matching your search."
-                  onSelect={(opt) => selectCollege(opt.raw)}
-                  options={collegesList.map((c) => ({
-                    id: c.id,
-                    label: c.name,
-                    subtext: [c.level, c.country].filter(Boolean).join(' · '),
-                    rightTag: Number.isFinite(c.cost) && c.cost > 0 ? formatINR(c.cost) : null,
-                    disabled: modalSelectedColleges.some((s) => s.id === c.id),
-                    raw: c,
-                    icon: '🏫',
-                  }))}
-                />
-              </div>
-
-              {/* Selected chips */}
-              {modalSelectedColleges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {modalSelectedColleges.map(col => (
-                    <div key={col.id}
-                      className={`bg-[#FFF6ED] text-[#F0883E] border border-[#EFE9DF] rounded-full pl-3 pr-2 py-1.5 text-xs font-bold flex items-center gap-2 select-none transition-all ${addingId === col.id ? 'scale-105 shadow-md' : ''}`}>
-                      <span>{col.name}</span>
-                      {Number.isFinite(col.cost) && col.cost > 0 && <span className="text-[10px] text-[#8A8578] font-semibold">{formatINR(col.cost)}</span>}
-                      <button type="button" onClick={() => removeCollege(col.id)} className="hover:text-[#E56A1F] font-extrabold cursor-pointer">&times;</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <label className="flex items-center gap-3 cursor-pointer select-none">
-                <span className="neu-checkbox relative w-5 h-5 rounded-md shrink-0 flex items-center justify-center transition-all duration-150">
-                  <input type="checkbox" checked={modalIncludeForeign} onChange={e => setModalIncludeForeign(e.target.checked)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                  {modalIncludeForeign && <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#F0883E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                </span>
-                <span className="text-[13px] font-bold text-[#2B2A28]">Include Foreign Colleges</span>
-              </label>
-            </>
-          ) : (
-            <>
-              <div className="text-[10px] font-bold text-[#F0883E] tracking-wider uppercase select-none">ENTER YOUR BUDGET</div>
-
-              <div>
-                <label className="block text-[13px] font-bold text-[#2B2A28] mb-1.5 select-none">Education Budget (Today's Value)*</label>
-                <input type="number" value={modalBudgetAmount}
-                  onChange={e => { setSaveError(''); userTypedBudget.current = true; setModalBudgetAmount(e.target.value); }}
-                  placeholder="e.g. 1500000" onWheel={e => e.currentTarget.blur()}
-                  className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none" />
-              </div>
-
-              {/* Top 5 matching programs */}
-              {modalBudgetAmount && (
-                <div className="space-y-2">
-                  <div className="text-[10px] font-bold text-[#8A8578] uppercase tracking-wider select-none">
-                    {loadingBudgetOptions ? 'Searching...' : 'Top 5 Matching Programs'}
-                  </div>
-                  {loadingBudgetOptions ? (
-                    <div className="space-y-2">
-                      {[1,2,3].map(i => <div key={i} className="h-14 rounded-xl bg-[#EFE9DF]/50 animate-pulse" />)}
-                    </div>
-                  ) : budgetOptions.length > 0 ? (
-                    <div className="space-y-2">
-                      {budgetOptions.map((opt, idx) => {
-                        const isSelected = modalSelectedColleges.some(c => c.id === opt.id);
-                        const isAdding = addingId === opt.id;
-                        return (
-                          <button key={opt.id} type="button"
-                            onClick={() => selectMatchingCollege(opt)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${
-                              isAdding ? 'scale-[1.02] shadow-md border-[#F0883E] bg-[#FFF6ED]' :
-                              isSelected ? 'border-[#F0883E] bg-[#FFF6ED] shadow-inner' :
-                              'border-[#EFE9DF] bg-white/50 hover:bg-[#FFF6ED]/80 hover:border-[#F0883E]/40 cursor-pointer'
-                            }`}>
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs transition-colors"
-                              style={{ background: isSelected ? '#F0883E' : '#EFE9DF', color: isSelected ? '#fff' : '#8A8578' }}>
-                              {isSelected ? '✓' : idx + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-bold text-[#2B2A28] truncate">{opt.name}</div>
-                              <div className="text-[10px] text-[#8A8578]">{[opt.level, opt.country].filter(Boolean).join(' · ')}</div>
-                            </div>
-                            <div className="text-right shrink-0">
-                              {Number.isFinite(opt.cost) && opt.cost > 0 && <div className="text-xs font-bold text-[#F0883E]">{formatINR(opt.cost)}</div>}
-                              {opt.category && <div className="text-[10px] text-[#8A8578]">{opt.category}</div>}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-[#8A8578] italic">No programs found for this budget.</div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Target Year */}
-          <div>
-            <label className="block text-[13px] font-bold text-[#2B2A28] mb-1.5 select-none">Target Admission Year*</label>
-            <input type="number" value={modalTargetYear} onChange={e => setModalTargetYear(e.target.value)}
-              placeholder="e.g. 2035" onWheel={e => e.currentTarget.blur()}
-              className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none" />
-          </div>
-
-          {/* Projected Cost Card */}
-          {projectedCost && getProjectedValue() && (
-            <div className="p-4 bg-[#FFF6ED] border border-[#EFE9DF] rounded-2xl animate-fade-in text-center shadow-inner">
-              <p className="text-[10px] font-bold text-[#8A8578] uppercase tracking-wider mb-1">Projected Future Cost</p>
-              <p className="text-2xl font-black text-[#2B2A28]">{formatINR(getProjectedValue())}</p>
-              {getSIPValue() && (
-                <p className="text-xs font-semibold text-[#2B2A28]/70 mt-1">Required SIP: <span className="text-[#F0883E] font-bold">{formatINR(getSIPValue())}</span> / mo</p>
-              )}
-              <p className="text-xs font-medium text-[#F0883E] mt-1">For admission in {modalTargetYear}</p>
+        <div className="shrink-0 h-16 sm:h-20 px-6 sm:px-10 border-b border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-4 z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFF6ED] border border-[#EFE9DF] flex items-center justify-center text-[#F0883E] shrink-0 shadow-inner">
+              <GraduationCapIcon className="w-5 h-5" />
             </div>
-          )}
-        </div>
-
-        {/* Save */}
-        <div className="text-center pt-1">
-          {saveError && <p className="mb-3 text-xs font-semibold text-red-600">{saveError}</p>}
-          <button type="button" onClick={handleSave}
-            className="neu-btn-raised flex items-center gap-2 text-sm font-bold px-10 py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer justify-center mx-auto w-full sm:w-auto">
-            Save &rarr;
+            <div>
+              <h3 className="font-heading text-base sm:text-xl font-extrabold text-[#2B2A28] leading-tight">
+                Child Education Planning
+              </h3>
+              <p className="text-xs text-[#8A8578] font-medium mt-0.5">
+                Plan higher education target budget & dream colleges
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close panel"
+            className="w-10 h-10 rounded-full flex items-center justify-center neu-btn-flat-inactive transition-all cursor-pointer text-[#2B2A28] hover:text-[#F0883E] outline-none shrink-0"
+          >
+            <XIcon className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 sm:p-10 scrollbar-thin bg-[#FAF7F2]">
+          <div className="max-w-7xl mx-auto space-y-8">
+
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+              {[
+                { key: 'college', label: 'Dream College', sub: 'Select colleges for cost estimate', icon: BuildingIcon },
+                { key: 'budget', label: 'Set a Budget', sub: 'Filter top matching programs', icon: DollarSignIcon },
+              ].map(({ key, label, sub, icon: Icon }) => {
+                const active = modalPlanningType === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setModalPlanningType(key)}
+                    className={`p-4 rounded-3xl transition-all cursor-pointer flex items-center gap-3.5 text-left ${
+                      active ? 'neu-btn-flat-active' : 'neu-btn-flat-inactive'
+                    }`}
+                  >
+                    <div className={`p-2.5 rounded-xl border border-[#EFE9DF] ${active ? 'bg-[#FFF6ED] text-[#F0883E]' : 'bg-[#FAF7F2] text-[#8A8578]'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className={`text-xs sm:text-sm font-extrabold ${active ? 'text-[#F0883E]' : 'text-[#2B2A28]'}`}>{label}</div>
+                      <div className="text-[11px] text-[#8A8578] font-medium mt-0.5">{sub}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 2-Column Split Grid with Neumorphic Dual Shadows */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column (7 cols): Filters & College / Budget Search */}
+              <div
+                className="lg:col-span-7 space-y-6 bg-[#FAF7F2] p-6 sm:p-8 rounded-[32px] border border-[#EFE9DF]"
+                style={{ boxShadow: '8px 8px 20px #E5DFD3, -8px -8px 20px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.8)' }}
+              >
+                {/* Category & Country filters */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Course Category (Normal Dropdown) */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-1.5">
+                      <BookOpenIcon className="w-4 h-4 text-[#F0883E]" /> Course Category
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCatDropdownOpen(true)}
+                      className="neu-field w-full px-4 py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
+                    >
+                      <span className={selectedCourseCategory ? 'text-[#2B2A28] truncate' : 'text-[#8A8578] truncate'}>
+                        {selectedCourseCategory || 'All Categories'}
+                      </span>
+                      <ChevronDown open={catDropdownOpen} />
+                    </button>
+                    <FloatingDropdownModal
+                      isOpen={catDropdownOpen}
+                      onClose={() => setCatDropdownOpen(false)}
+                      isFullScreen={false}
+                      title="Select Course Category"
+                      subtitle="Filter programs by stream or degree"
+                      placeholder="Search category..."
+                      selectedValue={selectedCourseCategory}
+                      onSelect={(opt) => setSelectedCourseCategory(opt.value)}
+                      options={[
+                        { label: 'All Categories', value: '', subtext: 'View all programs', icon: <BookOpenIcon className="w-4 h-4" /> },
+                        ...courseCategories.map((c) => ({ label: c, value: c, subtext: `${c} degree programs`, icon: <GraduationCapIcon className="w-4 h-4" /> })),
+                      ]}
+                    />
+                  </div>
+
+                  {/* Country (Normal Dropdown) */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-1.5">
+                      <GlobeIcon className="w-4 h-4 text-[#F0883E]" /> Country
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCountryDropdownOpen(true)}
+                      className="neu-field w-full px-4 py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
+                    >
+                      <span className={selectedCountry ? 'text-[#2B2A28] truncate' : 'text-[#8A8578] truncate'}>
+                        {selectedCountry || 'All Countries'}
+                      </span>
+                      <ChevronDown open={countryDropdownOpen} />
+                    </button>
+                    <FloatingDropdownModal
+                      isOpen={countryDropdownOpen}
+                      onClose={() => setCountryDropdownOpen(false)}
+                      isFullScreen={false}
+                      title="Select Country"
+                      subtitle="Filter programs by study location"
+                      placeholder="Search country..."
+                      selectedValue={selectedCountry}
+                      onSelect={(opt) => setSelectedCountry(opt.value)}
+                      options={[
+                        { label: 'All Countries', value: '', subtext: 'Global institutions', icon: <GlobeIcon className="w-4 h-4" /> },
+                        ...countries.map((c) => ({ label: c, value: c, subtext: `Institutions in ${c}`, icon: <BuildingIcon className="w-4 h-4" /> })),
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                {/* Mode-specific search inputs */}
+                {modalPlanningType === 'college' ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-2">
+                        <BuildingIcon className="w-4 h-4 text-[#F0883E]" /> Select Dream College
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setCollegeDropdownOpen(true)}
+                        className="neu-field w-full px-4 py-3.5 text-xs sm:text-sm font-semibold rounded-2xl outline-none flex justify-between items-center cursor-pointer hover:border-[#F0883E]/50 transition-all"
+                      >
+                        <span className="text-[#8A8578]">Search colleges or universities...</span>
+                        <ChevronDown open={collegeDropdownOpen} />
+                      </button>
+                      <FloatingDropdownModal
+                        isOpen={collegeDropdownOpen}
+                        onClose={() => setCollegeDropdownOpen(false)}
+                        isFullScreen={true}
+                        title="Select Dream College"
+                        subtitle="Browse top institutions and estimated course budgets"
+                        placeholder="Type college name, country or degree..."
+                        emptyMessage="No colleges found."
+                        onSelect={(opt) => selectCollege(opt.raw)}
+                        options={collegesList.map((c) => ({
+                          id: c.id,
+                          label: c.name,
+                          subtext: [c.level, c.country].filter(Boolean).join(' · '),
+                          rightTag: Number.isFinite(c.cost) && c.cost > 0 ? formatINR(c.cost) : null,
+                          disabled: modalSelectedColleges.some((s) => s.id === c.id),
+                          raw: c,
+                          icon: <BuildingIcon className="w-4 h-4 text-[#F0883E]" />,
+                        }))}
+                      />
+                    </div>
+
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                      <span className="neu-checkbox relative w-5 h-5 rounded-md shrink-0 flex items-center justify-center transition-all duration-150">
+                        <input
+                          type="checkbox"
+                          checked={modalIncludeForeign}
+                          onChange={(e) => setModalIncludeForeign(e.target.checked)}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        {modalIncludeForeign && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 13l4 4L19 7" stroke="#F0883E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="text-xs font-bold text-[#2B2A28]">Include Foreign Colleges</span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none">
+                        Education Budget (Today's Value)
+                      </label>
+                      <input
+                        type="number"
+                        value={modalBudgetAmount}
+                        onChange={(e) => {
+                          setSaveError('');
+                          userTypedBudget.current = true;
+                          setModalBudgetAmount(e.target.value);
+                        }}
+                        placeholder="e.g. 1500000"
+                        onWheel={(e) => e.currentTarget.blur()}
+                        className="neu-field w-full px-4 py-3.5 text-sm font-semibold rounded-2xl outline-none"
+                      />
+                    </div>
+
+                    {modalBudgetAmount && (
+                      <div className="space-y-3 pt-1">
+                        <div className="text-[11px] font-bold text-[#8A8578] uppercase tracking-wider">
+                          {loadingBudgetOptions ? 'Searching...' : 'Top 5 Matching Programs'}
+                        </div>
+                        {loadingBudgetOptions ? (
+                          <div className="space-y-2">
+                            {[1, 2, 3].map((i) => (
+                              <div key={i} className="h-14 rounded-2xl bg-[#EFE9DF]/50 animate-pulse" />
+                            ))}
+                          </div>
+                        ) : budgetOptions.length > 0 ? (
+                          <div className="space-y-2.5">
+                            {budgetOptions.map((opt, idx) => {
+                              const isSelected = modalSelectedColleges.some((c) => c.id === opt.id);
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => selectMatchingCollege(opt)}
+                                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${
+                                    isSelected
+                                      ? 'border-[#F0883E] bg-[#FFF6ED] shadow-inner'
+                                      : 'border-[#EFE9DF] bg-white/50 hover:bg-[#FFF6ED]/80 hover:border-[#F0883E]/40 cursor-pointer'
+                                  }`}
+                                >
+                                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs"
+                                    style={{ background: isSelected ? '#F0883E' : '#EFE9DF', color: isSelected ? '#fff' : '#8A8578' }}>
+                                    {isSelected ? <CheckIcon className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-bold text-[#2B2A28] truncate">{opt.name}</div>
+                                    <div className="text-[10px] text-[#8A8578]">{[opt.level, opt.country].filter(Boolean).join(' · ')}</div>
+                                  </div>
+                                  {Number.isFinite(opt.cost) && opt.cost > 0 && (
+                                    <div className="text-xs font-bold text-[#F0883E]">{formatINR(opt.cost)}</div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-[#8A8578] italic py-2">No programs matching budget.</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column (5 cols): Summary & Projection Card */}
+              <div
+                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-[32px] p-6 sm:p-8 space-y-6 flex flex-col justify-between"
+                style={{ boxShadow: '8px 8px 20px #E5DFD3, -8px -8px 20px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.8)' }}
+              >
+                <div className="space-y-5">
+                  <div className="text-xs font-extrabold text-[#2B2A28] border-b border-[#EFE9DF] pb-3 flex items-center gap-2">
+                    <SparklesIcon className="w-4 h-4 text-[#F0883E]" /> Education Plan Summary
+                  </div>
+
+                  {/* Selected Colleges Chips */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#8A8578] mb-2 select-none">
+                      Selected Institutions
+                    </label>
+                    {modalSelectedColleges.length === 0 ? (
+                      <div className="p-5 text-center text-xs text-[#8A8578] neu-field rounded-2xl">
+                        No colleges selected yet.
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {modalSelectedColleges.map((col) => (
+                          <div
+                            key={col.id}
+                            className="bg-[#FFF6ED] border border-[#EFE9DF] text-[#F0883E] rounded-2xl px-3.5 py-2 text-xs font-bold flex items-center gap-2 shadow-sm"
+                          >
+                            <BuildingIcon className="w-4 h-4" />
+                            <span>{col.name}</span>
+                            {Number.isFinite(col.cost) && col.cost > 0 && (
+                              <span className="text-[10px] text-[#8A8578] font-semibold">{formatINR(col.cost)}</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeCollege(col.id)}
+                              className="hover:text-[#E56A1F] font-extrabold cursor-pointer ml-1"
+                            >
+                              <XIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Target Year */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-1.5">
+                      <CalendarIcon className="w-4 h-4 text-[#F0883E]" /> Target Admission Year
+                    </label>
+                    <input
+                      type="number"
+                      value={modalTargetYear}
+                      onChange={(e) => setModalTargetYear(e.target.value)}
+                      placeholder="e.g. 2035"
+                      onWheel={(e) => e.currentTarget.blur()}
+                      className="neu-field w-full px-4 py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Projected Cost Card */}
+                {projVal ? (
+                  <div className="p-5 bg-[#FFF6ED] border border-[#EFE9DF] rounded-2xl text-center space-y-1.5 shadow-inner">
+                    <p className="text-[10px] font-bold text-[#8A8578] uppercase tracking-wider">Projected Future Cost</p>
+                    <p className="text-3xl font-black text-[#2B2A28]">{formatINR(projVal)}</p>
+                    {sipVal && (
+                      <p className="text-xs font-semibold text-[#2B2A28]/70">
+                        Required Monthly SIP: <span className="text-[#F0883E] font-bold">{formatINR(sipVal)}</span>
+                      </p>
+                    )}
+                    <p className="text-xs font-medium text-[#F0883E]">For admission in {modalTargetYear}</p>
+                  </div>
+                ) : (
+                  <div className="p-5 neu-field rounded-2xl text-center text-xs text-[#8A8578] font-medium">
+                    Select a college or enter budget and target year to calculate future cost.
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="shrink-0 h-16 sm:h-20 px-6 sm:px-10 border-t border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-4 z-10">
+          <div className="text-xs sm:text-sm font-semibold text-[#8A8578]">
+            {saveError && <span className="text-red-600 font-semibold">{saveError}</span>}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 text-xs font-bold neu-btn-flat-inactive transition-all cursor-pointer text-[#2B2A28] rounded-2xl"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="neu-btn-raised flex items-center gap-2 text-xs sm:text-sm font-bold px-8 py-3 rounded-2xl transition-all cursor-pointer"
+            >
+              Save Education Goal <ArrowRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
+
+  return createPortal(modalJSX, document.body);
 }

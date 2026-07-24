@@ -45,29 +45,27 @@ export default function Assessment() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] font-sans selection:bg-brand-gold/30 selection:text-brand-blue relative">
       
-      {showReport && (
-        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
-          <button
-            type="button"
-            onClick={() => {
-              sessionStorage.removeItem("ww_assessment_state");
-              localStorage.removeItem("ww_assessment_id");
-              window.location.href = "/";
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all text-xs sm:text-sm font-bold cursor-pointer hover:opacity-80"
-            style={{
-              background: "#F5F3ED",
-              color: "#7B7B7B",
-              boxShadow: "inset 4px 4px 6px rgba(212,196,176,0.8), inset -4px -4px 6px rgba(255,255,255,1)",
-            }}
-          >
-            <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            Go to Home Page
-          </button>
-        </div>
-      )}
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+        <button
+          type="button"
+          onClick={() => {
+            sessionStorage.removeItem("ww_assessment_state");
+            localStorage.removeItem("ww_assessment_id");
+            window.location.href = "/";
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all text-xs sm:text-sm font-bold cursor-pointer hover:opacity-80"
+          style={{
+            background: "#F5F3ED",
+            color: "#7B7B7B",
+            boxShadow: "inset 4px 4px 6px rgba(212,196,176,0.8), inset -4px -4px 6px rgba(255,255,255,1)",
+          }}
+        >
+          <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Go to Home Page
+        </button>
+      </div>
 
       <Header currentStep={step} totalSteps={5} goToStep={goToStep} showReport={showReport} />
 

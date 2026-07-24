@@ -365,7 +365,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
           <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
             {/* Mode Switcher Tabs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 max-w-4xl mx-auto">
               {[
                 { key: 'college', label: 'Dream College', sub: 'Select colleges for cost estimate', icon: BuildingIcon },
                 { key: 'budget', label: 'Set a Budget', sub: 'Filter top matching programs', icon: DollarSignIcon },
@@ -376,16 +376,16 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                     key={key}
                     type="button"
                     onClick={() => setModalPlanningType(key)}
-                    className={`p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl transition-all cursor-pointer flex items-center gap-3 text-left ${
+                    className={`p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl transition-all cursor-pointer flex items-center gap-2 sm:gap-3.5 text-left overflow-hidden min-w-0 ${
                       active ? 'neu-btn-flat-active' : 'neu-btn-flat-inactive'
                     }`}
                   >
-                    <div className={`p-2 sm:p-2.5 rounded-xl border border-[#EFE9DF] shrink-0 ${active ? 'bg-[#FFF6ED] text-[#F0883E]' : 'bg-[#FAF7F2] text-[#8A8578]'}`}>
+                    <div className={`p-1.5 sm:p-2.5 rounded-xl border border-[#EFE9DF] shrink-0 ${active ? 'bg-[#FFF6ED] text-[#F0883E]' : 'bg-[#FAF7F2] text-[#8A8578]'}`}>
                       <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className={`text-xs sm:text-sm font-extrabold ${active ? 'text-[#F0883E]' : 'text-[#2B2A28]'}`}>{label}</div>
-                      <div className="text-[10px] sm:text-[11px] text-[#8A8578] font-medium mt-0.5">{sub}</div>
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <div className={`text-xs sm:text-sm font-extrabold truncate ${active ? 'text-[#F0883E]' : 'text-[#2B2A28]'}`}>{label}</div>
+                      <div className="text-[10px] sm:text-[11px] text-[#8A8578] font-medium mt-0.5 truncate">{sub}</div>
                     </div>
                   </button>
                 );
@@ -670,7 +670,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
           </div>
         </div>
 
-        {/* Responsive Footer (Always Visible & Accessible on Mobile) */}
+        {/* Responsive Footer */}
         <div className="shrink-0 py-3 sm:py-0 sm:h-20 px-4 sm:px-10 border-t border-[#EFE9DF] bg-[#FAF7F2] flex items-center justify-between gap-3 z-10">
           <div className="text-xs sm:text-sm font-semibold text-[#8A8578] truncate max-w-[140px] sm:max-w-none">
             {saveError && <span className="text-red-600 font-semibold truncate block">{saveError}</span>}

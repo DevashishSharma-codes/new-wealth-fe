@@ -34,7 +34,7 @@ html {
 body {
   font-family: 'Montserrat', sans-serif;
   background-color: #FBFBFA;
-  color: #1b1a19;
+  color: #201f1d;
   overflow-x: hidden;
   letter-spacing: -0.01em;
 }
@@ -353,4 +353,4 @@ body {
 .scrollbar-thin {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
-}
+}

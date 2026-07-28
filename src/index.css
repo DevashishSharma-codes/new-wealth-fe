@@ -117,6 +117,31 @@ h6 {
   animation: wave-animation 7s ease-in-out infinite;
 }
 
+@keyframes shader-anim {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-shader-orange {
+  background: linear-gradient(90deg, #F0883E 0%, #FFB067 25%, #E56A1F 50%, #F7AA5B 75%, #F0883E 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shader-anim 4s ease-in-out infinite;
+}
+
+.bubbly-text-shadow {
+  filter: drop-shadow(3px 3px 6px rgba(210, 100, 30, 0.35)) drop-shadow(-2px -2px 5px rgba(255, 255, 255, 0.95));
+}
+
 /* ------------------------------------------------------------------
    Global Neumorphic Styles
 --------------------------------------------------------------------*/

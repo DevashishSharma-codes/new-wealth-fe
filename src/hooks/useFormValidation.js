@@ -28,8 +28,13 @@ export const validateStep1Fields = (formData) => {
     errors.email = "Please enter a valid email address";
   }
 
-  if (!formData.address?.trim()) {
+  const addressLength = formData.address?.trim().length || 0;
+  if (addressLength === 0) {
     errors.address = "Residential address is required";
+  } else if (addressLength < 4) {
+    errors.address = "Address must be at least 4 characters";
+  } else if (addressLength > 200) {
+    errors.address = "Address cannot exceed 200 characters";
   }
 
   if (formData.spouseMobile?.trim()) {

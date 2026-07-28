@@ -102,7 +102,13 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
   const [projectedCost, setProjectedCost] = useState(null);
   const [addingId, setAddingId] = useState(null);
 
-  const familySize = 2 + (childrenCount || 0);
+  const [tripTravellers, setTripTravellers] = useState(2 + (childrenCount || 0));
+
+  useEffect(() => {
+    if (isOpen) {
+      setTripTravellers(2 + (childrenCount || 0));
+    }
+  }, [isOpen, childrenCount]);
 
   const getTourOptions = (response) => {
     if (Array.isArray(response)) return response;
@@ -138,13 +144,14 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
       setTripTargetYear(goal.targetYear || '');
       setTripSelectedDestinations([]);
       setTripPlanningType('destinations');
-      const existingBudget = goal.todaysCost ? Math.round(parseFloat(goal.todaysCost) / familySize) : '';
+      const familySizeInit = 2 + (childrenCount || 0);
+      const existingBudget = goal.todaysCost ? Math.round(parseFloat(goal.todaysCost) / familySizeInit) : '';
       setTripBudgetPerPerson(existingBudget);
       setSaveError('');
       setSelectedCategory('');
       setDestOpen(false);
     }
-  }, [goal, isOpen, familySize]);
+  }, [goal, isOpen, childrenCount]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -185,7 +192,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
       client.post('/tour/project-cost', {
         destination_id: tripSelectedDestinations[0].id,
         target_year: Number(tripTargetYear),
-        travellers: familySize
+        travellers: Number(tripTravellers) || 1
       }).then(res => {
         const d = res.data?.data || res.data || res;
         setProjectedCost(d);
@@ -193,7 +200,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
     } else {
       setProjectedCost(null);
     }
-  }, [tripSelectedDestinations, tripTargetYear, familySize, isOpen]);
+  }, [tripSelectedDestinations, tripTargetYear, tripTravellers, isOpen]);
 
   const selectDestination = (destination) => {
     if (tripSelectedDestinations.some(s => s.id === destination.id)) return;
@@ -233,12 +240,12 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
       if (costs.length !== tripSelectedDestinations.length) return null;
 
       const averagePerPerson = costs.reduce((total, cost) => total + cost, 0) / costs.length;
-      return Math.round(averagePerPerson * familySize);
+      return Math.round(averagePerPerson * (Number(tripTravellers) || 1));
     }
 
     const enteredBudget = Number(tripBudgetPerPerson);
     return Number.isFinite(enteredBudget) && enteredBudget > 0
-      ? Math.round(enteredBudget * familySize)
+      ? Math.round(enteredBudget * (Number(tripTravellers) || 1))
       : null;
   };
 
@@ -284,7 +291,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                 Foreign Tour Planning
               </h3>
               <p className="text-[11px] sm:text-xs text-[#8A8578] font-medium mt-0.5 hidden sm:block">
-                Calculate estimated trip cost for {familySize} travellers
+                Calculate estimated trip cost for {tripTravellers || 1} travellers
               </p>
             </div>
           </div>
@@ -488,7 +495,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
 
               {/* Right Column (5 cols): Summary Card & Future Projection */}
               <div
-                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[32px] p-4 sm:p-8 space-y-5 sm:space-y-6 flex flex-col justify-between"
+                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[32px] p-4 sm:p-8 space-y-5 sm:space-y-6 flex flex-col justify-start"
                 style={{ boxShadow: '8px 8px 20px #E5DFD3, -8px -8px 20px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.8)' }}
               >
                 <div className="space-y-4 sm:space-y-5">
@@ -546,11 +553,19 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                   </div>
 
                   {/* Total Travellers count */}
-                  <div className="flex items-center justify-between text-xs font-bold text-[#2B2A28] neu-field p-3 sm:p-3.5 rounded-2xl">
-                    <span className="flex items-center gap-2 text-[#8A8578] font-medium">
-                      <UserIcon className="w-4 h-4 text-[#F0883E]" /> Total Travellers:
-                    </span>
-                    <span>{familySize} Person{familySize > 1 ? 's' : ''}</span>
+                  <div>
+                    <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none flex items-center gap-1.5">
+                      <UserIcon className="w-4 h-4 text-[#F0883E]" /> Total Travellers
+                    </label>
+                    <input
+                      type="number"
+                      value={tripTravellers}
+                      onChange={(e) => setTripTravellers(e.target.value)}
+                      placeholder="e.g. 2"
+                      min="1"
+                      onWheel={(e) => e.currentTarget.blur()}
+                      className="neu-field w-full px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none"
+                    />
                   </div>
                 </div>
 
@@ -564,7 +579,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                         Monthly SIP Needed: <span className="text-[#F0883E] font-bold">{formatINR(sipVal)}</span>
                       </p>
                     )}
-                    <p className="text-xs font-medium text-[#F0883E]">For {familySize} travellers in {tripTargetYear}</p>
+                    <p className="text-xs font-medium text-[#F0883E]">For {tripTravellers || 1} travellers in {tripTargetYear}</p>
                   </div>
                 ) : (
                   <div className="p-4 sm:p-5 neu-field rounded-2xl text-center text-xs text-[#8A8578] font-medium mt-4">

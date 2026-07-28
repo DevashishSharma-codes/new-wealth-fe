@@ -352,19 +352,17 @@ export function Step4LifestyleGoals() {
                       </div>
                     ))}
 
-                    {/* "Add another" — Foreign Tour & Big Purchases only */}
-                    {(catName === 'Foreign Tour' || catName === 'Big Purchases') && (
-                      <div className="text-right pt-1">
-                        <button
-                          key={`add-another-${catName}`}
-                          type="button"
-                          onClick={() => addGoal(catName)}
-                          className="s4-secondary-btn text-xs font-bold px-5 py-3 rounded-2xl cursor-pointer select-none"
-                        >
-                          + Add another {catName}
-                        </button>
-                      </div>
-                    )}
+                    {/* "Add another" — Available for all categories */}
+                    <div className="text-right pt-1">
+                      <button
+                        key={`add-another-${catName}`}
+                        type="button"
+                        onClick={() => addGoal(catName)}
+                        className="s4-secondary-btn text-xs font-bold px-5 py-3 rounded-2xl cursor-pointer select-none"
+                      >
+                        + Add another {catName}
+                      </button>
+                    </div>
                   </div>
                 );
               })}

@@ -131,11 +131,17 @@ export function Step3FamilyDetails() {
             </div>
 
             {/* Number of Children selector */}
-            <div className="space-y-2.5">
-              <label className="block text-[13px] font-bold text-[#2B2A28] tracking-wide select-none">
-                Number of Children <span className="text-[#8A8578] font-normal">(optional)</span>
-              </label>
-              <div className="flex gap-3">
+            <div className="neu-card-inset p-5 sm:p-6 rounded-[24px] space-y-5 border border-[#EFE9DF]/50 bg-white/20 backdrop-blur-sm">
+              <div className="space-y-1.5">
+                <label className="block text-[15px] sm:text-base font-extrabold text-[#2B2A28] tracking-wide select-none">
+                  Number of Children <span className="text-[#8A8578] font-medium text-[13px] ml-1">(optional)</span>
+                </label>
+                <p className="text-[#8A8578] text-xs sm:text-[13px] font-medium leading-relaxed">
+                  Select the number of dependent children to plan for their education, marriage, and other key milestones.
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap sm:flex-nowrap gap-3 sm:gap-4 w-full">
                 {[0, 1, 2, 3, '4+'].map((num) => {
                   const parsedNum = num === '4+' ? 4 : num;
                   const isSelected = num === '4+' ? childrenCount >= 4 : childrenCount === parsedNum;
@@ -144,8 +150,10 @@ export function Step3FamilyDetails() {
                       key={num}
                       type="button"
                       onClick={() => setChildrenCount(parsedNum)}
-                      className={`w-12 h-10 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                        isSelected ? 'neu-btn-flat-active' : 'neu-btn-flat-inactive'
+                      className={`flex-1 min-w-[60px] h-12 sm:h-14 rounded-[1.25rem] text-sm sm:text-base font-bold transition-all duration-200 cursor-pointer flex items-center justify-center ${
+                        isSelected 
+                          ? 'neu-btn-raised scale-[0.98]' 
+                          : 'bg-[#F1EDE6] shadow-[inset_4px_4px_6px_rgba(221,212,199,0.75),_inset_-4px_-4px_6px_rgba(255,255,255,1)] text-[#8A8578] hover:text-[#F0883E] hover:shadow-[inset_4px_4px_6px_2px_rgba(240,136,62,0.45),_inset_-4px_-4px_6px_rgba(255,255,255,1)]'
                       }`}
                     >
                       {num}
@@ -156,22 +164,28 @@ export function Step3FamilyDetails() {
 
               {/* Show controls to add more children if childrenCount is 4 or more */}
               {childrenCount >= 4 && (
-                <div className="flex flex-wrap items-center gap-4 pt-2.5 pb-1 animate-fade-in">
-                  <span className="text-xs font-bold text-[#2B2A28] select-none">
-                    Total Children: <span className="text-[#F0883E] text-sm font-extrabold">{childrenCount}</span>
-                  </span>
-                  <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 mt-2 border-t border-[#EFE9DF] animate-fade-in">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[13px] font-bold text-[#8A8578] uppercase tracking-wider select-none">
+                      Total Children
+                    </span>
+                    <span className="flex items-center justify-center neu-btn-raised w-8 h-8 rounded-full font-extrabold text-sm">
+                      {childrenCount}
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-3">
                     <button
                       type="button"
                       onClick={() => setChildrenCount(childrenCount + 1)}
-                      className="px-3 h-8 rounded-xl text-xs font-bold neu-btn-flat-inactive flex items-center justify-center hover:text-[#F0883E] cursor-pointer whitespace-nowrap"
+                      className="flex-1 sm:flex-none px-4 h-10 rounded-xl text-[13px] font-bold neu-btn-flat-inactive flex items-center justify-center hover:text-[#F0883E] cursor-pointer whitespace-nowrap transition-all"
                     >
                       + Add More
                     </button>
                     <button
                       type="button"
                       onClick={() => childrenCount > 4 && setChildrenCount(childrenCount - 1)}
-                      className="px-3 h-8 rounded-xl text-xs font-bold neu-btn-flat-inactive flex items-center justify-center hover:text-red-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                      className="flex-1 sm:flex-none px-4 h-10 rounded-xl text-[13px] font-bold neu-btn-flat-inactive flex items-center justify-center hover:text-red-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap transition-all"
                       disabled={childrenCount <= 4}
                     >
                       - Remove

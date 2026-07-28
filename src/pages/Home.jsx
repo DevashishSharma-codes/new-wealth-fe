@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import wealthWisdomLogo from '../assets/wealth-wisdom-logo.png';
 import client from '../config/api';
+import { Footer } from '../components/layout/Footer';
 
 // Custom SVG Icons for Features
 const ReadinessIcon = () => (
@@ -203,7 +204,7 @@ export default function Home() {
         </section>
 
         {/* Goal Section */}
-        <section className="bg-[#F4F1EA] border-y border-slate-100 py-16 sm:py-20 text-center">
+        <section className="bg-[#F4F1EA] border-y border-slate-100 pt-16 pb-12 sm:pt-20 sm:pb-12 text-center">
           <div className="max-w-3xl mx-auto px-4">
             <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-brand-blue mb-4 leading-tight">
               A Financial Plan Built Around Your Life Milestones
@@ -221,7 +222,7 @@ export default function Home() {
         </section>
 
         {/* Feature Bento Grid */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 sm:pt-10 sm:pb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5">
 
             {/* Card 1 — Large (spans 7 cols) */}
@@ -270,14 +271,12 @@ export default function Home() {
             </div>
 
             {/* Card 6 — Featured Full Width */}
-            <div className={`lg:col-span-12 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8`}>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shrink-0 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
+            <div className={`lg:col-span-12 bg-[#F4F1EA] border border-[#E8E2D8] rounded-[1.25rem] p-7 sm:p-8 ${bentoCardShadow} transition-all duration-300 flex flex-col gap-4`}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(210,200,185,0.5)]">
                 <PlanningIcon />
               </div>
-              <div className="flex flex-col gap-1">
-                <h3 className="font-heading text-lg sm:text-xl font-bold text-[#1E2B49]">Estate Planning (Will & Trust)</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">Secure your family's future with proper estate planning, including Wills, Trusts, nominations, and seamless wealth transfer across generations.</p>
-              </div>
+              <h3 className="font-heading text-lg font-bold text-[#1E2B49]">Estate Planning (Will & Trust)</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Secure your family's future with proper estate planning, including Wills, Trusts, nominations, and seamless wealth transfer across generations.</p>
             </div>
 
           </div>
@@ -316,26 +315,8 @@ export default function Home() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-brand-beige border-t border-slate-200/50 py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center gap-6">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium">
-            <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <span>Your information is secure and private.</span>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm font-medium text-slate-600">
-            <a href="#careers" className="hover:text-brand-orange transition-colors">Careers</a>
-            <a href="#legal" className="hover:text-brand-orange transition-colors">Legal</a>
-            <a href="#contact" className="hover:text-brand-orange transition-colors">Contact</a>
-            <a href="#privacy" className="hover:text-brand-orange transition-colors">Privacy Policy</a>
-            <a href="#blog" className="hover:text-brand-orange transition-colors">Blog</a>
-            <a href="#faqs" className="hover:text-brand-orange transition-colors">FAQs</a>
-          </div>
-          <p className="text-[11px] sm:text-xs text-slate-400 font-light tracking-wide">&copy; 2026 Wealth Wisdom. All rights reserved.</p>
-        </div>
-      </footer>
+      {/* Footer Component */}
+      <Footer />
 
       {/* Get In Touch Modal */}
       {isContactModalOpen && (

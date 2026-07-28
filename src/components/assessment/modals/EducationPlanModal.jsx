@@ -165,17 +165,13 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             item.country.toLowerCase() === selectedCountry.toLowerCase() ||
             item.country.toLowerCase().includes(selectedCountry.toLowerCase());
 
-          const foreignMatch = modalIncludeForeign ||
-            item.country.toLowerCase() === 'india' ||
-            item.country === '';
-
-          return catMatch && countryMatch && foreignMatch;
+          return catMatch && countryMatch;
         });
 
         setCollegesList(filtered);
       })
       .catch(err => console.error('Failed to load programs:', err));
-  }, [isOpen, selectedCourseCategory, selectedCountry, modalIncludeForeign]);
+  }, [isOpen, selectedCourseCategory, selectedCountry]);
 
   useEffect(() => {
     if (!isOpen || !modalBudgetAmount || modalPlanningType !== 'budget') {
@@ -220,7 +216,10 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             const countryMatch = !selectedCountry ||
               item.country.toLowerCase() === selectedCountry.toLowerCase() ||
               item.country.toLowerCase().includes(selectedCountry.toLowerCase());
-            return catMatch && countryMatch;
+            const foreignMatch = modalIncludeForeign ||
+              item.country.toLowerCase() === 'india' ||
+              item.country === '';
+            return catMatch && countryMatch && foreignMatch;
           });
 
           const sorted = filtered
@@ -458,7 +457,8 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                       onSelect={(opt) => setSelectedCountry(opt.value)}
                       options={[
                         { label: 'All Countries', value: '', subtext: 'Global institutions', icon: <GlobeIcon className="w-4 h-4" /> },
-                        ...countries.map((c) => ({ label: c, value: c, subtext: `Institutions in ${c}`, icon: <BuildingIcon className="w-4 h-4" /> })),
+                        ...(countries.some(c => c.toLowerCase() === 'india') ? [{ label: 'India', value: 'India', subtext: 'Institutions in India', icon: <BuildingIcon className="w-4 h-4" /> }] : []),
+                        ...countries.filter(c => c.toLowerCase() !== 'india').map((c) => ({ label: c, value: c, subtext: `Institutions in ${c}`, icon: <BuildingIcon className="w-4 h-4" /> })),
                       ]}
                     />
                   </div>
@@ -499,23 +499,6 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                         }))}
                       />
                     </div>
-
-                    <label className="flex items-center gap-3 cursor-pointer select-none">
-                      <span className="neu-checkbox relative w-5 h-5 rounded-md shrink-0 flex items-center justify-center transition-all duration-150">
-                        <input
-                          type="checkbox"
-                          checked={modalIncludeForeign}
-                          onChange={(e) => setModalIncludeForeign(e.target.checked)}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                        {modalIncludeForeign && (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                            <path d="M5 13l4 4L19 7" stroke="#F0883E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        )}
-                      </span>
-                      <span className="text-xs font-bold text-[#2B2A28]">Include Foreign Colleges</span>
-                    </label>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -536,6 +519,23 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                         className="neu-field w-full px-3.5 sm:px-4 py-3 sm:py-3.5 text-sm font-semibold rounded-2xl outline-none"
                       />
                     </div>
+                    
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                      <span className="neu-checkbox relative w-5 h-5 rounded-md shrink-0 flex items-center justify-center transition-all duration-150">
+                        <input
+                          type="checkbox"
+                          checked={modalIncludeForeign}
+                          onChange={(e) => setModalIncludeForeign(e.target.checked)}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        {modalIncludeForeign && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 13l4 4L19 7" stroke="#F0883E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="text-xs font-bold text-[#2B2A28]">Include Foreign Colleges</span>
+                    </label>
 
                     {modalBudgetAmount && (
                       <div className="space-y-3 pt-1">
@@ -589,7 +589,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
 
               {/* Right Column (5 cols): Summary & Projection Card */}
               <div
-                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[32px] p-4 sm:p-8 space-y-5 sm:space-y-6 flex flex-col justify-between"
+                className="lg:col-span-5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[32px] p-4 sm:p-8 space-y-5 sm:space-y-6 flex flex-col justify-start"
                 style={{ boxShadow: '8px 8px 20px #E5DFD3, -8px -8px 20px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.8)' }}
               >
                 <div className="space-y-4 sm:space-y-5">

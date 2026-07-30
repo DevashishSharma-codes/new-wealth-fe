@@ -5,6 +5,8 @@ import { MetricCards } from './MetricCards';
 import { RetirementTable } from './RetirementTable';
 import { GoalsTable } from './GoalsTable';
 import { InsuranceTable } from './InsuranceTable';
+import { FullReportTemplate } from './FullReportTemplate';
+import { generateFullFrontendPdf } from '../../../utils/frontendPdfGenerator';
 import client from '../../../config/api';
 
 export function ReportView() {
@@ -14,6 +16,7 @@ export function ReportView() {
     reportMessage,
     formData,
     childrenCount,
+    childrenData,
     assessmentId,
     downloadReport
   } = useAssessment();
@@ -26,6 +29,8 @@ export function ReportView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [showRoadmapPreview, setShowRoadmapPreview] = useState(false);
+  const roadmapRef = useRef(null);
   const downloadLockedUntilRef = useRef(0);
 
   const handleOpenContactModal = () => {
@@ -38,19 +43,19 @@ export function ReportView() {
     setIsContactModalOpen(true);
   };
 
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const fullReportRef = useRef(null);
+
   const handleDownloadClick = async () => {
-    if (!reportId) return;
-
-    const now = Date.now();
-    if (now < downloadLockedUntilRef.current) return;
-    downloadLockedUntilRef.current = now + 20_000;
-
     try {
-      await downloadReport();
+      setIsGeneratingPdf(true);
+      const filename = `wealth-wisdom-report-${assessmentId ? assessmentId.substring(0, 8) : 'download'}.pdf`;
+      await generateFullFrontendPdf(fullReportRef.current, filename);
     } catch (err) {
-      console.error("Download failed:", err);
-      downloadLockedUntilRef.current = 0;
+      console.error("Frontend PDF Generation failed:", err);
       alert("Download failed: " + err.message);
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -154,18 +159,17 @@ export function ReportView() {
           </div>
         </div>
 
-        {reportId && (
-          <button
-            type="button"
-            onClick={handleDownloadClick}
-            className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer"
-          >
-            <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download PDF Report
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleDownloadClick}
+          disabled={isGeneratingPdf}
+          className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer disabled:opacity-60"
+        >
+          <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          {isGeneratingPdf ? "Generating PDF in Browser..." : "Download PDF Report"}
+        </button>
       </div>
 
       {/* Assessment Metrics Cards */}
@@ -604,6 +608,16 @@ export function ReportView() {
         </div>
       )}
 
+      {/* Off-Screen Container for 100% Pure Frontend Browser PDF Generation */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', overflow: 'hidden' }}>
+        <FullReportTemplate
+          ref={fullReportRef}
+          formData={formData}
+          childrenData={childrenData}
+          calculationResult={calculationResult}
+          assessmentId={assessmentId}
+        />
+      </div>
     </div>
   );
 }

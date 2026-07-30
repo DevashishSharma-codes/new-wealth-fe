@@ -84,7 +84,7 @@ export default function Assessment() {
 
       </main>
 
-      <Footer />
+      {showReport && <Footer />}
 
     </div>
   );

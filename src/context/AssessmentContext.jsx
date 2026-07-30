@@ -409,6 +409,12 @@ export default function AssessmentProvider({ children }) {
             if (c.id) {
               goalObj.child_id = c.id;
             }
+            const customChildGoalName = (g.goalName || g.name || g.goal_name || "").toString().trim();
+            if (customChildGoalName) {
+              goalObj.goal_name = customChildGoalName;
+            } else if (mappedType === "Other") {
+              goalObj.goal_name = `${c.name || 'Child'} Goal`;
+            }
             apiGoals.push(goalObj);
           }
         });
@@ -430,8 +436,11 @@ export default function AssessmentProvider({ children }) {
             today_cost: parseFloat(g.todaysCost),
             inflation_rate: 0.06,
           };
-          if (g.goalName || g.name || mappedType === "Other") {
-            goalObj.goal_name = g.goalName || g.name || "Custom Goal";
+          const customName = (g.goalName || g.name || g.goal_name || "").toString().trim();
+          if (customName) {
+            goalObj.goal_name = customName;
+          } else if (mappedType === "Other") {
+            goalObj.goal_name = "Custom Goal";
           }
           apiGoals.push(goalObj);
         }
@@ -604,14 +613,27 @@ export default function AssessmentProvider({ children }) {
   };
 
   const downloadReport = async () => {
-    if (!assessmentId || !reportId) {
-      console.error("[DOWNLOAD ERROR] assessmentId or reportId missing:", { assessmentId, reportId });
-      throw new Error("Your report is not ready to download yet.");
+    let currentReportId = reportId;
+
+    if (!assessmentId) {
+      throw new Error("Assessment session not found.");
     }
 
-    // The download endpoint requires the X-API-Key request header. A native link
-    // cannot attach that header, so fetch the authenticated PDF before saving it.
-    const reportBlob = await reportService.downloadGeneratedReport(assessmentId, reportId);
+    if (!currentReportId) {
+      console.log("[downloadReport] reportId not set, calling generateReport for assessmentId:", assessmentId);
+      const res = await reportService.generateReport(assessmentId);
+      const data = res?.data || res;
+      currentReportId = data?.report_id || data?.data?.report_id;
+      if (currentReportId) {
+        setReportId(currentReportId);
+      }
+    }
+
+    if (!currentReportId) {
+      throw new Error("Your report is currently generating. Please try downloading again in a few seconds.");
+    }
+
+    const reportBlob = await reportService.downloadGeneratedReport(assessmentId, currentReportId);
     const download = reportService.createReportDownload(reportBlob, assessmentId);
     const link = document.createElement("a");
     link.href = download.url;

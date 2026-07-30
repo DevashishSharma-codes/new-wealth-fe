@@ -351,6 +351,14 @@ body {
 .no-scrollbar,
 .scrollbar-none,
 .scrollbar-thin {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Crisp Vector Font Smoothing for Report PDF Pages */
+.report-page {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  font-feature-settings: "kern" 1, "liga" 1;
 }

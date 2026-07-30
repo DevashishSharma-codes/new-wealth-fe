@@ -28,6 +28,7 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
   const clientExpAtRet = clientRet.monthly_expense_at_ret?.inr || '₹28,54,339';
   const clientMonthlySip = clientRet.monthly_sip?.inr || '₹7,43,139';
   const clientLumpSum = clientRet.lump_sum?.inr || '₹6,81,33,183';
+  const clientProvisionsMade = clientRet.provisions_made?.inr || clientRet.provisions_made || calculationResult?.client_provisions_made?.inr || calculationResult?.client_provisions_made || formData.provisionsMade || formData.pf_nps_sa || '₹0';
 
   // Insurance
   const insuranceData = calculationResult?.insurance || {};
@@ -130,29 +131,159 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
     { name: 'United States', budget: 520000, flag: '🇺🇸' },
   ];
 
+  const DB_UNIVERSITIES = [
+    { name: 'IIT Bombay', cost: 1500000 },
+    { name: 'IIT Delhi', cost: 1600000 },
+    { name: 'IIT Madras', cost: 1550000 },
+    { name: 'Shri Ram College of Commerce (SRCC)', cost: 1200000 },
+    { name: 'IIM Ahmedabad', cost: 2500000 },
+    { name: 'IIM Bangalore', cost: 2450000 },
+    { name: 'AIIMS New Delhi', cost: 1800000 },
+    { name: 'Maulana Azad Institute of Dental Sciences', cost: 3500000 },
+    { name: 'Manipal Academy of Higher Education', cost: 2800000 },
+    { name: 'BITS Pilani', cost: 2200000 },
+    { name: 'St. Xavier\'s College, Mumbai', cost: 1000000 },
+    { name: 'Christ University, Bangalore', cost: 1400000 },
+    { name: 'Kazakh National Medical University', cost: 4000000 },
+    { name: 'First Moscow State Medical University', cost: 4500000 },
+    { name: 'University of Oxford (UK)', cost: 6500000 },
+    { name: 'Harvard University (USA)', cost: 8500000 },
+    { name: 'Stanford University (USA)', cost: 9000000 },
+    { name: 'National University of Singapore (NUS)', cost: 5500000 },
+    { name: 'University of Toronto (Canada)', cost: 8000000 },
+    { name: 'Technical University of Denmark', cost: 8000000 },
+    { name: 'Singapore Management University', cost: 8000000 },
+    { name: 'Politecnico di Milano', cost: 8000000 },
+    { name: 'USC School of Cinematic Arts', cost: 8000000 },
+    { name: 'University of Toronto Faculty of Dentistry', cost: 8000000 },
+    { name: 'London Business School', cost: 8000000 },
+    { name: 'MIT', cost: 9000000 },
+    { name: 'University of Melbourne (Australia)', cost: 5800000 },
+  ];
+
   const fmtInrRange = (bInr) => {
     const low = Math.round(bInr * 0.85);
     const high = Math.round(bInr * 1.15);
     return `₹${low.toLocaleString('en-IN')} - ₹${high.toLocaleString('en-IN')}`;
   };
 
-  const getDynamicTourOptions = (goalObj, formObj, calcObj) => {
-    // 1. Check if backend calculationResult or goal object explicitly passed tour slots / destinations
-    let explicit = goalObj?.suggested_tours || goalObj?.tour_slots || goalObj?.destinations || goalObj?.selected_countries || goalObj?.countries || calcObj?.tour_slots || formObj?.foreignTourDestinations || [];
+  const extractTargetBudget = (goalObj, defaultVal) => {
+    let raw =
+      goalObj?.todaysCost ||
+      goalObj?.today_cost ||
+      goalObj?.current_cost?.inr ||
+      goalObj?.current_cost?.raw ||
+      goalObj?.current_cost ||
+      goalObj?.cost ||
+      goalObj?.budget;
+
+    if (raw != null) {
+      if (typeof raw === 'number' && raw > 0) return raw;
+      if (typeof raw === 'object' && raw.raw && typeof raw.raw === 'number') return raw.raw;
+      if (typeof raw === 'string') {
+        const cleaned = raw.replace(/[^0-9.]/g, '');
+        const parsed = parseFloat(cleaned);
+        if (!isNaN(parsed) && parsed > 0) return parsed;
+      }
+    }
+    return defaultVal;
+  };
+
+  const findFormGoal = (gObj, fObj, cData = []) => {
+    if (!fObj && !cData) return null;
+    const rawGType = gObj?.goal_type || gObj?.title || gObj?.goal || '';
+    const gType = String(rawGType).toLowerCase();
+    const isEdu = gType.includes('education') || gType.includes('graduation') || gType.includes('college');
+    const isTour = gType.includes('tour') || gType.includes('foreign') || gType.includes('vacation') || gType.includes('trip');
+
+    const goalsList = [
+      ...(Array.isArray(fObj?.goals) ? fObj.goals : []),
+      ...(Array.isArray(fObj?.activeGoals) ? fObj.activeGoals : []),
+      ...(Array.isArray(fObj?.lifestyleGoals) ? fObj.lifestyleGoals : []),
+    ];
+
+    for (let fg of goalsList) {
+      if (!fg) continue;
+      const rawFg = fg?.goalType || fg?.goal_type || fg?.title || fg?.name || fg?.id || '';
+      const fgType = String(rawFg).toLowerCase();
+
+      if (isEdu && (fgType.includes('education') || fgType.includes('graduation') || fgType.includes('college'))) {
+        return fg;
+      }
+      if (isTour && (fgType.includes('tour') || fgType.includes('foreign') || fgType.includes('vacation') || fgType.includes('trip'))) {
+        return fg;
+      }
+      if (fgType && (gType.includes(fgType) || fgType.includes(gType))) {
+        return fg;
+      }
+    }
+
+    const childrenList = [
+      ...(Array.isArray(cData) ? cData : []),
+      ...(Array.isArray(fObj?.children) ? fObj.children : []),
+      ...(Array.isArray(fObj?.childrenData) ? fObj.childrenData : []),
+    ];
+
+    for (let child of childrenList) {
+      if (!child) continue;
+      if (isEdu && (child.selectedColleges || child.selected_colleges || child.budgetOptions)) {
+        return child;
+      }
+      if (Array.isArray(child.goals)) {
+        for (let fg of child.goals) {
+          if (!fg) continue;
+          const rawFg = fg?.goalType || fg?.goal_type || fg?.title || fg?.name || fg?.id || '';
+          const fgType = String(rawFg).toLowerCase();
+          if (isEdu && (fgType.includes('education') || fgType.includes('graduation') || fgType.includes('college') || fg.selectedColleges || fg.budgetOptions)) {
+            return fg;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const getDynamicTourOptions = (goalObj, formObj, calcObj, cData = []) => {
+    const matchedFormGoal = findFormGoal(goalObj, formObj, cData);
+    const combinedGoal = { ...matchedFormGoal, ...goalObj };
+
+    let explicit =
+      combinedGoal?.selectedDestinations ||
+      combinedGoal?.selected_destinations ||
+      combinedGoal?.destinations ||
+      combinedGoal?.suggested_tours ||
+      combinedGoal?.tour_slots ||
+      combinedGoal?.selected_countries ||
+      combinedGoal?.countries ||
+      combinedGoal?.budgetOptions ||
+      combinedGoal?.budget_options ||
+      formObj?.foreignTourDestinations ||
+      formObj?.selectedDestinations ||
+      [];
+
+    if ((!explicit || explicit.length === 0) && Array.isArray(formObj?.goals)) {
+      formObj.goals.forEach(g => {
+        if ((g.selectedDestinations && g.selectedDestinations.length > 0) || (g.budgetOptions && g.budgetOptions.length > 0)) {
+          explicit = g.selectedDestinations || g.budgetOptions;
+        }
+      });
+    }
 
     if (typeof explicit === 'string') {
-      explicit = explicit.split(',').map(s => s.trim());
+      try { explicit = JSON.parse(explicit); } catch (e) { explicit = explicit.split(',').map(s => s.trim()); }
     }
 
     if (Array.isArray(explicit) && explicit.length > 0) {
       const list = [];
       explicit.forEach(item => {
-        if (typeof item === 'object' && item && item.name) {
-          let matched = DB_TOUR_DESTINATIONS.find(d => d.name.toLowerCase().includes(item.name.toLowerCase()));
+        if (typeof item === 'object' && item && (item.name || item.destination || item.country)) {
+          const destName = item.name || item.destination || item.country;
+          let matched = DB_TOUR_DESTINATIONS.find(d => d.name.toLowerCase().includes(destName.toLowerCase()));
           list.push({
-            flag: matched ? matched.flag : '✈️',
-            name: item.name,
-            cost: item.cost || (matched ? fmtInrRange(matched.budget) : '₹3,50,000 - ₹5,00,000'),
+            flag: item.flag || (matched ? matched.flag : '✈️'),
+            name: destName,
+            cost: item.cost ? (typeof item.cost === 'number' ? `₹${item.cost.toLocaleString('en-IN')}` : String(item.cost)) : (matched ? fmtInrRange(matched.budget) : '₹3,50,000 - ₹5,00,000'),
           });
         } else if (typeof item === 'string' && item) {
           let matched = DB_TOUR_DESTINATIONS.find(d => d.name.toLowerCase().includes(item.toLowerCase()) || item.toLowerCase().includes(d.name.toLowerCase()));
@@ -163,24 +294,124 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           });
         }
       });
-      if (list.length > 0) return list;
+      if (list.length > 0) {
+        const selectedNames = new Set(list.map(l => l.name.toLowerCase()));
+        const rawBudget = extractTargetBudget(combinedGoal, 900000);
+        const travellers = Number(combinedGoal?.travellers || formObj?.travellers || 3);
+        const perPersonBudget = rawBudget > 150000 ? Math.round(rawBudget / travellers) : rawBudget;
+
+        const fillers = [...DB_TOUR_DESTINATIONS]
+          .sort((a, b) => Math.abs(a.budget - perPersonBudget) - Math.abs(b.budget - perPersonBudget))
+          .filter(d => !selectedNames.has(d.name.toLowerCase()))
+          .map(d => ({ flag: d.flag, name: d.name, cost: fmtInrRange(d.budget) }));
+
+        const final5 = [...list, ...fillers].slice(0, 5);
+        console.log('🚀 [REPORT LOGGER] Top 5 Tour Options for Report:', final5.map(x => x.name));
+        return final5;
+      }
     }
 
-    // 2. Otherwise compute budget dynamically from goal's today_cost / current_cost
-    let rawCostStr = goalObj?.current_cost?.inr || goalObj?.today_cost || goalObj?.cost || '200000';
-    if (typeof rawCostStr === 'object') rawCostStr = rawCostStr.inr || '200000';
-    let budgetVal = parseFloat(String(rawCostStr).replace(/[^0-9.]/g, ''));
-    if (isNaN(budgetVal) || budgetVal <= 0) budgetVal = 200000;
+    // Dynamic budget distance calculation
+    const rawBudget = extractTargetBudget(combinedGoal, 900000);
+    const travellers = Number(combinedGoal?.travellers || formObj?.travellers || 3);
+    const perPersonBudget = rawBudget > 150000 ? Math.round(rawBudget / travellers) : rawBudget;
+    const sorted = [...DB_TOUR_DESTINATIONS].sort((a, b) => Math.abs(a.budget - perPersonBudget) - Math.abs(b.budget - perPersonBudget));
 
-    // Find 3 closest database destinations matching the exact budget
-    const sorted = [...DB_TOUR_DESTINATIONS].sort((a, b) => Math.abs(a.budget - budgetVal) - Math.abs(b.budget - budgetVal));
-    const top3 = sorted.slice(0, 3);
-
-    return top3.map(d => ({
+    const final5 = sorted.slice(0, 5).map(d => ({
       flag: d.flag,
       name: d.name,
       cost: fmtInrRange(d.budget),
     }));
+    console.log('🚀 [REPORT LOGGER] Top 5 Tour Options for Report (Calculated):', final5.map(x => x.name));
+    return final5;
+  };
+
+  const getDynamicUniversities = (goalObj, formObj, calcObj, cData = []) => {
+    const matchedFormGoal = findFormGoal(goalObj, formObj, cData);
+    const combinedGoal = { ...matchedFormGoal, ...goalObj };
+
+    let explicit =
+      combinedGoal?.selectedColleges ||
+      combinedGoal?.selected_colleges ||
+      combinedGoal?.colleges ||
+      combinedGoal?.college_list ||
+      combinedGoal?.budgetOptions ||
+      combinedGoal?.budget_options ||
+      formObj?.selectedColleges ||
+      formObj?.education_colleges ||
+      [];
+
+    const childrenList = [
+      ...(Array.isArray(cData) ? cData : []),
+      ...(Array.isArray(formObj?.children) ? formObj.children : []),
+      ...(Array.isArray(formObj?.childrenData) ? formObj.childrenData : []),
+    ];
+
+    if (!explicit || explicit.length === 0) {
+      childrenList.forEach(c => {
+        if (Array.isArray(c.selectedColleges) && c.selectedColleges.length > 0) {
+          explicit = c.selectedColleges;
+        } else if (Array.isArray(c.budgetOptions) && c.budgetOptions.length > 0) {
+          explicit = c.budgetOptions;
+        } else if (Array.isArray(c.goals)) {
+          c.goals.forEach(cg => {
+            if (cg.selectedColleges && cg.selectedColleges.length > 0) explicit = cg.selectedColleges;
+            else if (cg.budgetOptions && cg.budgetOptions.length > 0) explicit = cg.budgetOptions;
+          });
+        }
+      });
+    }
+
+    if (Array.isArray(formObj?.goals)) {
+      formObj.goals.forEach(g => {
+        if ((!explicit || explicit.length === 0) && g.selectedColleges && g.selectedColleges.length > 0) {
+          explicit = g.selectedColleges;
+        }
+      });
+    }
+
+    if (typeof explicit === 'string') {
+      try { explicit = JSON.parse(explicit); } catch (e) { explicit = [explicit]; }
+    }
+
+    if (Array.isArray(explicit) && explicit.length > 0) {
+      const list = explicit.map(c => {
+        if (typeof c === 'object' && c) {
+          const cName = c.name || c.college_name || c.college || c.university || 'Selected University';
+          const cCost = c.cost || c.todaysCost || c.today_cost || c.budget;
+          return {
+            name: cName,
+            cost: cCost ? (typeof cCost === 'number' ? `₹${cCost.toLocaleString('en-IN')}` : String(cCost)) : '₹20,00,000'
+          };
+        }
+        return { name: String(c), cost: '₹20,00,000' };
+      });
+
+      if (list.length > 0) {
+        const selectedNames = new Set(list.map(l => l.name.toLowerCase()));
+        const budgetVal = extractTargetBudget(combinedGoal, 6000000);
+
+        const fillerColleges = [...DB_UNIVERSITIES]
+          .sort((a, b) => Math.abs(a.cost - budgetVal) - Math.abs(b.cost - budgetVal))
+          .filter(u => !selectedNames.has(u.name.toLowerCase()))
+          .map(u => ({ name: u.name, cost: `₹${u.cost.toLocaleString('en-IN')}` }));
+
+        const final5 = [...list, ...fillerColleges].slice(0, 5);
+        console.log('🚀 [REPORT LOGGER] Top 5 Universities for Report:', final5.map(x => x.name));
+        return final5;
+      }
+    }
+
+    // Dynamic budget distance calculation
+    const budgetVal = extractTargetBudget(goalObj, 6000000);
+    const sorted = [...DB_UNIVERSITIES].sort((a, b) => Math.abs(a.cost - budgetVal) - Math.abs(b.cost - budgetVal));
+
+    const final5 = sorted.slice(0, 5).map(u => ({
+      name: u.name,
+      cost: `₹${u.cost.toLocaleString('en-IN')}`,
+    }));
+    console.log('🚀 [REPORT LOGGER] Top 5 Universities for Report (Calculated):', final5.map(x => x.name));
+    return final5;
   };
 
   return (
@@ -378,8 +609,31 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         const iconPath = getGoalIcon(rawTitle);
         const advisoryQuote = getGoalAdvisoryQuote(rawTitle);
 
-        const isForeignTour = goalName.toLowerCase().includes('foreign') || goalName.toLowerCase().includes('tour');
-        const isEducation = goalName.toLowerCase().includes('graduation') || goalName.toLowerCase().includes('college') || goalName.toLowerCase().includes('university');
+        const isForeignTour =
+          goalName.toLowerCase().includes('foreign') ||
+          goalName.toLowerCase().includes('tour') ||
+          goalName.toLowerCase().includes('vacation') ||
+          goalName.toLowerCase().includes('trip') ||
+          goalName.toLowerCase().includes('travel') ||
+          goalName.toLowerCase().includes('holiday') ||
+          rawTitle.toLowerCase().includes('foreign') ||
+          rawTitle.toLowerCase().includes('tour') ||
+          rawTitle.toLowerCase().includes('vacation') ||
+          rawTitle.toLowerCase().includes('trip') ||
+          rawTitle.toLowerCase().includes('travel') ||
+          rawTitle.toLowerCase().includes('holiday');
+
+        const isEducation =
+          goalName.toLowerCase().includes('education') ||
+          goalName.toLowerCase().includes('graduation') ||
+          goalName.toLowerCase().includes('college') ||
+          goalName.toLowerCase().includes('university') ||
+          goalName.toLowerCase().includes('school') ||
+          rawTitle.toLowerCase().includes('education') ||
+          rawTitle.toLowerCase().includes('graduation') ||
+          rawTitle.toLowerCase().includes('college') ||
+          rawTitle.toLowerCase().includes('university') ||
+          rawTitle.toLowerCase().includes('school');
 
         return (
           <React.Fragment key={idx}>
@@ -408,8 +662,8 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                 <h1 style={{ fontSize: '42px', fontWeight: 900, color: '#0f172a', lineHeight: 1.05, margin: 0, maxWidth: '270px', letterSpacing: '-0.02em' }}>
                   {goalName}
                 </h1>
-                <div style={{ width: '210px', height: '210px', marginTop: '-10px' }}>
-                  <img src={iconPath} alt={goalName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <div style={{ width: '210px', height: '190px', marginTop: '-10px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <img src={iconPath} alt={goalName} style={{ maxWidth: '210px', maxHeight: '190px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
                 </div>
               </div>
 
@@ -521,31 +775,30 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                   pageBreakAfter: 'always',
                 }}
               >
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#002b80', letterSpacing: '0.05em' }}>WEALTH WISDOM</div>
-                  <div style={{ fontSize: '8px', fontWeight: 700, color: '#ff8c32', letterSpacing: '0.08em' }}>TAKE CHARGE OF YOUR FUTURE</div>
+                <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                  <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
                 </div>
 
                 <div>
-                  <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: '0 0 30px 0' }}>
+                  <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', margin: '0 0 20px 0', textAlign: 'center' }}>
                     Suggested Foreign<br />Tour Options
                   </h1>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '420px', margin: '0 auto' }}>
-                    {getDynamicTourOptions(g, formData, calculationResult).map((cOpt, cIdx) => (
-                      <div key={cIdx} style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        <span style={{ fontSize: '36px' }}>{cOpt.flag}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '440px', margin: '0 auto' }}>
+                    {getDynamicTourOptions(g, formData, calculationResult, childrenData).map((cOpt, cIdx) => (
+                      <div key={cIdx} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <span style={{ fontSize: '30px' }}>{cOpt.flag}</span>
                         <div>
-                          <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{cOpt.name}</div>
-                          <div style={{ fontSize: '16px', fontWeight: 600, color: '#334155' }}>{cOpt.cost}</div>
+                          <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{cOpt.name}</div>
+                          <div style={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>{cOpt.cost}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ alignSelf: 'flex-end', width: '260px', height: '260px' }}>
-                  <img src="/assets/report/real_3d_paper_plane.png" alt="Paper Plane" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <div style={{ alignSelf: 'flex-end', width: '210px', height: '180px', marginTop: '10px', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                  <img src="/assets/report/real_3d_paper_plane.png" alt="Paper Plane" style={{ maxWidth: '210px', maxHeight: '180px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
                 </div>
               </div>
             )}
@@ -559,55 +812,59 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                   height: '842px',
                   backgroundColor: '#ffffff',
                   boxSizing: 'border-box',
-                  padding: '30px 40px',
+                  padding: '35px 40px',
                   position: 'relative',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
+                  gap: '20px',
                   pageBreakAfter: 'always',
                 }}
               >
-                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <div style={{ textAlign: 'center' }}>
                   <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
                 </div>
 
-                <div>
-                  <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', margin: '0 0 10px 0' }}>
-                    Suggested Universities<br />&amp; Colleges
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.15 }}>
+                    Suggested<br />Universities &amp; Colleges
                   </h1>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '20px' }}>
-                    Today's Cost: {currentCost}
+
+                  <div style={{ width: '180px', height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <img src="/assets/report/real_3d_suggested_uni.png" alt="School Building" style={{ maxWidth: '180px', maxHeight: '150px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
                   </div>
-
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                    <tbody>
-                      <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-                        <td style={{ padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>IIT Bombay</td>
-                        <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: 800, fontSize: '15px' }}>₹15,00,000</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-                        <td style={{ padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>Shri Ram College of Commerce</td>
-                        <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: 800, fontSize: '15px' }}>₹12,00,000</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-                        <td style={{ padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>Maulana Azad Institute of Dental Sciences</td>
-                        <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: 800, fontSize: '15px' }}>₹35,00,000</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-                        <td style={{ padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>Kazakh National Medical University</td>
-                        <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: 800, fontSize: '15px' }}>₹40,00,000</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-                        <td style={{ padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>First Moscow State Medical University</td>
-                        <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: 800, fontSize: '15px' }}>₹45,00,000</td>
-                      </tr>
-                    </tbody>
-                  </table>
                 </div>
 
-                <div style={{ alignSelf: 'flex-end', width: '240px', height: '240px' }}>
-                  <img src="/assets/report/real_3d_suggested_uni.png" alt="School Building" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                {/* Prominent Centered Today's Cost Banner */}
+                <div
+                  style={{
+                    backgroundColor: '#001a66',
+                    borderRadius: '20px',
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    color: '#ffffff',
+                    margin: '6px 0',
+                    boxShadow: '0 4px 12px rgba(0, 26, 102, 0.12)',
+                  }}
+                >
+                  <div style={{ fontSize: '13px', color: '#ff8c32', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    Today's Cost
+                  </div>
+                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#ff8c32', marginTop: '2px', letterSpacing: '-0.01em' }}>
+                    {currentCost}
+                  </div>
                 </div>
+
+                {/* Top 5 Colleges Table Equally Spaced Below */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px', marginTop: '6px' }}>
+                  <tbody>
+                    {getDynamicUniversities(g, formData, calculationResult, childrenData).map((uni, uIdx) => (
+                      <tr key={uIdx} style={{ borderBottom: '1px solid #cbd5e1' }}>
+                        <td style={{ padding: '16px 0', fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{uni.name}</td>
+                        <td style={{ padding: '16px 0', textAlign: 'right', fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{uni.cost}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </React.Fragment>
@@ -638,25 +895,85 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
             Retirement<br />Planning
           </h1>
-          <div style={{ width: '180px', height: '180px' }}>
-            <img src="/assets/report/real_3d_retirement.png" alt="Beach Chair" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <div style={{ width: '190px', height: '170px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <img src="/assets/report/real_3d_retirement.png" alt="Beach Chair" style={{ maxWidth: '190px', maxHeight: '170px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
           </div>
         </div>
 
-        {/* 3 Top Pills Row */}
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: '12px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '9px', color: '#64748b' }}>Retirement Age</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>{clientRetAge}</div>
-          </div>
-          <div style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: '12px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '9px', color: '#64748b' }}>Retirement Period</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>{clientRetPeriod}</div>
-          </div>
-          <div style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: '12px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '9px', color: '#64748b' }}>Years to Retirement</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>{clientYearsToRet}</div>
-          </div>
+        {/* 3 Top Pure Vector SVG Bubbly Inset Cards Row (Zero HTML2Canvas Corner Checkerboxes) */}
+        <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+          {[
+            { label: 'Retirement Age', val: clientRetAge },
+            { label: 'Retirement Period', val: clientRetPeriod },
+            { label: 'Years to Retirement', val: clientYearsToRet },
+          ].map((card, idx) => (
+            <div
+              key={idx}
+              style={{
+                flex: 1,
+                height: '95px',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box',
+              }}
+            >
+              {/* Pure SVG Vector Bubbly Inset Shadow */}
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 1,
+                  borderRadius: '22px',
+                  overflow: 'hidden',
+                }}
+              >
+                <defs>
+                  <filter id={`neu-inset-${idx}`} x="-20%" y="-20%" width="140%" height="140%">
+                    <feOffset dx="3" dy="3" />
+                    <feGaussianBlur stdDeviation="3.5" result="offset-blur" />
+                    <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
+                    <feFlood flood-color="#94a3b8" flood-opacity="0.7" result="color" />
+                    <feComposite operator="in" in="color" in2="inverse" result="shadow" />
+                    <feComposite operator="over" in="shadow" in2="SourceGraphic" />
+                  </filter>
+                </defs>
+                <rect width="100%" height="100%" rx="22" fill="#e6ebf2" stroke="#cbd5e1" strokeWidth="1.5" filter={`url(#neu-inset-${idx})`} />
+              </svg>
+
+              {/* Centered Content */}
+              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    textAlign: 'center',
+                    lineHeight: 1.2,
+                    marginBottom: '6px',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {card.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: '26px',
+                    fontWeight: 900,
+                    color: '#0f172a',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  {card.val}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Dark Blue Corpus Pill */}
@@ -665,9 +982,10 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           <div style={{ fontSize: '30px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientCorpusReq}</div>
         </div>
 
-        {/* Provisions Made */}
-        <div style={{ backgroundColor: '#001a66', borderRadius: '18px', padding: '12px', textAlign: 'center', color: '#ff8c32', fontSize: '14px', fontWeight: 700 }}>
-          Provisions Made (PF, NPS &amp; SA)
+        {/* Provisions Made (PF, NPS & SA) - Label on Top, Value Centered Below */}
+        <div style={{ backgroundColor: '#001a66', borderRadius: '18px', padding: '14px 20px', textAlign: 'center', color: '#ffffff' }}>
+          <div style={{ color: '#ff8c32', fontSize: '14px', fontWeight: 700 }}>Provisions Made (PF, NPS &amp; SA)</div>
+          <div style={{ color: '#ff8c32', fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>{clientProvisionsMade}</div>
         </div>
 
         {/* Expense Pills Grid */}
@@ -699,64 +1017,64 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           height: '842px',
           backgroundColor: '#ffffff',
           boxSizing: 'border-box',
-          padding: '30px 40px',
+          padding: '35px 40px',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
+          gap: '24px',
           pageBreakAfter: 'always',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center' }}>
           <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
             Insurance<br />Calculations
           </h1>
-          <div style={{ width: '160px', height: '160px' }}>
-            <img src="/assets/report/insurance_cal_image1.png" alt="Shield Hand" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <div style={{ width: '150px', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <img src="/assets/report/real_3d_insurance.png" alt="Shield Hand" style={{ maxWidth: '150px', maxHeight: '130px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
           </div>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', border: '1px solid #cbd5e1' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', border: '1px solid #cbd5e1', marginTop: '8px' }}>
           <thead>
             <tr style={{ backgroundColor: '#ff8c32', color: '#000000', fontWeight: 800, textAlign: 'center' }}>
-              <th style={{ padding: '10px', border: '1px solid #cbd5e1' }}>Goals to be protected</th>
-              <th style={{ padding: '10px', border: '1px solid #cbd5e1' }}>For/ After years</th>
-              <th style={{ padding: '10px', border: '1px solid #cbd5e1' }}>Amount</th>
-              <th style={{ padding: '10px', border: '1px solid #cbd5e1' }}>Today's/ Future cost</th>
-              <th style={{ padding: '10px', border: '1px solid #cbd5e1' }}>INSURANCE REQUIRED</th>
+              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Goals to be protected</th>
+              <th style={{ padding: '12px 8px', border: '1px solid #cbd5e1' }}>For/ After years</th>
+              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Amount</th>
+              <th style={{ padding: '12px 8px', border: '1px solid #cbd5e1' }}>Today's/ Future cost</th>
+              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>INSURANCE REQUIRED</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1' }}>Household Expense</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 1,44,00,000</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 21,80,49,597</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Household Expense</td>
+              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 1,44,00,000</td>
+              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 21,80,49,597</td>
             </tr>
             {goals.slice(0, 1).map((g, idx) => (
               <tr key={idx}>
-                <td style={{ padding: '10px', border: '1px solid #cbd5e1' }}>{g.goal}</td>
-                <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
-                <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>{g.future_cost?.inr || '₹ 21,20,000'}</td>
-                <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
-                <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 19,62,963</td>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{g.goal}</td>
+                <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>{g.future_cost?.inr || '₹ 21,20,000'}</td>
+                <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 19,62,963</td>
               </tr>
             ))}
             <tr>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1' }}>Retirement Income(50 %)</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 60,00,000</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
-              <td style={{ padding: '10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 9,08,53,999</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Retirement Income(50 %)</td>
+              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 60,00,000</td>
+              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 9,08,53,999</td>
             </tr>
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
-              <td colSpan="4" style={{ padding: '12px', border: '1px solid #cbd5e1', fontSize: '13px' }}>Total insurance need</td>
-              <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '15px' }}>{totalInsuranceNeed}</td>
+              <td colSpan="4" style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontSize: '13px' }}>Total insurance need</td>
+              <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '15px' }}>{totalInsuranceNeed}</td>
             </tr>
           </tbody>
         </table>
@@ -770,41 +1088,50 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           height: '842px',
           backgroundColor: '#ffffff',
           boxSizing: 'border-box',
-          padding: '30px 40px',
+          padding: '35px 40px',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
+          gap: '24px',
           pageBreakAfter: 'always',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center' }}>
           <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
         </div>
 
-        <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', textAlign: 'center', margin: '0 0 20px 0' }}>
-          Summary
-        </h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+            Investment Summary
+          </h1>
+          <div style={{ width: '150px', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <img
+              src="/assets/report/summary_checklist_image.png"
+              alt="Summary Checklist"
+              style={{ maxWidth: '150px', maxHeight: '130px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }}
+            />
+          </div>
+        </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', border: '1px solid #cbd5e1' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', border: '1px solid #cbd5e1', marginTop: '8px' }}>
           <thead>
             <tr style={{ backgroundColor: '#ff8c32', color: '#000000', fontWeight: 800, textAlign: 'center' }}>
-              <th style={{ padding: '12px', border: '1px solid #cbd5e1' }}>Goals</th>
-              <th style={{ padding: '12px', border: '1px solid #cbd5e1' }}>Target Year</th>
-              <th style={{ padding: '12px', border: '1px solid #cbd5e1' }}>Monthly Investment</th>
+              <th style={{ padding: '14px 12px', border: '1px solid #cbd5e1' }}>Goals</th>
+              <th style={{ padding: '14px 12px', border: '1px solid #cbd5e1' }}>Target Year</th>
+              <th style={{ padding: '14px 12px', border: '1px solid #cbd5e1' }}>Monthly Investment</th>
             </tr>
           </thead>
           <tbody>
             {goals.map((g, idx) => (
               <tr key={idx}>
-                <td style={{ padding: '12px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{g.goal}</td>
-                <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{g.target_year}</td>
-                <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>{g.monthly_sip?.inr || '—'}</td>
+                <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{g.goal}</td>
+                <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{g.target_year}</td>
+                <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>{g.monthly_sip?.inr || '—'}</td>
               </tr>
             ))}
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
-              <td colSpan="2" style={{ padding: '14px', border: '1px solid #cbd5e1', fontSize: '14px' }}>Total Monthly Investment</td>
-              <td style={{ padding: '14px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px' }}>{totalGoalsMonthlySip}</td>
+              <td colSpan="2" style={{ padding: '16px 14px', border: '1px solid #cbd5e1', fontSize: '14px' }}>Total Monthly Investment</td>
+              <td style={{ padding: '16px 14px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px' }}>{totalGoalsMonthlySip}</td>
             </tr>
           </tbody>
         </table>
@@ -818,58 +1145,58 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           height: '842px',
           backgroundColor: '#ffffff',
           boxSizing: 'border-box',
-          padding: '30px 40px',
+          padding: '35px 40px',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
+          gap: '24px',
           pageBreakAfter: 'always',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center' }}>
           <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
             What we<br />assume?
           </h1>
-          <div style={{ width: '160px', height: '160px' }}>
-            <img src="/assets/report/real_3d_scroll.png" alt="Scroll Ribbon" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <div style={{ width: '150px', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <img src="/assets/report/real_3d_scroll.png" alt="Scroll Ribbon" style={{ maxWidth: '150px', maxHeight: '130px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
           </div>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', border: '1px solid #cbd5e1' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', border: '1px solid #cbd5e1', marginTop: '8px' }}>
           <thead>
             <tr style={{ backgroundColor: '#ff8c32', color: '#000000', fontWeight: 800 }}>
-              <th style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Assumptions</th>
-              <th style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Values</th>
+              <th style={{ padding: '14px 16px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Assumptions</th>
+              <th style={{ padding: '14px 16px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Values</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Life Expectancy (Years)</td>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>80</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Life Expectancy (Years)</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>80</td>
             </tr>
             <tr>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Inflation (Post Retirement)</td>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>6.0%</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Inflation (Post Retirement)</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>6.0%</td>
             </tr>
             <tr>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', fontWeight: 700 }}>ROI (Post Retirement)</td>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>8.0%</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', fontWeight: 700 }}>ROI (Post Retirement)</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>8.0%</td>
             </tr>
             <tr>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Inflation (Pre Retirement)</td>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>6.0%</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Inflation (Pre Retirement)</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>6.0%</td>
             </tr>
             <tr>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Return On Investment</td>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>12.0%</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Return On Investment</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>12.0%</td>
             </tr>
             <tr>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Yearly Increse in PF Contribution</td>
-              <td style={{ padding: '10px 12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>5%</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', fontWeight: 700 }}>Yearly Increse in PF Contribution</td>
+              <td style={{ padding: '13px 16px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, fontSize: '15px' }}>5%</td>
             </tr>
           </tbody>
         </table>
@@ -905,7 +1232,7 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         </div>
 
         <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
-          <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#001a66', textAlign: 'center', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#000000', textAlign: 'center', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
             Our Services
           </h1>
           <div style={{ width: '80px', height: '4px', backgroundColor: '#ff8c32', margin: '0 auto 28px auto', borderRadius: '2px' }} />
@@ -961,7 +1288,7 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         </div>
       </div>
 
-      {/* PAGE 14: TESTIMONIALS PAGE */}
+      {/* PAGE 14: TESTIMONIALS PAGE (Pixel-Perfect Spaced Vector Redesign) */}
       <div
         className="report-page"
         style={{
@@ -975,37 +1302,82 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           flexDirection: 'column',
           justifyContent: 'space-between',
           pageBreakAfter: 'always',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
+        {/* Top-Left Dark Blue Geometric Accent */}
+        <svg
+          style={{ position: 'absolute', top: 0, left: 0, width: '190px', height: '190px', zIndex: 1 }}
+          viewBox="0 0 190 190"
+        >
+          <polygon points="0,0 190,0 0,190" fill="#001866" />
+        </svg>
+
+        {/* Top Header Logo */}
+        <div style={{ textAlign: 'center', zIndex: 2 }}>
+          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '50px', objectFit: 'contain', margin: '0 auto' }} />
         </div>
 
-        <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', textAlign: 'center', margin: 0 }}>
+        {/* Main Title */}
+        <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#111827', textAlign: 'center', margin: '10px 0', zIndex: 2, letterSpacing: '-0.02em' }}>
           Testimonials
         </h1>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {[1, 2, 3].map((tIdx) => (
+        {/* 3 Staggered Speech Bubble Testimonial Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', zIndex: 2, marginBottom: '16px' }}>
+          {[
+            { indentLeft: '0px', indentRight: '45px', tailMargin: '0 0 0 60px', tailAlign: 'flex-start' },
+            { indentLeft: '45px', indentRight: '0px', tailMargin: '0 60px 0 0', tailAlign: 'flex-end' },
+            { indentLeft: '0px', indentRight: '45px', tailMargin: '0 0 0 60px', tailAlign: 'flex-start' },
+          ].map((item, tIdx) => (
             <div
               key={tIdx}
               style={{
-                backgroundColor: '#ff8c32',
-                border: '2.5px solid #002b80',
-                borderRadius: '24px',
-                padding: '20px 24px',
-                color: '#ffffff',
-                marginLeft: tIdx === 2 ? '40px' : '0px',
-                marginRight: tIdx === 2 ? '0px' : '40px',
+                marginLeft: item.indentLeft,
+                marginRight: item.indentRight,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: item.tailAlign,
               }}
             >
-              <div style={{ fontSize: '28px', color: '#002b80', lineHeight: 1, marginBottom: '6px' }}>❝❝</div>
-              <p style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.4, margin: '0 0 10px 0', color: '#000000' }}>
-                My life has changed after I have got their consulatation. Now I don't have any financial problems. Before I didn't have any saves now I have investments, savings and emergency funds as well!
-              </p>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#000000', textAlign: 'right' }}>
-                -Om Baval, Founder and CEO, 21 Spheres
+              <div
+                style={{
+                  backgroundColor: '#f97316',
+                  border: '3px solid #001866',
+                  borderRadius: '24px',
+                  padding: '16px 20px 12px 20px',
+                  boxShadow: '4px 5px 0px #001866',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
+                {/* Single Dark Blue Quotation Icon */}
+                <div style={{ fontSize: '34px', color: '#001866', lineHeight: 0.9, marginBottom: '4px', fontWeight: 900 }}>
+                  ❝
+                </div>
+                {/* Quote Text */}
+                <p style={{ fontSize: '11.5px', fontWeight: 700, lineHeight: 1.4, margin: '0 0 8px 0', color: '#000000' }}>
+                  My life has changed after I have got their consulatation. Now I don't have any financial problems. Before I didn't have any saves now I have investments, savings and emergency funds as well!
+                </p>
+                {/* Author Details */}
+                <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#000000', textAlign: 'right' }}>
+                  -Om Baval, Founder and CEO, 21 Spheres
+                </div>
               </div>
+
+              {/* Speech Bubble Triangular Pointer Notch */}
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: '12px solid transparent',
+                  borderRight: '12px solid transparent',
+                  borderTop: '14px solid #f97316',
+                  margin: item.tailMargin,
+                  marginTop: '-2px',
+                  filter: 'drop-shadow(2px 3px 0px #001866)',
+                }}
+              />
             </div>
           ))}
         </div>

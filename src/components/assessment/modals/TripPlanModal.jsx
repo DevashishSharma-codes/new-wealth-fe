@@ -159,28 +159,30 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
     client.get(url)
       .then(res => {
         const list = getTourOptions(res);
-        const destinations = list
-          .map((item, i) => toDestination(item, `dest-${i}`))
-          .filter((destination) => destination.name)
-          .sort((a, b) => a.name.localeCompare(b.name));
-        setDestinationsList(destinations);
-      })
-      .catch(err => console.error('Failed to load destinations:', err));
-  }, [isOpen, selectedCategory]);
-
-  useEffect(() => {
-    if (!isOpen || !tripBudgetPerPerson || tripPlanningType !== 'budget') {
-      setBudgetOptions([]);
-      return;
-    }
-    const t = setTimeout(() => {
-      setLoadingBudgetOptions(true);
-      const url = `/tour/destinations-for-budget?budget=${encodeURIComponent(tripBudgetPerPerson)}&per_page=5${selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : ''}`;
-      client.get(url)
-        .then(res => {
-          const list = getTourOptions(res);
-          setBudgetOptions(list.slice(0, 5).map((item, i) => toDestination(item, `bdest-${i}`)));
+          const destinations = list
+            .map((item, i) => toDestination(item, `dest-${i}`))
+            .filter((destination) => destination.name)
+            .sort((a, b) => a.name.localeCompare(b.name));
+          setDestinationsList(destinations);
         })
+        .catch(err => console.error('Failed to load destinations:', err));
+    }, [isOpen, selectedCategory]);
+
+    useEffect(() => {
+      if (!isOpen || !tripBudgetPerPerson || tripPlanningType !== 'budget') {
+        setBudgetOptions([]);
+        return;
+      }
+      const t = setTimeout(() => {
+        setLoadingBudgetOptions(true);
+        const url = `/tour/destinations-for-budget?budget=${encodeURIComponent(tripBudgetPerPerson)}&per_page=5${selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : ''}`;
+        client.get(url)
+          .then(res => {
+            const list = getTourOptions(res);
+            const mapped = list.slice(0, 5).map((item, i) => toDestination(item, `bdest-${i}`));
+            console.log('✈️ [TRIP MODAL LOGGER] Top 5 Matching Destinations from Modal:', mapped.map(x => x.name));
+            setBudgetOptions(mapped);
+          })
         .catch(err => console.error('Budget search failed:', err))
         .finally(() => setLoadingBudgetOptions(false));
     }, 350);
@@ -260,7 +262,27 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
       );
       return;
     }
-    onSave({ targetYear: tripTargetYear || String(new Date().getFullYear() + 5), todaysCost: String(cost) });
+    const combinedDestinations = [...tripSelectedDestinations];
+    if (Array.isArray(budgetOptions)) {
+      budgetOptions.forEach(bOpt => {
+        const bName = bOpt.name || bOpt;
+        if (!combinedDestinations.some(d => (d.name || d).toLowerCase() === String(bName).toLowerCase())) {
+          combinedDestinations.push(bOpt);
+        }
+      });
+    }
+
+    console.log('✈️ [TRIP MODAL SAVE] Saving 5 destinations:', combinedDestinations.map(x => x.name || x));
+
+    onSave({
+      targetYear: tripTargetYear || String(new Date().getFullYear() + 5),
+      todaysCost: String(cost),
+      selectedDestinations: combinedDestinations,
+      suggested_tours: combinedDestinations,
+      budgetOptions: budgetOptions,
+      selectedCategory,
+      travellers: tripTravellers,
+    });
   };
 
   if (!isOpen) return null;

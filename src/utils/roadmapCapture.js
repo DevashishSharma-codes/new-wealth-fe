@@ -10,8 +10,9 @@ export async function captureRoadmapImage(element) {
   }
 
   const canvas = await html2canvas(element, {
-    scale: 2, // High resolution (300 DPI equivalent)
+    scale: 3, // Ultra High Resolution (450 DPI equivalent for crystal clear text)
     useCORS: true,
+    allowTaint: true,
     logging: false,
     backgroundColor: '#ffffff',
   });

@@ -70,7 +70,7 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
     return yA - yB;
   });
 
-  const chunkSize = 10;
+  const chunkSize = 8; // Fits up to 8 goals per page, automatically creating a new page if > 8
   const pages = [];
   if (sortedGoals.length === 0) {
     pages.push([]);
@@ -85,12 +85,12 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
       {pages.map((pageGoals, pageIdx) => {
         const count = pageGoals.length;
         const startY = 160;
-        const endY = 740;
+        const endY = 720;
         const availableHeight = endY - startY;
 
         const isCompact = count > 5;
-        const yearFontSize = isCompact ? '13px' : '15px';
-        const titleFontSize = isCompact ? '11px' : '12px';
+        const yearFontSize = isCompact ? '14px' : '16px';
+        const titleFontSize = isCompact ? '12px' : '13px';
 
         return (
           <div
@@ -124,7 +124,7 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
               </h1>
             </div>
 
-            {/* Top Right Logo (Canva Exact replica) */}
+            {/* Top Right Logo */}
             <div style={{ position: 'absolute', top: '35px', right: '40px', zIndex: 10 }}>
               <img
                 src="/assets/wealth-wisdom-logo.png"
@@ -171,7 +171,7 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
               />
             </svg>
 
-            {/* Dynamic Blocks with Auto-Expanding Pill Cards */}
+            {/* Dynamic Blocks with Auto-Expanding Pill Cards Closer to the Road */}
             {pageGoals.map((goal, idx) => {
               const year = goal.target_year || goal.year || 'TBD';
               const title = formatGoalTitle(goal, childrenData);
@@ -185,7 +185,8 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
                 yTop = startY + 200;
               }
 
-              const leftPos = isLeft ? '15px' : '365px';
+              // Positioned with a clean safety margin (Left: 20px, Right: 355px) to guarantee ZERO collision with the road
+              const leftPos = isLeft ? '20px' : '355px';
 
               return (
                 <div
@@ -195,21 +196,22 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
                     zIndex: 10,
                     top: `${yTop}px`,
                     left: leftPos,
-                    width: '215px',
+                    width: '200px',
                     display: 'flex',
-                    justifyContent: isLeft ? 'flex-start' : 'flex-end',
+                    justifyContent: isLeft ? 'flex-end' : 'flex-start',
                   }}
                 >
                   <div
                     style={{
                       position: 'relative',
-                      minWidth: '150px',
-                      maxWidth: '210px',
+                      minWidth: '125px',
+                      maxWidth: '185px',
+                      width: 'fit-content',
                       backgroundColor: '#ffffff',
                       border: '2.5px solid #002b80',
                       borderRadius: isLeft ? '16px 2px 16px 16px' : '2px 16px 16px 16px',
-                      padding: '8px 14px',
-                      boxShadow: '0 4px 12px rgba(0, 43, 128, 0.12)',
+                      padding: '10px 14px',
+                      boxShadow: '0 4px 14px rgba(0, 43, 128, 0.14)',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -217,7 +219,7 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
                       boxSizing: 'border-box',
                     }}
                   >
-                    <span style={{ fontSize: yearFontSize, fontWeight: 900, color: '#002b80', lineHeight: 1.1, marginBottom: '3px' }}>
+                    <span style={{ fontSize: yearFontSize, fontWeight: 900, color: '#002b80', lineHeight: 1.1, marginBottom: '4px' }}>
                       {year}
                     </span>
                     <span
@@ -226,9 +228,10 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
                         fontWeight: 800,
                         color: '#0f172a',
                         textAlign: 'center',
-                        lineHeight: 1.18,
+                        lineHeight: 1.25,
                         wordBreak: 'break-word',
                         overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
                         maxWidth: '100%',
                       }}
                     >

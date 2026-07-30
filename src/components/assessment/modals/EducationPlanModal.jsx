@@ -226,7 +226,9 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
             .filter(item => Number.isFinite(item.cost) && item.cost > 0)
             .sort((a, b) => Math.abs(a.cost - budget) - Math.abs(b.cost - budget));
 
-          setBudgetOptions(sorted.slice(0, 5));
+          const top5 = sorted.slice(0, 5);
+          console.log('🎓 [EDUCATION MODAL LOGGER] Top 5 Matching Programs from Modal:', top5.map(x => x.name));
+          setBudgetOptions(top5);
         })
         .catch(err => console.error('Budget search failed:', err))
         .finally(() => setLoadingBudgetOptions(false));
@@ -315,7 +317,28 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
       setSaveError('Select a college or enter a budget before saving.');
       return;
     }
-    onSave({ goalType: 'Higher Education', targetYear: modalTargetYear || String(new Date().getFullYear() + 10), todaysCost: String(calculatedCost) });
+    const combinedColleges = [...modalSelectedColleges];
+    if (Array.isArray(budgetOptions)) {
+      budgetOptions.forEach(bOpt => {
+        const bName = bOpt.name || bOpt;
+        if (!combinedColleges.some(c => (c.name || c).toLowerCase() === String(bName).toLowerCase())) {
+          combinedColleges.push(bOpt);
+        }
+      });
+    }
+
+    console.log('🎓 [EDUCATION MODAL SAVE] Saving 5 colleges:', combinedColleges.map(x => x.name || x));
+
+    onSave({
+      goalType: 'Higher Education',
+      targetYear: modalTargetYear || String(new Date().getFullYear() + 10),
+      todaysCost: String(calculatedCost),
+      selectedColleges: combinedColleges,
+      suggested_colleges: combinedColleges,
+      budgetOptions: budgetOptions,
+      selectedCountry,
+      selectedCategory: selectedCourseCategory,
+    });
   };
 
   if (!isOpen) return null;

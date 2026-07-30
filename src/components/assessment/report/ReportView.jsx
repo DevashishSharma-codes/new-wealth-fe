@@ -15,6 +15,7 @@ export function ReportView() {
     reportId,
     reportMessage,
     formData,
+    activeGoals,
     childrenCount,
     childrenData,
     assessmentId,
@@ -612,7 +613,7 @@ export function ReportView() {
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', overflow: 'hidden' }}>
         <FullReportTemplate
           ref={fullReportRef}
-          formData={formData}
+          formData={{ ...formData, activeGoals, goals: activeGoals }}
           childrenData={childrenData}
           calculationResult={calculationResult}
           assessmentId={assessmentId}

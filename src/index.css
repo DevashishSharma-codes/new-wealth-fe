@@ -20,41 +20,31 @@ html {
 @media (min-width: 768px) {
   html {
     font-size: 14.4px;
-    /* ~112% zoom on tablet scaled down */
   }
 }
 
 @media (min-width: 1024px) {
   html {
     font-size: 16px;
-    /* 125% zoom on desktop scaled down */
   }
 }
 
 body {
   font-family: 'Montserrat', sans-serif;
-  background-color: #FBFBFA;
+  background-color: #FAF7F2;
   color: #201f1d;
   overflow-x: hidden;
   letter-spacing: -0.01em;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: 'Montserrat', sans-serif;
 }
 
 @keyframes float {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
-
   50% {
     transform: translateY(-10px);
   }
@@ -156,11 +146,6 @@ h6 {
   --orange-border-color: rgba(240, 136, 62, 0.4);
 }
 
-body {
-  background-color: var(--surface-color) !important;
-  color: var(--text-dark);
-}
-
 .neu-field {
   background-color: #F1EDE6 !important;
   border: 1px solid #EFE9DF !important;
@@ -225,27 +210,21 @@ body {
   box-shadow: inset 3px 3px 5px rgba(240, 136, 62, 0.35), inset -3px -3px 5px rgba(255, 255, 255, 1);
 }
 
-/* Raised neumorphic button */
-/* Raised neumorphic button (Updated to match Figma) */
-/* ── Raised Neumorphic Button (Figma Colors + True Morphic Effect) ── */
+/* ── Raised Neumorphic Button ── */
 .neu-btn-raised {
   background: linear-gradient(180deg, #F7AA5B 0%, #EE9640 100%), #F5A04D !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 12px !important;
-
-  /* Outer raised shadows + subtle inner highlight + orange glow */
   box-shadow:
     8px 8px 16px #D9D4C7,
     -8px -8px 16px #FFFFFF,
     inset 1px 1px 2px rgba(255, 255, 255, 0.4),
     0 0 15px rgba(240, 136, 62, 0.3) !important;
-
   color: #FFFFFF !important;
   transition: all 0.2s ease-in-out;
 }
 
 .neu-btn-raised:hover {
-  /* Lift the button slightly on hover */
   box-shadow:
     10px 10px 20px #D9D4C7,
     -10px -10px 20px #FFFFFF,
@@ -255,7 +234,6 @@ body {
 }
 
 .neu-btn-raised:active {
-  /* Morphic Inset: Looks physically pressed into the surface */
   box-shadow:
     inset 6px 6px 12px rgba(200, 100, 30, 0.6),
     inset -6px -6px 12px rgba(255, 255, 255, 0.4) !important;
@@ -310,11 +288,11 @@ body {
   text-shadow: 1.5px 1.5px 3px rgba(221, 212, 199, 0.8), -1.5px -1.5px 3px rgba(255, 255, 255, 1) !important;
 }
 
-/* Orangish-whitish premium neumorphic card bg (Classic Neumorphism - Inset) */
+/* Orangish-whitish premium neumorphic card bg */
 .neu-card-orange-classic {
-  background-color: #FFEBD6 !important; /* Soft warm orange bg */
+  background-color: #FFEBD6 !important;
   border: 1px solid #EFE9DF !important;
-  box-shadow: inset 5px 5px 8px rgba(214, 203, 186, 0.85), inset -5px -5px 8px rgba(255, 255, 255, 1) !important; /* Inset light/dark shadows */
+  box-shadow: inset 5px 5px 8px rgba(214, 203, 186, 0.85), inset -5px -5px 8px rgba(255, 255, 255, 1) !important;
 }
 
 /* ── Glassmorphic Floating Popup Modal Styles ── */
@@ -348,11 +326,25 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
 .no-scrollbar,
 .scrollbar-none,
 .scrollbar-thin {
-  -ms-overflow-style: none !important;  /* IE and Edge */
-  scrollbar-width: none !important;  /* Firefox */
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Prevent native scrollbar protrusion past rounded borders at 100%+ zoom */
+[class*="rounded-"] > .overflow-y-auto {
+  overflow-x: hidden !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+[class*="rounded-"] > .overflow-y-auto::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Crisp Vector Font Smoothing for Report PDF Pages */

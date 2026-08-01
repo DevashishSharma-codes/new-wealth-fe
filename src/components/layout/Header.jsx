@@ -85,9 +85,9 @@ export function Header({ currentStep = 1, totalSteps = 5, goToStep, showReport =
   return (
     <header className="py-8 bg-transparent flex flex-col items-center">
       {/* Centered Logo */}
-      <Link to="/" className="flex flex-col items-center text-center justify-center select-none">
+      <a href="https://www.wealthswisdom.com" className="flex flex-col items-center text-center justify-center select-none cursor-pointer">
         <img src={wealthWisdomLogo} alt="Wealth Wisdom - Take Charge of Your Future" className="h-20 w-auto object-contain" />
-      </Link>
+      </a>
 
       {/* Title */}
       <h2 className="font-heading text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-extrabold tracking-tight mt-6 text-center px-4 animate-fade-in-up animate-text-wave select-none leading-normal">

@@ -98,22 +98,28 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="flex flex-col items-center text-center justify-center select-none shrink-0">
+          <a href="https://www.wealthswisdom.com" className="flex flex-col items-center text-center justify-center select-none shrink-0 cursor-pointer">
             <img src={wealthWisdomLogo} alt="Wealth Wisdom - Take Charge of Your Future" className="h-16 w-auto object-contain" />
-          </Link>
+          </a>
 
           {/* Title */}
           <h2 className="hidden sm:block font-heading text-xl md:text-3xl lg:text-[34px] font-extrabold tracking-tight animate-fade-in-up animate-text-wave select-none leading-normal">
             Goal Analysis Assessment
           </h2>
 
-          {/* Get Started Button */}
-          <Link
-            to="/assessment"
-            className="inline-flex items-center gap-2 bg-[#1C1B1A] hover:bg-slate-800 text-white px-5 py-3 rounded-lg text-sm font-semibold tracking-wide transition-all shadow-xs"
-          >
-            Get started &rarr;
-          </Link>
+          {/* Get Started Button Area with DIY Assessment badge */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="inline-flex items-center gap-1.5 bg-[#FFF6ED] border border-[#F5D7C1] text-[#ED8B36] text-[10px] sm:text-[11px] font-extrabold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full uppercase tracking-wider shadow-2xs select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ED8B36] animate-pulse" />
+              <span>DIY Assessment</span>
+            </div>
+            <Link
+              to="/assessment"
+              className="inline-flex items-center gap-2 bg-[#1C1B1A] hover:bg-slate-800 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-xs"
+            >
+              Get started &rarr;
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -212,12 +218,18 @@ export default function Home() {
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl mx-auto">
               Understand whether you're on track to achieve all of your life goals and the future you envision. Our assessment helps uncover your funding requirements, target timelines, investment needs, and potential planning gaps, all in just a few minutes.
             </p>
-            <Link
-              to="/assessment"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-orange to-brand-gold text-white px-8 py-4 rounded-xl text-base font-bold hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0 transition-all shadow-md"
-            >
-              Start Assessment &rarr;
-            </Link>
+            <div className="flex flex-col items-center gap-3">
+              <Link
+                to="/assessment"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-orange to-brand-gold text-white px-8 py-4 rounded-xl text-base font-bold hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0 transition-all shadow-md"
+              >
+                Start DIY Assessment &rarr;
+              </Link>
+              <p className="text-xs font-semibold text-[#8E8A80] flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ED8B36]" />
+                100% Self-Guided DIY Financial Assessment • Instant Report
+              </p>
+            </div>
           </div>
         </section>
 
@@ -320,95 +332,100 @@ export default function Home() {
 
       {/* Get In Touch Modal */}
       {isContactModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in select-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in select-none">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-[#1C1B1A]/40 backdrop-blur-xs transition-opacity cursor-pointer" 
             onClick={() => setIsContactModalOpen(false)}
           />
           
-          {/* Modal Content */}
-          <div className="relative w-full max-w-lg bg-[#F4F1EA] border border-[#EFE9DF] rounded-[2rem] shadow-xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto z-10 text-left">
+          {/* Outer Modal Container */}
+          <div className="relative w-full max-w-lg bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[2rem] shadow-2xl overflow-hidden z-10 text-left max-h-[85vh] sm:max-h-[90vh] flex flex-col">
             {/* Close Button */}
             <button 
               type="button"
               onClick={() => setIsContactModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full flex items-center justify-center neu-btn-flat-inactive cursor-pointer"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full flex items-center justify-center neu-btn-flat-inactive cursor-pointer z-20"
+              aria-label="Close modal"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            {/* Form */}
-            <form onSubmit={handleContactSubmit} className="space-y-4">
-              <div className="text-[11px] font-bold text-[#F0883E] tracking-wider uppercase mb-1">
-                GET EXPERT GUIDANCE FOR YOUR FINANCIAL FUTURE
-              </div>
-              <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#1C1B1A] leading-tight mb-2">
-                Book Your Consultation
-              </h3>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-[#4A4740]">Your Name*</label>
-                <input
-                  type="text"
-                  required
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Enter your full name"
-                  className={`${contactName ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-[#4A4740]">Email address*</label>
-                <input
-                  type="email"
-                  required
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className={`${contactEmail ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-[#4A4740]">Mobile Number*</label>
-                <div className="flex gap-2">
-                  <div className="neu-prefix rounded-xl px-3 py-3 text-xs sm:text-sm font-semibold select-none shrink-0 flex items-center justify-center font-sans">
-                    +91
+            {/* Scrollable Inner Body Container */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar scrollbar-none rounded-2xl sm:rounded-[2rem]">
+              <div className="p-6 sm:p-8 space-y-4">
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div className="text-[11px] font-bold text-[#F0883E] tracking-wider uppercase mb-1">
+                    GET EXPERT GUIDANCE FOR YOUR FINANCIAL FUTURE
                   </div>
-                  <input
-                    type="tel"
-                    required
-                    value={contactMobile}
-                    onChange={(e) => setContactMobile(e.target.value)}
-                    placeholder="Enter your mobile number"
-                    className={`${contactMobile ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
-                  />
-                </div>
-              </div>
+                  <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#1C1B1A] leading-tight mb-2">
+                    Book Your Consultation
+                  </h3>
 
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-[#4A4740]">Message</label>
-                <textarea
-                  rows="3"
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  placeholder="Enter your message (optional)"
-                  className={`${contactMessage ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200 resize-none`}
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-[#4A4740]">Your Name*</label>
+                    <input
+                      type="text"
+                      required
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      placeholder="Enter your full name"
+                      className={`${contactName ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                    />
+                  </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full neu-btn-raised py-3 font-bold text-xs sm:text-sm cursor-pointer mt-2 disabled:opacity-50"
-              >
-                {isSubmitting ? "Submitting..." : "Get My Complete Financial Roadmap ➔"}
-              </button>
-            </form>
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-[#4A4740]">Email address*</label>
+                    <input
+                      type="email"
+                      required
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className={`${contactEmail ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-[#4A4740]">Mobile Number*</label>
+                    <div className="flex gap-2">
+                      <div className="neu-prefix rounded-xl px-3 py-3 text-xs sm:text-sm font-semibold select-none shrink-0 flex items-center justify-center font-sans">
+                        +91
+                      </div>
+                      <input
+                        type="tel"
+                        required
+                        value={contactMobile}
+                        onChange={(e) => setContactMobile(e.target.value)}
+                        placeholder="Enter your mobile number"
+                        className={`${contactMobile ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-[#4A4740]">Message</label>
+                    <textarea
+                      rows="3"
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
+                      placeholder="Enter your message (optional)"
+                      className={`${contactMessage ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200 resize-none`}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full neu-btn-raised py-3 font-bold text-xs sm:text-sm cursor-pointer mt-2 disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Submitting..." : "Get My Complete Financial Roadmap ➔"}
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -90,12 +90,17 @@ export default function AssessmentProvider({ children }) {
   const [childrenData, setChildrenData] = useState(() => _session?.childrenData || initialChildren);
   const [activeGoals, setActiveGoals] = useState(() => _session?.activeGoals || initialGoals);
   const [calculationResult, setCalculationResult] = useState(() => _session?.calculationResult || null);
+  const [services, setServices] = useState(() => _session?.services || []);
+  const [testimonials, setTestimonials] = useState(() => _session?.testimonials || []);
+  const [reportData, setReportData] = useState(() => _session?.reportData || null);
   const [reportId, setReportId] = useState(() => _session?.reportId || null);
   const [reportMessage, setReportMessage] = useState(() => _session?.reportMessage || null);
   const [showReport, setShowReport] = useState(() => _session?.showReport || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [pdfBlob, setPdfBlob] = useState(null);
+  const [isUploaded, setIsUploaded] = useState(false);
 
   // Persist critical state to sessionStorage whenever it changes
   useEffect(() => { saveToSession({ assessmentId }); }, [assessmentId]);
@@ -104,6 +109,9 @@ export default function AssessmentProvider({ children }) {
   useEffect(() => { saveToSession({ childrenData }); }, [childrenData]);
   useEffect(() => { saveToSession({ activeGoals }); }, [activeGoals]);
   useEffect(() => { saveToSession({ calculationResult }); }, [calculationResult]);
+  useEffect(() => { saveToSession({ services }); }, [services]);
+  useEffect(() => { saveToSession({ testimonials }); }, [testimonials]);
+  useEffect(() => { saveToSession({ reportData }); }, [reportData]);
   useEffect(() => { saveToSession({ reportId }); }, [reportId]);
   useEffect(() => { saveToSession({ reportMessage }); }, [reportMessage]);
   useEffect(() => { saveToSession({ showReport }); }, [showReport]);
@@ -525,85 +533,34 @@ export default function AssessmentProvider({ children }) {
         requiredAnnualIncome_fromFormData: finalFormData.requiredAnnualIncome,
       });
       const calcRes = await assessmentService.calculateRetirement(assessmentId, calcPayload);
-      setCalculationResult(calcRes.data);
-      setShowReport(true);
-      setIsCalculating(false);
+      const initialCalcResult = calcRes?.data || calcRes;
+      setCalculationResult(initialCalcResult);
 
-      // 3. Generate PDF Report in background with polling
-      setReportMessage("Generating report...");
+      // 3. Fetch full report dataset (flow1..flow4, calculation, services, testimonials)
+      setReportMessage("Preparing financial blueprint...");
       try {
-        console.log("[submitStep5] Triggering reportService.generateReport for assessmentId:", assessmentId);
-        const reportRes = await reportService.generateReport(assessmentId);
-        console.log("[submitStep5] generateReport response:", reportRes);
-        const reportData = reportRes?.data || reportRes;
-        console.log("[submitStep5] reportData:", reportData);
+        console.log("[submitStep5] Fetching report data for assessmentId:", assessmentId);
+        const reportDataRes = await reportService.getReportData(assessmentId);
+        console.log("[submitStep5] getReportData response:", reportDataRes);
+        const payloadData = reportDataRes?.data || reportDataRes;
 
-        if (reportData && (reportData.report_id || reportData.data?.report_id)) {
-          const finalReportId = reportData.report_id || reportData.data?.report_id;
-          console.log("[submitStep5] Report generated synchronously. Setting reportId directly to:", finalReportId);
-          setReportId(finalReportId);
-          const deliveryMode = reportData.delivery_mode || reportData.data?.delivery_mode;
-          if (deliveryMode === "email") {
-            setReportMessage("Report sent to your email");
-          } else {
-            setReportMessage("Report generated successfully");
+        if (payloadData) {
+          setReportData(payloadData);
+          if (payloadData.services && Array.isArray(payloadData.services)) {
+            setServices(payloadData.services);
           }
-        } else if (reportData && (reportData.job_id || reportData.data?.job_id)) {
-          const jobId = reportData.job_id || reportData.data?.job_id;
-          console.log("[submitStep5] Polling job ID:", jobId);
-
-          // Poll asynchronously
-          (async () => {
-            let reportDone = false;
-            let checkCount = 0;
-            const maxChecks = 45;
-
-            while (!reportDone && checkCount < maxChecks) {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              checkCount++;
-              try {
-                console.log(`[polling] Check #${checkCount} status for jobId: ${jobId}`);
-                const statusRes = await reportService.checkReportStatus(assessmentId, jobId);
-                console.log(`[polling] Check #${checkCount} statusRes:`, statusRes);
-                const statusData = statusRes?.data || statusRes;
-
-                const currentJobStatus = statusData?.status || statusRes?.status;
-
-                if (currentJobStatus === "completed" || currentJobStatus === "success") {
-                  const finalReportId = statusData?.report_id || statusData?.id || statusRes?.report_id || statusRes?.id;
-                  console.log(`[polling] Report generation completed! Setting reportId to:`, finalReportId);
-                  setReportId(finalReportId);
-                  
-                  const deliveryMode = statusData?.delivery_mode || statusRes?.delivery_mode;
-                  if (deliveryMode === "email") {
-                    setReportMessage("Report sent to your email");
-                  } else {
-                    setReportMessage("Report generated successfully");
-                  }
-                  reportDone = true;
-                } else if (currentJobStatus === "failed") {
-                  console.error("[polling] Report generation failed on backend.");
-                  setReportMessage("Failed to generate report.");
-                  break;
-                }
-              } catch (pollErr) {
-                console.error("[polling] Error in polling check:", pollErr);
-              }
-            }
-
-            if (!reportDone) {
-              console.warn("[polling] Polling finished or timed out without report completion.");
-              setReportMessage("Report generation timed out.");
-            }
-          })();
-        } else {
-          console.warn("[submitStep5] Missing report_id or job_id in report response:", reportData);
-          setReportMessage("Failed to generate report.");
+          if (payloadData.testimonials && Array.isArray(payloadData.testimonials)) {
+            setTestimonials(payloadData.testimonials);
+          }
+          if (payloadData.calculation) {
+            setCalculationResult(payloadData.calculation);
+          }
         }
-      } catch (reportErr) {
-        console.error("Failed to generate PDF:", reportErr);
-        setReportMessage("Failed to generate report.");
+      } catch (reportDataErr) {
+        console.warn("[submitStep5] Failed to fetch /report-data, falling back to calculation result:", reportDataErr);
       }
+
+      setShowReport(true);
     } catch (err) {
       console.error(err);
       setApiError(err.message || "Failed to calculate retirement plan. Please review your settings.");
@@ -652,12 +609,19 @@ export default function AssessmentProvider({ children }) {
     childrenData,
     activeGoals,
     calculationResult,
+    services,
+    testimonials,
+    reportData,
     reportId,
     reportMessage,
     showReport,
     isSubmitting,
     isCalculating,
     apiError,
+    pdfBlob,
+    setPdfBlob,
+    isUploaded,
+    setIsUploaded,
     updateFormData,
     updateChild,
     setChildrenCount,

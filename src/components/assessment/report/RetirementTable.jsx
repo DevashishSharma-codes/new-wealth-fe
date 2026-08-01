@@ -26,11 +26,11 @@ export function RetirementTable({ formData, calculationResult }) {
               <span className="font-bold text-[#1C1B1A]">{calculationResult.client.years_to_retirement} Years</span>
             </div>
             <div>
-              <span className="text-[#A69E90] block">Monthly Expense (Today)</span>
+              <span className="text-[#A69E90] block">Monthly Expense P.M. (Today)</span>
               <span className="font-bold text-[#1C1B1A]">{calculationResult.client.expenses_today_pm.inr}</span>
             </div>
             <div>
-              <span className="text-[#A69E90] block">Inflation-Adjusted Expense</span>
+              <span className="text-[#A69E90] block">Inflation-Adjusted Expense (P.M.)</span>
               <span className="font-bold text-[#1C1B1A]">{calculationResult.client.expenses_at_retirement_pm.inr}</span>
             </div>
             <div className="col-span-2 border-t border-[#E5E2DA] pt-3">
@@ -74,11 +74,11 @@ export function RetirementTable({ formData, calculationResult }) {
                 <span className="font-bold text-[#1C1B1A]">{calculationResult.spouse.years_to_retirement} Years</span>
               </div>
               <div>
-                <span className="text-[#A69E90] block">Monthly Expense (Today)</span>
+                <span className="text-[#A69E90] block">Monthly Expense P.M. (Today)</span>
                 <span className="font-bold text-[#1C1B1A]">{calculationResult.spouse.expenses_today_pm.inr}</span>
               </div>
               <div>
-                <span className="text-[#A69E90] block">Inflation-Adjusted Expense</span>
+                <span className="text-[#A69E90] block">Inflation-Adjusted Expense (P.M.)</span>
                 <span className="font-bold text-[#1C1B1A]">{calculationResult.spouse.expenses_at_retirement_pm.inr}</span>
               </div>
               <div className="col-span-2 border-t border-[#E5E2DA] pt-3">

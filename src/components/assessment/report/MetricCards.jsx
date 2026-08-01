@@ -26,9 +26,9 @@ export function MetricCards({ displayInsurance, displayCorpus, displayMonthly })
           </svg>
         </div>
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-[#A69E90] tracking-wider uppercase block">TOTAL RETIREMENT CORPUS REQUIRED</span>
+          <span className="text-[10px] font-bold text-[#A69E90] tracking-wider uppercase block">TOTAL CORPUS REQUIRED</span>
           <span className="text-xl sm:text-2xl font-extrabold text-[#1E2B49] block">{displayCorpus}</span>
-          <span className="text-[11px] text-[#8E8A80] leading-relaxed block pt-1">Estimated corpus needed to maintain your desired lifestyle.</span>
+          <span className="text-[11px] text-[#8E8A80] leading-relaxed block pt-1">Estimated total corpus needed to achieve all your goals.</span>
         </div>
       </div>
 
@@ -40,9 +40,9 @@ export function MetricCards({ displayInsurance, displayCorpus, displayMonthly })
           </svg>
         </div>
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-[#A69E90] tracking-wider uppercase block">MONTHLY INVESTMENT REQUIRED</span>
+          <span className="text-[10px] font-bold text-[#A69E90] tracking-wider uppercase block">MONTHLY INVESTMENT REQUIRED TO ACHIEVE ALL THE GOALS</span>
           <span className="text-xl sm:text-2xl font-extrabold text-[#1E2B49] block">{displayMonthly}</span>
-          <span className="text-[11px] text-[#8E8A80] leading-relaxed block pt-1">Suggested monthly investment to achieve your retirement goals.</span>
+          <span className="text-[11px] text-[#8E8A80] leading-relaxed block pt-1">Suggested monthly investment to achieve all the goals.</span>
         </div>
       </div>
 

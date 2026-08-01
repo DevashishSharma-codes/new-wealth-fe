@@ -527,7 +527,7 @@ export function EducationPlanModal({ isOpen, onClose, onSave, child }) {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-bold text-[#2B2A28] mb-1.5 select-none">
-                        Education Budget (Today's Value)
+                        Education Budget (Approx. Today's Value)
                       </label>
                       <input
                         type="number"

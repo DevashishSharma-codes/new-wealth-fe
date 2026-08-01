@@ -6,7 +6,7 @@ import { RoadmapTemplate } from './RoadmapTemplate';
  * 100% Exact Visual & Structural Replica of the 15-Page Backend Report PDF.
  * Renders every page in React HTML/CSS matching the exact templates, icons, pill boxes, tables, and colors.
  */
-export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = [], calculationResult = {}, assessmentId = '' }, ref) => {
+export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = [], calculationResult = {}, services = [], testimonials = [], assessmentId = '' }, ref) => {
   const clientName = formData.name || 'Valued Client';
   const reportDate = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -14,25 +14,186 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
     year: 'numeric',
   });
 
+  const defaultServices = [
+    'Financial Planning',
+    'Mutual Funds',
+    'PMS',
+    'NRI Investments',
+    'Life Insurance',
+    'Health Insurance',
+    'General Insurance',
+    'Estate Planning',
+  ];
+
+const ensureString = (val, fallback = '') => {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number') return String(val);
+  if (typeof val === 'object') {
+    return val.display || val.title || val.name || val.inr || val.text || val.formatted || fallback;
+  }
+  return String(val);
+};
+
+const formatDisplayVal = (val, defaultVal = '₹0') => {
+  if (val === null || val === undefined) return defaultVal;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number') return `₹${val.toLocaleString('en-IN')}`;
+  if (typeof val === 'object') {
+    if (val.inr && typeof val.inr === 'string') return val.inr;
+    if (val.display && typeof val.display === 'string') return val.display;
+    if (val.formatted && typeof val.formatted === 'string') return val.formatted;
+    if (val.raw !== undefined && typeof val.raw === 'number') return `₹${val.raw.toLocaleString('en-IN')}`;
+    if (val.value !== undefined) return formatDisplayVal(val.value, defaultVal);
+    return defaultVal;
+  }
+  return String(val);
+};
+
+  const inputServices = (services && services.length > 0)
+    ? services
+    : (calculationResult?.services && calculationResult.services.length > 0)
+    ? calculationResult.services
+    : (formData?.services && formData.services.length > 0)
+    ? formData.services
+    : defaultServices;
+
+  const activeServices = inputServices
+    .filter((s) => {
+      if (!s) return false;
+      if (typeof s === 'object') {
+        return s.is_visible !== false && s.active !== false;
+      }
+      return true;
+    })
+    .map((s) => {
+      if (typeof s === 'string') return s;
+      if (typeof s === 'object' && s) {
+        return ensureString(s.title || s.name || s.service_name || s.service || s.display, 'Service');
+      }
+      return String(s);
+    });
+
+  const inputTestimonials = (testimonials && testimonials.length > 0)
+    ? testimonials
+    : (calculationResult?.testimonials && calculationResult.testimonials.length > 0)
+    ? calculationResult.testimonials
+    : (formData?.testimonials && formData.testimonials.length > 0)
+    ? formData.testimonials
+    : defaultTestimonials;
+
+  const activeTestimonials = inputTestimonials
+    .filter((t) => {
+      if (!t) return false;
+      if (typeof t === 'object') {
+        return t.is_visible !== false && t.active !== false;
+      }
+      return true;
+    })
+    .map((t) => {
+      if (typeof t === 'string') {
+        return { quote: t, author: 'Valued Client', designation: '' };
+      }
+      const quote = ensureString(t?.quote || t?.text || t?.message || t?.content || t?.testimonial || t?.review_message, '');
+      const author = ensureString(t?.author || t?.name || t?.author_name || t?.client_name, 'Valued Client');
+      const designation = ensureString(t?.designation || t?.title || t?.company || t?.author_designation || t?.role || t?.client_designation, '');
+      return { quote, author, designation };
+    });
+
+  // Service Pages Pagination (6 services per page)
+  const servicePages = [];
+  const sChunkSize = 6;
+  for (let i = 0; i < activeServices.length; i += sChunkSize) {
+    servicePages.push(activeServices.slice(i, i + sChunkSize));
+  }
+  if (servicePages.length === 0) {
+    servicePages.push([]);
+  }
+
+  // Testimonial Pages Pagination (3 testimonials per page)
+  const testimonialPages = [];
+  const tChunkSize = 3;
+  for (let i = 0; i < activeTestimonials.length; i += tChunkSize) {
+    testimonialPages.push(activeTestimonials.slice(i, i + tChunkSize));
+  }
+  if (testimonialPages.length === 0) {
+    testimonialPages.push([]);
+  }
+
   const goals = calculationResult?.goals?.items || [];
   const activeChildren = childrenData.length > 0 ? childrenData : (formData.children || []);
-  const totalGoalsMonthlySip = calculationResult?.goals?.total_monthly_sip?.inr || '₹0';
+  const totalGoalsMonthlySip = formatDisplayVal(calculationResult?.goals?.total_monthly_sip, '₹0');
 
   // Retirement Summary
   const clientRet = calculationResult?.client || {};
-  const clientRetAge = formData.targetRetireAge || '60';
-  const clientYearsToRet = clientRet.years_to_retirement || '18';
+  const clientRetAge = ensureString(formData.targetRetireAge || clientRet.retirement_age, '60');
+  const clientYearsToRet = ensureString(clientRet.years_to_retirement, '18');
   const clientRetPeriod = '18';
-  const clientCorpusReq = clientRet.corpus?.inr || '₹52,39,41,846';
-  const clientExpToday = clientRet.monthly_expense_today?.inr || '₹10,00,000';
-  const clientExpAtRet = clientRet.monthly_expense_at_ret?.inr || '₹28,54,339';
-  const clientMonthlySip = clientRet.monthly_sip?.inr || '₹7,43,139';
-  const clientLumpSum = clientRet.lump_sum?.inr || '₹6,81,33,183';
-  const clientProvisionsMade = clientRet.provisions_made?.inr || clientRet.provisions_made || calculationResult?.client_provisions_made?.inr || calculationResult?.client_provisions_made || formData.provisionsMade || formData.pf_nps_sa || '₹0';
+  const clientCorpusReq = formatDisplayVal(clientRet.corpus, '₹52,39,41,846');
+  const clientExpToday = formatDisplayVal(clientRet.monthly_expense_today, '₹10,00,000');
+  const clientExpAtRet = formatDisplayVal(clientRet.monthly_expense_at_ret, '₹28,54,339');
+  const clientMonthlySip = formatDisplayVal(clientRet.monthly_sip, '₹7,43,139');
+  const clientLumpSum = formatDisplayVal(clientRet.lump_sum, '₹6,81,33,183');
+  const clientProvisionsMade = formatDisplayVal(clientRet.provisions_made || calculationResult?.client_provisions_made || formData.provisionsMade || formData.pf_nps_sa, '₹0');
 
   // Insurance
   const insuranceData = calculationResult?.insurance || {};
-  const totalInsuranceNeed = insuranceData.total_required?.inr || '₹31,08,66,558';
+  const totalInsuranceNeed = formatDisplayVal(insuranceData.total_required, '₹31,08,66,558');
+
+  const formatGoalTitle = (g = {}, childrenArr = activeChildren) => {
+    if (typeof g === 'string') return g;
+    const rawTitle = ensureString(g.goal_type || g.title || g.goal || g.name, 'Financial Goal');
+    let childName = (g.child_name || g.childName || '').trim();
+
+    if (!childName || /^child\s*\d+('s)?$/i.test(childName)) {
+      let childIdx = -1;
+      if (g.child_number !== undefined && g.child_number !== null) {
+        childIdx = parseInt(g.child_number, 10) - 1;
+      } else if (g.child_index !== undefined && g.child_index !== null) {
+        childIdx = parseInt(g.child_index, 10);
+      } else {
+        const match = `${rawTitle} ${g.goal || ''}`.match(/child\s*(\d+)/i);
+        if (match && match[1]) {
+          childIdx = parseInt(match[1], 10) - 1;
+        }
+      }
+      if (childIdx >= 0 && Array.isArray(childrenArr) && childrenArr[childIdx] && childrenArr[childIdx].name) {
+        childName = childrenArr[childIdx].name.trim();
+      }
+    }
+
+    if (childName && /^child\s*\d+('s)?$/i.test(childName)) {
+      childName = '';
+    } else if (childName) {
+      childName = childName.replace(/'s$/i, '');
+    }
+
+    let specificGoalType = rawTitle.trim();
+    const isOtherGoal = specificGoalType.toLowerCase().includes('other');
+
+    specificGoalType = specificGoalType
+      .replace(/^child\s*\d+('s)?\s*/i, '')
+      .replace(/^child\s*/i, '')
+      .replace(/\s*goal$/i, '')
+      .trim();
+
+    if (childName && (specificGoalType.toLowerCase() === childName.toLowerCase() || specificGoalType.toLowerCase().includes(childName.toLowerCase()))) {
+      specificGoalType = 'Other Goal';
+    } else if (!specificGoalType || specificGoalType.toLowerCase() === 'other') {
+      specificGoalType = 'Other Goal';
+    }
+
+    if (childName) {
+      if (rawTitle.toLowerCase().startsWith(`${childName.toLowerCase()}'s`)) {
+        return rawTitle;
+      } else if (isOtherGoal || specificGoalType === 'Other Goal') {
+        return `${childName}'s Other Goal`;
+      } else {
+        return `${childName}'s ${specificGoalType}`;
+      }
+    }
+    return specificGoalType || 'Financial Goal';
+  };
 
   // Map exact real 3D icons attached by user
   const getGoalIcon = (goalType = '') => {
@@ -54,81 +215,173 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
     return '/assets/report/real_3d_other_goals.png';
   };
 
+  const GOAL_SPEECHES = {
+    house: [
+      "Based on the timeline and projected cost of this goal, we suggest prioritising disciplined investments to ensure your home purchase remains a planned milestone rather than a financial burden.",
+      "Owning a home often involves one of life's largest commitments. Starting early can provide greater flexibility and reduce pressure as the goal approaches.",
+      "A structured approach towards this goal can help you achieve the home you envision without compromising your other financial priorities."
+    ],
+    car: [
+      "Since this goal directly impacts your lifestyle and convenience, a dedicated investment plan can help you make this purchase comfortably when required.",
+      "Planning in advance for this purchase may help you avoid dipping into emergency reserves or disrupting long-term wealth creation.",
+      "We suggest treating this goal as a planned expense so that future decisions can be made based on preference rather than financial constraints."
+    ],
+    renovation: [
+      "Home improvement expenses often arise when least expected. Preparing for them in advance can help preserve both comfort and financial stability.",
+      "Setting aside dedicated resources for this goal can allow you to enhance your living space without affecting other important commitments.",
+      "A planned approach to renovation ensures that lifestyle upgrades happen on your terms and timeline."
+    ],
+    foreign: [
+      "Experiences and travel aspirations deserve the same financial attention as other life goals. Planning ahead can make them more enjoyable and stress-free.",
+      "By allocating resources towards this goal today, you can look forward to future travel without compromising ongoing financial objectives.",
+      "We suggest building this goal systematically so that memorable experiences do not become unexpected financial obligations."
+    ],
+    holiday: [
+      "A holiday home is a meaningful lifestyle aspiration, and achieving it becomes more practical through disciplined preparation.",
+      "Since this goal requires significant capital, early planning can provide greater flexibility and choice in the future.",
+      "A dedicated investment strategy can help balance this aspiration alongside your essential financial goals."
+    ],
+    gifting: [
+      "Celebrating important relationships often involves meaningful gestures, and planned giving helps preserve the joy behind them.",
+      "We suggest budgeting for these milestones in advance so that generosity never comes at the cost of financial comfort.",
+      "Thoughtful preparation can ensure that important occasions remain memorable without creating financial strain."
+    ],
+    charity: [
+      "If giving back is important to you, incorporating it into your financial plan can help make your contributions both meaningful and sustainable.",
+      "Planning for charitable goals ensures that your values are reflected in your financial decisions over time.",
+      "A structured approach towards philanthropy allows you to create an impact while maintaining overall financial balance."
+    ],
+    birth: [
+      "This phase often brings multiple planned and unplanned expenses, making early preparation especially valuable.",
+      "Building a dedicated corpus for this goal can allow you to focus on the transition ahead with greater confidence.",
+      "We suggest planning for these expenses in advance to minimize financial stress during an important life event."
+    ],
+    big: [
+      "Major purchases can significantly influence cash flows, making advance planning an important part of financial well-being.",
+      "We suggest preparing for large expenses systematically to avoid disrupting long-term investment goals.",
+      "A dedicated strategy for significant purchases can help maintain financial discipline while meeting evolving needs."
+    ],
+    estate: [
+      "Creating an estate is not only about transferring wealth but also about building a lasting financial legacy.",
+      "We suggest approaching this goal with a long-term perspective to ensure future generations benefit from today's planning.",
+      "Thoughtful preparation today can help provide security, opportunities, and continuity for those you care about."
+    ],
+    retirement: [
+      "Retirement planning is ultimately about preserving independence and maintaining your desired lifestyle in the future.",
+      "The earlier this goal is prioritized, the greater the opportunity to benefit from consistency and compounding.",
+      "We suggest reviewing this goal periodically to ensure your retirement aspirations remain on track."
+    ],
+    graduation: [
+      "Educational expenses continue to evolve, making early preparation essential for maintaining flexibility and choice.",
+      "We suggest building this corpus steadily so that future academic opportunities can be pursued with confidence.",
+      "Planning ahead can help ensure that financial considerations do not limit educational aspirations."
+    ],
+    post: [
+      "Higher education often requires substantial resources, and a dedicated plan can make these aspirations more achievable.",
+      "We suggest beginning preparations early to provide greater flexibility when important decisions arise.",
+      "A disciplined approach towards this goal can help support future educational ambitions without compromising other priorities."
+    ],
+    marriage: [
+      "Significant family celebrations deserve thoughtful planning to preserve both their meaning and financial balance.",
+      "We suggest preparing for this milestone gradually so that the occasion can be celebrated with confidence and peace of mind.",
+      "Early planning can help manage future expenses without affecting long-term financial security."
+    ],
+    child_other: [
+      "Every aspiration is unique, and a flexible financial plan can help accommodate evolving priorities over time.",
+      "We suggest revisiting this goal periodically to ensure that changing needs continue to be adequately supported.",
+      "Preparing for future possibilities today can provide the confidence to pursue opportunities as they emerge."
+    ]
+  };
+
   const getGoalAdvisoryQuote = (goalType = '') => {
-    const t = goalType.toLowerCase();
-    if (t.includes('renovation')) {
-      return "Home improvement expenses often arise when least expected. Preparing for them in advance can help preserve both comfort and financial stability.";
-    }
-    if (t.includes('house') || t.includes('home') || t.includes('property')) {
-      return "Based on the timeline and projected cost of this goal, we suggest prioritising disciplined investments to ensure your home purchase remains a planned milestone rather than a financial burden.";
-    }
-    if (t.includes('car') || t.includes('vehicle')) {
-      return "Since this goal directly impacts your lifestyle and convenience, a dedicated investment plan can help you make this purchase comfortably when required.";
-    }
-    if (t.includes('holiday')) {
-      return "A vacation home creates a sanctuary for relaxation and family memories. Planning early ensures it enhances your wealth rather than overextending it.";
-    }
-    if (t.includes('gift')) {
-      return "Gifting your family brings immense joy. Structuring your savings in advance allows you to celebrate life milestones without affecting your long-term wealth.";
-    }
-    if (t.includes('charity')) {
-      return "Philanthropy leaves a lasting legacy. Disciplined planning allows you to fulfill your charitable aspirations sustainably.";
-    }
-    if (t.includes('birth') || t.includes('baby')) {
-      return "Welcoming a child brings joy and new expenses. Early financial preparation creates a secure environment for your growing family.";
-    }
-    if (t.includes('big') || t.includes('purchase')) {
-      return "High-value purchases require thoughtful planning. Allocating funds systematically ensures you achieve them comfortably.";
-    }
-    if (t.includes('estate')) {
-      return "Building a legacy for your children ensures their future stability and financial independence for generations.";
-    }
-    if (t.includes('foreign') || t.includes('tour') || t.includes('vacation')) {
-      return "Exploring the world offers unforgettable experiences. Structured travel investments ensure you enjoy luxury vacations stress-free.";
-    }
-    if (t.includes('graduation') || t.includes('education') || t.includes('college')) {
-      return "Investing in higher education opens doors to lifelong success. Timely planning secures your child's academic ambitions without strain.";
-    }
-    if (t.includes('post') || t.includes('master')) {
-      return "Advanced degrees shape successful careers. Preparing for post-graduation costs guarantees your child reaches their full professional potential.";
-    }
-    if (t.includes('marriage') || t.includes('wedding')) {
-      return "A wedding is a joyous celebration of life. Strategic financial planning ensures your child's dream wedding is memorable and debt-free.";
-    }
-    return "Based on the timeline and projected cost of this goal, we suggest prioritising disciplined investments to ensure your milestone remains a planned milestone rather than a financial burden.";
+    const t = String(goalType).toLowerCase();
+    let quotes = GOAL_SPEECHES.child_other;
+
+    if (t.includes('renovation')) quotes = GOAL_SPEECHES.renovation;
+    else if (t.includes('holiday')) quotes = GOAL_SPEECHES.holiday;
+    else if (t.includes('house') || t.includes('home') || t.includes('property')) quotes = GOAL_SPEECHES.house;
+    else if (t.includes('car') || t.includes('vehicle')) quotes = GOAL_SPEECHES.car;
+    else if (t.includes('foreign') || t.includes('tour') || t.includes('travel') || t.includes('vacation')) quotes = GOAL_SPEECHES.foreign;
+    else if (t.includes('gift') || t.includes('gifting')) quotes = GOAL_SPEECHES.gifting;
+    else if (t.includes('charity') || t.includes('donation')) quotes = GOAL_SPEECHES.charity;
+    else if (t.includes('birth') || t.includes('baby')) quotes = GOAL_SPEECHES.birth;
+    else if (t.includes('big') || t.includes('purchase')) quotes = GOAL_SPEECHES.big;
+    else if (t.includes('estate')) quotes = GOAL_SPEECHES.estate;
+    else if (t.includes('retirement')) quotes = GOAL_SPEECHES.retirement;
+    else if (t.includes('post') || t.includes('master')) quotes = GOAL_SPEECHES.post;
+    else if (t.includes('graduation') || t.includes('education') || t.includes('college') || t.includes('school')) quotes = GOAL_SPEECHES.graduation;
+    else if (t.includes('marriage') || t.includes('wedding')) quotes = GOAL_SPEECHES.marriage;
+
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    return quotes[randomIndex];
+  };
+
+  const getCountryCodeByName = (name = '') => {
+    const n = String(name).toLowerCase();
+    if (n.includes('nepal')) return 'np';
+    if (n.includes('sri lanka')) return 'lk';
+    if (n.includes('thailand')) return 'th';
+    if (n.includes('bhutan')) return 'bt';
+    if (n.includes('vietnam')) return 'vn';
+    if (n.includes('bali') || n.includes('indonesia')) return 'id';
+    if (n.includes('malaysia')) return 'my';
+    if (n.includes('dubai') || n.includes('uae') || n.includes('emirates')) return 'ae';
+    if (n.includes('singapore')) return 'sg';
+    if (n.includes('maldives')) return 'mv';
+    if (n.includes('egypt')) return 'eg';
+    if (n.includes('turkey')) return 'tr';
+    if (n.includes('mauritius')) return 'mu';
+    if (n.includes('china')) return 'cn';
+    if (n.includes('south africa')) return 'za';
+    if (n.includes('kenya')) return 'ke';
+    if (n.includes('seychelles')) return 'sc';
+    if (n.includes('korea')) return 'kr';
+    if (n.includes('greece')) return 'gr';
+    if (n.includes('germany')) return 'de';
+    if (n.includes('spain')) return 'es';
+    if (n.includes('italy')) return 'it';
+    if (n.includes('japan')) return 'jp';
+    if (n.includes('france')) return 'fr';
+    if (n.includes('uk') || n.includes('kingdom') || n.includes('england') || n.includes('london')) return 'gb';
+    if (n.includes('australia')) return 'au';
+    if (n.includes('canada')) return 'ca';
+    if (n.includes('switzerland') || n.includes('swiss')) return 'ch';
+    if (n.includes('zealand')) return 'nz';
+    if (n.includes('us') || n.includes('states') || n.includes('america')) return 'us';
+    return 'un';
   };
 
   const DB_TOUR_DESTINATIONS = [
-    { name: 'Nepal', budget: 90000, flag: '🇳🇵' },
-    { name: 'Sri Lanka', budget: 110000, flag: '🇱🇰' },
-    { name: 'Thailand', budget: 120000, flag: '🇹🇭' },
-    { name: 'Bhutan', budget: 120000, flag: '🇧🇹' },
-    { name: 'Vietnam', budget: 130000, flag: '🇻🇳' },
-    { name: 'Bali (Indonesia)', budget: 140000, flag: '🇮🇩' },
-    { name: 'Malaysia', budget: 150000, flag: '🇲🇾' },
-    { name: 'Dubai (UAE)', budget: 160000, flag: '🇦🇪' },
-    { name: 'Singapore', budget: 180000, flag: '🇸🇬' },
-    { name: 'Maldives', budget: 220000, flag: '🇲🇻' },
-    { name: 'Egypt', budget: 230000, flag: '🇪🇬' },
-    { name: 'Turkey', budget: 240000, flag: '🇹🇷' },
-    { name: 'Mauritius', budget: 250000, flag: '🇲🇺' },
-    { name: 'China', budget: 270000, flag: '🇨🇳' },
-    { name: 'South Africa', budget: 280000, flag: '🇿🇦' },
-    { name: 'Kenya', budget: 300000, flag: '🇰🇪' },
-    { name: 'Seychelles', budget: 320000, flag: '🇸🇨' },
-    { name: 'South Korea', budget: 320000, flag: '🇰🇷' },
-    { name: 'Greece', budget: 320000, flag: '🇬🇷' },
-    { name: 'Germany', budget: 340000, flag: '🇩🇪' },
-    { name: 'Spain', budget: 350000, flag: '🇪🇸' },
-    { name: 'Italy', budget: 360000, flag: '🇮🇹' },
-    { name: 'Japan', budget: 380000, flag: '🇯🇵' },
-    { name: 'France', budget: 380000, flag: '🇫🇷' },
-    { name: 'United Kingdom', budget: 390000, flag: '🇬🇧' },
-    { name: 'Australia', budget: 420000, flag: '🇦🇺' },
-    { name: 'Canada', budget: 430000, flag: '🇨🇦' },
-    { name: 'Switzerland', budget: 450000, flag: '🇨🇭' },
-    { name: 'New Zealand', budget: 480000, flag: '🇳🇿' },
-    { name: 'United States', budget: 520000, flag: '🇺🇸' },
+    { name: 'Nepal', budget: 90000, code: 'np', flag: '🇳🇵' },
+    { name: 'Sri Lanka', budget: 110000, code: 'lk', flag: '🇱🇰' },
+    { name: 'Thailand', budget: 120000, code: 'th', flag: '🇹🇭' },
+    { name: 'Bhutan', budget: 120000, code: 'bt', flag: '🇧🇹' },
+    { name: 'Vietnam', budget: 130000, code: 'vn', flag: '🇻🇳' },
+    { name: 'Bali (Indonesia)', budget: 140000, code: 'id', flag: '🇮🇩' },
+    { name: 'Malaysia', budget: 150000, code: 'my', flag: '🇲🇾' },
+    { name: 'Dubai (UAE)', budget: 160000, code: 'ae', flag: '🇦🇪' },
+    { name: 'Singapore', budget: 180000, code: 'sg', flag: '🇸🇬' },
+    { name: 'Maldives', budget: 220000, code: 'mv', flag: '🇲🇻' },
+    { name: 'Egypt', budget: 230000, code: 'eg', flag: '🇪🇬' },
+    { name: 'Turkey', budget: 240000, code: 'tr', flag: '🇹🇷' },
+    { name: 'Mauritius', budget: 250000, code: 'mu', flag: '🇲🇺' },
+    { name: 'China', budget: 270000, code: 'cn', flag: '🇨🇳' },
+    { name: 'South Africa', budget: 280000, code: 'za', flag: '🇿🇦' },
+    { name: 'Kenya', budget: 300000, code: 'ke', flag: '🇰🇪' },
+    { name: 'Seychelles', budget: 320000, code: 'sc', flag: '🇸🇨' },
+    { name: 'South Korea', budget: 320000, code: 'kr', flag: '🇰🇷' },
+    { name: 'Greece', budget: 320000, code: 'gr', flag: '🇬🇷' },
+    { name: 'Germany', budget: 340000, code: 'de', flag: '🇩🇪' },
+    { name: 'Spain', budget: 350000, code: 'es', flag: '🇪🇸' },
+    { name: 'Italy', budget: 360000, code: 'it', flag: '🇮🇹' },
+    { name: 'Japan', budget: 380000, code: 'jp', flag: '🇯🇵' },
+    { name: 'France', budget: 380000, code: 'fr', flag: '🇫🇷' },
+    { name: 'United Kingdom', budget: 390000, code: 'gb', flag: '🇬🇧' },
+    { name: 'Australia', budget: 420000, code: 'au', flag: '🇦🇺' },
+    { name: 'Canada', budget: 430000, code: 'ca', flag: '🇨🇦' },
+    { name: 'Switzerland', budget: 450000, code: 'ch', flag: '🇨🇭' },
+    { name: 'New Zealand', budget: 480000, code: 'nz', flag: '🇳🇿' },
+    { name: 'United States', budget: 520000, code: 'us', flag: '🇺🇸' },
   ];
 
   const DB_UNIVERSITIES = [
@@ -280,15 +533,19 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         if (typeof item === 'object' && item && (item.name || item.destination || item.country)) {
           const destName = item.name || item.destination || item.country;
           let matched = DB_TOUR_DESTINATIONS.find(d => d.name.toLowerCase().includes(destName.toLowerCase()));
+          const code = item.code || (matched ? matched.code : getCountryCodeByName(destName));
           list.push({
             flag: item.flag || (matched ? matched.flag : '✈️'),
+            code,
             name: destName,
             cost: item.cost ? (typeof item.cost === 'number' ? `₹${item.cost.toLocaleString('en-IN')}` : String(item.cost)) : (matched ? fmtInrRange(matched.budget) : '₹3,50,000 - ₹5,00,000'),
           });
         } else if (typeof item === 'string' && item) {
           let matched = DB_TOUR_DESTINATIONS.find(d => d.name.toLowerCase().includes(item.toLowerCase()) || item.toLowerCase().includes(d.name.toLowerCase()));
+          const code = matched ? matched.code : getCountryCodeByName(item);
           list.push({
             flag: matched ? matched.flag : '✈️',
+            code,
             name: matched ? matched.name : item,
             cost: matched ? fmtInrRange(matched.budget) : '₹3,50,000 - ₹5,00,000',
           });
@@ -303,7 +560,7 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         const fillers = [...DB_TOUR_DESTINATIONS]
           .sort((a, b) => Math.abs(a.budget - perPersonBudget) - Math.abs(b.budget - perPersonBudget))
           .filter(d => !selectedNames.has(d.name.toLowerCase()))
-          .map(d => ({ flag: d.flag, name: d.name, cost: fmtInrRange(d.budget) }));
+          .map(d => ({ flag: d.flag, code: d.code, name: d.name, cost: fmtInrRange(d.budget) }));
 
         const final5 = [...list, ...fillers].slice(0, 5);
         console.log('🚀 [REPORT LOGGER] Top 5 Tour Options for Report:', final5.map(x => x.name));
@@ -319,6 +576,7 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
 
     const final5 = sorted.slice(0, 5).map(d => ({
       flag: d.flag,
+      code: d.code,
       name: d.name,
       cost: fmtInrRange(d.budget),
     }));
@@ -413,6 +671,11 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
     console.log('🚀 [REPORT LOGGER] Top 5 Universities for Report (Calculated):', final5.map(x => x.name));
     return final5;
   };
+
+  const firstForeignTourGoalIndex = goals.findIndex((g) => {
+    const t = String(g.goal_type || g.goal || g.title || '').toLowerCase();
+    return t.includes('foreign') || (t.includes('tour') && !t.includes('home'));
+  });
 
   return (
     <div
@@ -546,94 +809,83 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
 
       {/* PAGES 3..N: INDIVIDUAL GOAL PAGES */}
       {goals.map((g, idx) => {
-        const rawTitle = g.goal_type || g.goal || 'Financial Goal';
-        let childName = (g.child_name || g.childName || '').trim();
+          const rawTitle = g.goal_type || g.goal || 'Financial Goal';
+          let childName = (g.child_name || g.childName || '').trim();
 
-        // Infer child name from activeChildren if generic ("Child 1", "Child 2") or empty
-        if (!childName || /^child\s*\d+('s)?$/i.test(childName)) {
-          let childIdx = -1;
-          if (g.child_number !== undefined && g.child_number !== null) {
-            childIdx = parseInt(g.child_number, 10) - 1;
-          } else if (g.child_index !== undefined && g.child_index !== null) {
-            childIdx = parseInt(g.child_index, 10);
-          } else {
-            const match = `${rawTitle} ${g.goal || ''}`.match(/child\s*(\d+)/i);
-            if (match && match[1]) {
-              childIdx = parseInt(match[1], 10) - 1;
+          // Infer child name from activeChildren if generic ("Child 1", "Child 2") or empty
+          if (!childName || /^child\s*\d+('s)?$/i.test(childName)) {
+            let childIdx = -1;
+            if (g.child_number !== undefined && g.child_number !== null) {
+              childIdx = parseInt(g.child_number, 10) - 1;
+            } else if (g.child_index !== undefined && g.child_index !== null) {
+              childIdx = parseInt(g.child_index, 10);
+            } else {
+              const match = `${rawTitle} ${g.goal || ''}`.match(/child\s*(\d+)/i);
+              if (match && match[1]) {
+                childIdx = parseInt(match[1], 10) - 1;
+              }
+            }
+            if (childIdx >= 0 && activeChildren[childIdx] && activeChildren[childIdx].name) {
+              childName = activeChildren[childIdx].name.trim();
             }
           }
-          if (childIdx >= 0 && activeChildren[childIdx] && activeChildren[childIdx].name) {
-            childName = activeChildren[childIdx].name.trim();
+
+          if (childName && /^child\s*\d+('s)?$/i.test(childName)) {
+            childName = '';
+          } else if (childName) {
+            childName = childName.replace(/'s$/i, '');
           }
-        }
 
-        if (childName && /^child\s*\d+('s)?$/i.test(childName)) {
-          childName = '';
-        } else if (childName) {
-          childName = childName.replace(/'s$/i, '');
-        }
+          // Clean specific goal name from backend data (e.g. "Higher Education", "Graduation", "Marriage", "Business Setup", "Other")
+          let specificGoalType = (g.goal_type || g.title || g.goal || rawTitle || 'Goal').trim();
+          const isOtherGoal = specificGoalType.toLowerCase().includes('other');
 
-        // Clean specific goal name from backend data (e.g. "Higher Education", "Graduation", "Marriage", "Business Setup", "Other")
-        let specificGoalType = (g.goal_type || g.title || g.goal || rawTitle || 'Goal').trim();
-        const isOtherGoal = specificGoalType.toLowerCase().includes('other');
+          specificGoalType = specificGoalType
+            .replace(/^child\s*\d+('s)?\s*/i, '')
+            .replace(/^child\s*/i, '')
+            .replace(/\s*goal$/i, '')
+            .trim();
 
-        specificGoalType = specificGoalType
-          .replace(/^child\s*\d+('s)?\s*/i, '')
-          .replace(/^child\s*/i, '')
-          .replace(/\s*goal$/i, '')
-          .trim();
+          if (childName && (specificGoalType.toLowerCase() === childName.toLowerCase() || specificGoalType.toLowerCase().includes(childName.toLowerCase()))) {
+            specificGoalType = 'Other Goal';
+          } else if (!specificGoalType || specificGoalType.toLowerCase() === 'other') {
+            specificGoalType = 'Other Goal';
+          }
 
-        if (childName && (specificGoalType.toLowerCase() === childName.toLowerCase() || specificGoalType.toLowerCase().includes(childName.toLowerCase()))) {
-          specificGoalType = 'Other Goal';
-        } else if (!specificGoalType || specificGoalType.toLowerCase() === 'other') {
-          specificGoalType = 'Other Goal';
-        }
-
-        let goalName = '';
-        if (childName) {
-          if (rawTitle.toLowerCase().startsWith(`${childName.toLowerCase()}'s`)) {
-            goalName = rawTitle;
-          } else if (isOtherGoal || specificGoalType === 'Other Goal') {
-            goalName = `${childName}'s Other Goal`;
+          let goalName = '';
+          if (childName) {
+            if (rawTitle.toLowerCase().startsWith(`${childName.toLowerCase()}'s`)) {
+              goalName = rawTitle;
+            } else if (isOtherGoal || specificGoalType === 'Other Goal') {
+              goalName = `${childName}'s Other Goal`;
+            } else {
+              goalName = `${childName}'s ${specificGoalType}`;
+            }
           } else {
-            goalName = `${childName}'s ${specificGoalType}`;
+            goalName = specificGoalType;
           }
-        } else {
-          goalName = specificGoalType;
-        }
 
-        const targetYear = g.target_year || '2027';
-        const currentCost = g.current_cost?.inr || g.today_cost || '₹20,00,000';
-        const futureCost = g.future_cost?.inr || '₹21,20,000';
-        const monthlySip = g.monthly_sip?.inr || '₹1,66,060';
-        const iconPath = getGoalIcon(rawTitle);
-        const advisoryQuote = getGoalAdvisoryQuote(rawTitle);
+          const targetYear = ensureString(g.target_year || g.year, '2027');
+          const currentCost = formatDisplayVal(g.current_cost || g.today_cost, '₹20,00,000');
+          const futureCost = formatDisplayVal(g.future_cost, '₹21,20,000');
+          const monthlySip = formatDisplayVal(g.monthly_sip, '₹1,66,060');
+          const iconPath = getGoalIcon(rawTitle);
+          const advisoryQuote = getGoalAdvisoryQuote(rawTitle);
 
-        const isForeignTour =
-          goalName.toLowerCase().includes('foreign') ||
-          goalName.toLowerCase().includes('tour') ||
-          goalName.toLowerCase().includes('vacation') ||
-          goalName.toLowerCase().includes('trip') ||
-          goalName.toLowerCase().includes('travel') ||
-          goalName.toLowerCase().includes('holiday') ||
-          rawTitle.toLowerCase().includes('foreign') ||
-          rawTitle.toLowerCase().includes('tour') ||
-          rawTitle.toLowerCase().includes('vacation') ||
-          rawTitle.toLowerCase().includes('trip') ||
-          rawTitle.toLowerCase().includes('travel') ||
-          rawTitle.toLowerCase().includes('holiday');
+          const isForeignTour = idx === firstForeignTourGoalIndex;
+          const shouldRenderForeignTourPage = isForeignTour;
 
-        const isEducation =
-          goalName.toLowerCase().includes('education') ||
-          goalName.toLowerCase().includes('graduation') ||
-          goalName.toLowerCase().includes('college') ||
-          goalName.toLowerCase().includes('university') ||
-          goalName.toLowerCase().includes('school') ||
-          rawTitle.toLowerCase().includes('education') ||
-          rawTitle.toLowerCase().includes('graduation') ||
-          rawTitle.toLowerCase().includes('college') ||
-          rawTitle.toLowerCase().includes('university') ||
-          rawTitle.toLowerCase().includes('school');
+          const isEducation =
+            goalName.toLowerCase().includes('education') ||
+            goalName.toLowerCase().includes('graduation') ||
+            goalName.toLowerCase().includes('college') ||
+            goalName.toLowerCase().includes('university') ||
+            goalName.toLowerCase().includes('school') ||
+            rawTitle.toLowerCase().includes('education') ||
+            rawTitle.toLowerCase().includes('graduation') ||
+            rawTitle.toLowerCase().includes('college') ||
+            rawTitle.toLowerCase().includes('university') ||
+            rawTitle.toLowerCase().includes('school');
 
         return (
           <React.Fragment key={idx}>
@@ -693,17 +945,49 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                     </div>
                   </div>
 
-                  {/* Speech Bubble Static PNG Image */}
-                  <div style={{ width: '235px' }}>
+                  {/* Dynamic Speech Bubble Frame with Overlay Quote Text */}
+                  <div style={{ position: 'relative', width: '235px', height: '220px' }}>
                     <img
-                      src="/assets/report/speech_bubble_raw.png"
-                      alt="Goal Advisory Quote"
+                      src="/assets/report/speech_bubble_blank.png"
+                      alt="Goal Advisory Quote Bubble"
                       style={{
                         width: '100%',
+                        height: '100%',
                         objectFit: 'contain',
                         display: 'block',
                       }}
                     />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '18px',
+                        left: '18px',
+                        right: '28px',
+                        bottom: '42px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '4px',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: '12.5px',
+                          lineHeight: 1.45,
+                          fontWeight: 700,
+                          color: '#001a66',
+                          margin: 0,
+                          fontFamily: '"Montserrat", "Segoe UI", Helvetica, Arial, sans-serif',
+                          textAlign: 'left',
+                          letterSpacing: '-0.01em',
+                          WebkitFontSmoothing: 'antialiased',
+                        }}
+                      >
+                        {advisoryQuote}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -719,7 +1003,9 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                       backgroundColor: '#ffffff',
                     }}
                   >
-                    <div style={{ fontSize: '16px', color: '#ff8c32', fontWeight: 600 }}>Current Cost</div>
+                    <div style={{ fontSize: '15px', color: '#ff8c32', fontWeight: 600 }}>
+                      {isForeignTour ? "Approx. Current Cost (per person)" : isEducation ? "Approx. Current Cost" : "Current Cost"}
+                    </div>
                     <div style={{ fontSize: '26px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{currentCost}</div>
                   </div>
 
@@ -758,8 +1044,8 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
               </div>
             </div>
 
-            {/* If Foreign Tour -> Add Suggested Foreign Tour Options Page */}
-            {isForeignTour && (
+            {/* If Foreign Tour Goal & Not Rendered Yet -> Add Suggested Foreign Tour Options Page (Max 1 across report) */}
+            {shouldRenderForeignTourPage && (
               <div
                 className="report-page"
                 style={{
@@ -787,7 +1073,33 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '440px', margin: '0 auto' }}>
                     {getDynamicTourOptions(g, formData, calculationResult, childrenData).map((cOpt, cIdx) => (
                       <div key={cIdx} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <span style={{ fontSize: '30px' }}>{cOpt.flag}</span>
+                        <div
+                          style={{
+                            width: '42px',
+                            height: '28px',
+                            borderRadius: '5px',
+                            overflow: 'hidden',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                            border: '1px solid #cbd5e1',
+                            flexShrink: 0,
+                            backgroundColor: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <img
+                            src={`https://flagcdn.com/w80/${cOpt.code || getCountryCodeByName(cOpt.name)}.png`}
+                            alt={cOpt.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.innerText = cOpt.flag || '✈️';
+                              }
+                            }}
+                          />
+                        </div>
                         <div>
                           <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{cOpt.name}</div>
                           <div style={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>{cOpt.cost}</div>
@@ -834,23 +1146,23 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
                   </div>
                 </div>
 
-                {/* Prominent Centered Today's Cost Banner */}
+                {/* Prominent Centered Personalized Options Banner */}
                 <div
                   style={{
                     backgroundColor: '#001a66',
                     borderRadius: '20px',
-                    padding: '16px 20px',
+                    padding: '14px 20px',
                     textAlign: 'center',
                     color: '#ffffff',
                     margin: '6px 0',
                     boxShadow: '0 4px 12px rgba(0, 26, 102, 0.12)',
                   }}
                 >
-                  <div style={{ fontSize: '13px', color: '#ff8c32', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                    Today's Cost
+                  <div style={{ fontSize: '13px', color: '#ff8c32', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    Personalized For You
                   </div>
-                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#ff8c32', marginTop: '2px', letterSpacing: '-0.01em' }}>
-                    {currentCost}
+                  <div style={{ fontSize: '22px', fontWeight: 900, color: '#ffffff', marginTop: '2px', letterSpacing: '-0.01em' }}>
+                    Most Relevant Options
                   </div>
                 </div>
 
@@ -991,11 +1303,11 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         {/* Expense Pills Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
           <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at today's rate</div>
+            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at today's rate (P.M.)</div>
             <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientExpToday}</div>
           </div>
           <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at Retirement</div>
+            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at Retirement (P.M.)</div>
             <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientExpAtRet}</div>
           </div>
           <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
@@ -1056,15 +1368,29 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
               <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
               <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 21,80,49,597</td>
             </tr>
-            {goals.slice(0, 1).map((g, idx) => (
-              <tr key={idx}>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{g.goal}</td>
+            {goals.length > 0 ? (
+              goals.map((g, idx) => {
+                const goalTitle = formatGoalTitle(g, activeChildren) || g.goal_type || g.title || g.goal || 'Lifestyle & Child Goals';
+                const futureVal = formatDisplayVal(g.future_cost, '₹ 21,20,000');
+                return (
+                  <tr key={idx}>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{goalTitle}</td>
+                    <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>{futureVal}</td>
+                    <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 19,62,963</td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Lifestyle &amp; Child Goals</td>
                 <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>{g.future_cost?.inr || '₹ 21,20,000'}</td>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 21,20,000</td>
                 <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
                 <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 19,62,963</td>
               </tr>
-            ))}
+            )}
             <tr>
               <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Retirement Income(50 %)</td>
               <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
@@ -1088,50 +1414,73 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           height: '842px',
           backgroundColor: '#ffffff',
           boxSizing: 'border-box',
-          padding: '35px 40px',
+          padding: '15px 40px 25px 40px',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px',
+          gap: '10px',
           pageBreakAfter: 'always',
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
+          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '42px', objectFit: 'contain', margin: '0 auto' }} />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+          <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
             Investment Summary
           </h1>
-          <div style={{ width: '150px', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div style={{ width: '90px', height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <img
               src="/assets/report/summary_checklist_image.png"
               alt="Summary Checklist"
-              style={{ maxWidth: '150px', maxHeight: '130px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }}
+              style={{ maxWidth: '90px', maxHeight: '55px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }}
             />
           </div>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', border: '1px solid #cbd5e1', marginTop: '8px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', border: '1px solid #cbd5e1', marginTop: '4px' }}>
           <thead>
             <tr style={{ backgroundColor: '#ff8c32', color: '#000000', fontWeight: 800, textAlign: 'center' }}>
-              <th style={{ padding: '14px 12px', border: '1px solid #cbd5e1' }}>Goals</th>
-              <th style={{ padding: '14px 12px', border: '1px solid #cbd5e1' }}>Target Year</th>
-              <th style={{ padding: '14px 12px', border: '1px solid #cbd5e1' }}>Monthly Investment</th>
+              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Goals</th>
+              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Target Year</th>
+              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Monthly Investment</th>
             </tr>
           </thead>
           <tbody>
-            {goals.map((g, idx) => (
-              <tr key={idx}>
-                <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{g.goal}</td>
-                <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{g.target_year}</td>
-                <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>{g.monthly_sip?.inr || '—'}</td>
-              </tr>
-            ))}
+            {/* Retirement Planning Row */}
+            <tr>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>Retirement Planning</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>{clientRetAge ? `${clientRetAge} Yrs` : '—'}</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{clientMonthlySip}</td>
+            </tr>
+
+            {/* Lifestyle & Child Goals Rows */}
+            {goals.map((g, idx) => {
+              const goalTitle = formatGoalTitle(g, activeChildren);
+              const goalYear = ensureString(g.target_year || g.year, '—');
+              const goalSip = formatDisplayVal(g.monthly_sip, '—');
+              return (
+                <tr key={idx}>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#334155' }}>{goalTitle}</td>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{goalYear}</td>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>{goalSip}</td>
+                </tr>
+              );
+            })}
+
+            {/* Combined Total Monthly Investment Row */}
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
-              <td colSpan="2" style={{ padding: '16px 14px', border: '1px solid #cbd5e1', fontSize: '14px' }}>Total Monthly Investment</td>
-              <td style={{ padding: '16px 14px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px' }}>{totalGoalsMonthlySip}</td>
+              <td colSpan="2" style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontSize: '14px', color: '#000000' }}>Total Monthly Investment</td>
+              <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px', color: '#000000' }}>
+                {(() => {
+                  const clientSipRaw = clientRet?.monthly_sip?.raw || 0;
+                  const spouseSipRaw = calculationResult?.spouse?.monthly_sip?.raw || 0;
+                  const goalsSipRaw = calculationResult?.goals?.total_monthly_sip?.raw || 0;
+                  const sumRaw = Math.round(clientSipRaw + spouseSipRaw + goalsSipRaw);
+                  return sumRaw > 0 ? `₹${sumRaw.toLocaleString('en-IN')}` : totalGoalsMonthlySip;
+                })()}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -1145,24 +1494,24 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
           height: '842px',
           backgroundColor: '#ffffff',
           boxSizing: 'border-box',
-          padding: '35px 40px',
+          padding: '15px 40px 25px 40px',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px',
+          gap: '10px',
           pageBreakAfter: 'always',
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
+          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '42px', objectFit: 'contain', margin: '0 auto' }} />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
+          <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
             What we<br />assume?
           </h1>
-          <div style={{ width: '150px', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <img src="/assets/report/real_3d_scroll.png" alt="Scroll Ribbon" style={{ maxWidth: '150px', maxHeight: '130px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
+          <div style={{ width: '90px', height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <img src="/assets/report/real_3d_scroll.png" alt="Scroll Ribbon" style={{ maxWidth: '90px', maxHeight: '55px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
           </div>
         </div>
 
@@ -1202,186 +1551,188 @@ export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = []
         </table>
       </div>
 
-      {/* PAGE 13: OUR SERVICES PAGE */}
-      <div
-        className="report-page"
-        style={{
-          width: '595px',
-          height: '842px',
-          backgroundColor: '#ffffff',
-          position: 'relative',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          padding: '30px 40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          pageBreakAfter: 'always',
-        }}
-      >
-        <svg style={{ position: 'absolute', top: 0, left: 0, width: '220px', height: '220px', zIndex: 1 }} viewBox="0 0 220 220">
-          <polygon points="0,0 220,0 0,220" fill="#002b80" />
-        </svg>
+      {/* DYNAMIC OUR SERVICES PAGES */}
+      {servicePages.map((pageServices, pageIdx) => (
+        <div
+          key={`services-page-${pageIdx}`}
+          className="report-page"
+          style={{
+            width: '595px',
+            height: '842px',
+            backgroundColor: '#ffffff',
+            position: 'relative',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+            padding: '25px 40px 30px 40px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            pageBreakAfter: 'always',
+          }}
+        >
+          <svg style={{ position: 'absolute', top: 0, left: 0, width: '220px', height: '220px', zIndex: 1 }} viewBox="0 0 220 220">
+            <polygon points="0,0 220,0 0,220" fill="#002b80" />
+          </svg>
 
-        <svg style={{ position: 'absolute', bottom: 0, right: 0, width: '360px', height: '360px', zIndex: 1 }} viewBox="0 0 360 360">
-          <polygon points="360,0 360,360 0,360" fill="#ff8c32" />
-        </svg>
+          <svg style={{ position: 'absolute', bottom: 0, right: 0, width: '360px', height: '360px', zIndex: 1 }} viewBox="0 0 360 360">
+            <polygon points="360,0 360,360 0,360" fill="#ff8c32" />
+          </svg>
 
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', marginBottom: '16px' }}>
-          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
-        </div>
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+            <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
+          </div>
 
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
-          <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#000000', textAlign: 'center', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
-            Our Services
-          </h1>
-          <div style={{ width: '80px', height: '4px', backgroundColor: '#ff8c32', margin: '0 auto 28px auto', borderRadius: '2px' }} />
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+            <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#000000', textAlign: 'center', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
+              Our Services {servicePages.length > 1 ? `(${pageIdx + 1}/${servicePages.length})` : ''}
+            </h1>
+            <div style={{ width: '80px', height: '4px', backgroundColor: '#ff8c32', margin: '0 auto 24px auto', borderRadius: '2px' }} />
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', maxWidth: '420px', margin: '0 auto' }}>
-            {[
-              'Financial Planning',
-              'Mutual Funds',
-              'PMS',
-              'NRI Investments',
-              'Life Insurance',
-              'Health Insurance',
-              'General Insurance',
-              'Estate Planning',
-            ].map((srv, idx) => (
-              <div
-                key={idx}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '18px',
-                  padding: '10px 22px',
-                  borderRadius: '20px',
-                  backgroundColor: '#f8fafc',
-                  boxShadow: '4px 4px 12px rgba(0, 26, 102, 0.06), -4px -4px 12px rgba(255, 255, 255, 0.9)',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {/* 3D Neomorphic Tick Badge */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', maxWidth: '440px', margin: '0 auto' }}>
+              {pageServices.map((srv, idx) => (
                 <div
+                  key={idx}
                   style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    backgroundColor: '#e6effd',
+                    width: '100%',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '3px 3px 8px rgba(0, 26, 102, 0.15), -3px -3px 8px rgba(255, 255, 255, 0.9), inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.9), inset -1.5px -1.5px 3px rgba(0, 26, 102, 0.08)',
-                    flexShrink: 0,
+                    gap: '18px',
+                    padding: '10px 22px',
+                    borderRadius: '20px',
+                    backgroundColor: '#f8fafc',
+                    boxShadow: '4px 4px 12px rgba(0, 26, 102, 0.06), -4px -4px 12px rgba(255, 255, 255, 0.9)',
+                    boxSizing: 'border-box',
                   }}
                 >
-                  <span style={{ color: '#002b80', fontSize: '18px', fontWeight: 900 }}>✓</span>
-                </div>
+                  {/* 3D Neomorphic Tick Badge */}
+                  <div
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '50%',
+                      backgroundColor: '#e6effd',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '3px 3px 8px rgba(0, 26, 102, 0.15), -3px -3px 8px rgba(255, 255, 255, 0.9), inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.9), inset -1.5px -1.5px 3px rgba(0, 26, 102, 0.08)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span style={{ color: '#002b80', fontSize: '18px', fontWeight: 900 }}>✓</span>
+                  </div>
 
-                <span style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>
-                  {srv}
-                </span>
-              </div>
-            ))}
+                  <span style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em', textAlign: 'left' }}>
+                    {srv}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      ))}
 
-      {/* PAGE 14: TESTIMONIALS PAGE (Pixel-Perfect Spaced Vector Redesign) */}
-      <div
-        className="report-page"
-        style={{
-          width: '595px',
-          height: '842px',
-          backgroundColor: '#ffffff',
-          boxSizing: 'border-box',
-          padding: '30px 40px',
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          pageBreakAfter: 'always',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Top-Left Dark Blue Geometric Accent */}
-        <svg
-          style={{ position: 'absolute', top: 0, left: 0, width: '190px', height: '190px', zIndex: 1 }}
-          viewBox="0 0 190 190"
+      {/* DYNAMIC TESTIMONIALS PAGES */}
+      {testimonialPages.map((pageTestimonials, pageIdx) => (
+        <div
+          key={`testimonials-page-${pageIdx}`}
+          className="report-page"
+          style={{
+            width: '595px',
+            height: '842px',
+            backgroundColor: '#ffffff',
+            boxSizing: 'border-box',
+            padding: '25px 40px 30px 40px',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+            pageBreakAfter: 'always',
+            overflow: 'hidden',
+          }}
         >
-          <polygon points="0,0 190,0 0,190" fill="#001866" />
-        </svg>
+          {/* Top-Left Dark Blue Geometric Accent */}
+          <svg
+            style={{ position: 'absolute', top: 0, left: 0, width: '190px', height: '190px', zIndex: 1 }}
+            viewBox="0 0 190 190"
+          >
+            <polygon points="0,0 190,0 0,190" fill="#001866" />
+          </svg>
 
-        {/* Top Header Logo */}
-        <div style={{ textAlign: 'center', zIndex: 2 }}>
-          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '50px', objectFit: 'contain', margin: '0 auto' }} />
-        </div>
+          {/* Top Header Logo */}
+          <div style={{ textAlign: 'center', zIndex: 2 }}>
+            <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '50px', objectFit: 'contain', margin: '0 auto' }} />
+          </div>
 
-        {/* Main Title */}
-        <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#111827', textAlign: 'center', margin: '10px 0', zIndex: 2, letterSpacing: '-0.02em' }}>
-          Testimonials
-        </h1>
+          {/* Main Title */}
+          <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#111827', textAlign: 'center', margin: '10px 0', zIndex: 2, letterSpacing: '-0.02em' }}>
+            Testimonials {testimonialPages.length > 1 ? `(${pageIdx + 1}/${testimonialPages.length})` : ''}
+          </h1>
 
-        {/* 3 Staggered Speech Bubble Testimonial Cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', zIndex: 2, marginBottom: '16px' }}>
-          {[
-            { indentLeft: '0px', indentRight: '45px', tailMargin: '0 0 0 60px', tailAlign: 'flex-start' },
-            { indentLeft: '45px', indentRight: '0px', tailMargin: '0 60px 0 0', tailAlign: 'flex-end' },
-            { indentLeft: '0px', indentRight: '45px', tailMargin: '0 0 0 60px', tailAlign: 'flex-start' },
-          ].map((item, tIdx) => (
-            <div
-              key={tIdx}
-              style={{
-                marginLeft: item.indentLeft,
-                marginRight: item.indentRight,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: item.tailAlign,
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: '#f97316',
-                  border: '3px solid #001866',
-                  borderRadius: '24px',
-                  padding: '16px 20px 12px 20px',
-                  boxShadow: '4px 5px 0px #001866',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {/* Single Dark Blue Quotation Icon */}
-                <div style={{ fontSize: '34px', color: '#001866', lineHeight: 0.9, marginBottom: '4px', fontWeight: 900 }}>
-                  ❝
+          {/* Staggered Speech Bubble Testimonial Cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', zIndex: 2, marginBottom: '16px' }}>
+            {pageTestimonials.map((item, tIdx) => {
+              const layoutOptions = [
+                { indentLeft: '0px', indentRight: '45px', tailMargin: '0 0 0 60px', tailAlign: 'flex-start' },
+                { indentLeft: '45px', indentRight: '0px', tailMargin: '0 60px 0 0', tailAlign: 'flex-end' },
+                { indentLeft: '0px', indentRight: '45px', tailMargin: '0 0 0 60px', tailAlign: 'flex-start' },
+              ];
+              const styleOpt = layoutOptions[tIdx % layoutOptions.length];
+
+              return (
+                <div
+                  key={tIdx}
+                  style={{
+                    marginLeft: styleOpt.indentLeft,
+                    marginRight: styleOpt.indentRight,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: styleOpt.tailAlign,
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: '#f97316',
+                      border: '3px solid #001866',
+                      borderRadius: '24px',
+                      padding: '16px 20px 12px 20px',
+                      boxShadow: '4px 5px 0px #001866',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    {/* Single Dark Blue Quotation Icon */}
+                    <div style={{ fontSize: '34px', color: '#001866', lineHeight: 0.9, marginBottom: '4px', fontWeight: 900 }}>
+                      ❝
+                    </div>
+                    {/* Quote Text */}
+                    <p style={{ fontSize: '11.5px', fontWeight: 700, lineHeight: 1.4, margin: '0 0 8px 0', color: '#000000' }}>
+                      {item.quote}
+                    </p>
+                    {/* Author Details */}
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#000000', textAlign: 'right' }}>
+                      -{item.author}{item.designation ? `, ${item.designation}` : ''}
+                    </div>
+                  </div>
+
+                  {/* Speech Bubble Triangular Pointer Notch */}
+                  <div
+                    style={{
+                      width: 0,
+                      height: 0,
+                      borderLeft: '12px solid transparent',
+                      borderRight: '12px solid transparent',
+                      borderTop: '14px solid #f97316',
+                      margin: styleOpt.tailMargin,
+                      marginTop: '-2px',
+                      filter: 'drop-shadow(2px 3px 0px #001866)',
+                    }}
+                  />
                 </div>
-                {/* Quote Text */}
-                <p style={{ fontSize: '11.5px', fontWeight: 700, lineHeight: 1.4, margin: '0 0 8px 0', color: '#000000' }}>
-                  My life has changed after I have got their consulatation. Now I don't have any financial problems. Before I didn't have any saves now I have investments, savings and emergency funds as well!
-                </p>
-                {/* Author Details */}
-                <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#000000', textAlign: 'right' }}>
-                  -Om Baval, Founder and CEO, 21 Spheres
-                </div>
-              </div>
-
-              {/* Speech Bubble Triangular Pointer Notch */}
-              <div
-                style={{
-                  width: 0,
-                  height: 0,
-                  borderLeft: '12px solid transparent',
-                  borderRight: '12px solid transparent',
-                  borderTop: '14px solid #f97316',
-                  margin: item.tailMargin,
-                  marginTop: '-2px',
-                  filter: 'drop-shadow(2px 3px 0px #001866)',
-                }}
-              />
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ))}
 
       {/* PAGE 15: CONTACT BACK COVER PAGE (100% Static PNG Template) */}
       <div

@@ -442,7 +442,7 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                 ) : (
                   <div className="space-y-4">
                     <label className="block text-xs font-bold text-[#2B2A28] select-none">
-                      Budget Per Person (INR)
+                      Approx. Today's Cost (per person)
                     </label>
                     <input
                       type="number"
@@ -589,6 +589,20 @@ export function TripPlanModal({ isOpen, onClose, onSave, goal, childrenCount }) 
                       className="neu-field w-full px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold rounded-2xl outline-none"
                     />
                   </div>
+
+                  {/* Calculation Breakdown Box */}
+                  {todaysCost ? (
+                    <div className="p-3.5 bg-[#FFF6ED] border border-[#EFE9DF] rounded-2xl text-center space-y-1 shadow-inner">
+                      <p className="text-[10px] font-bold text-[#8A8578] uppercase tracking-wider">Total Today's Cost Calculation</p>
+                      <p className="text-xs font-semibold text-[#2B2A28]">
+                        ₹{Number(tripBudgetPerPerson || (tripSelectedDestinations[0]?.cost) || 0).toLocaleString('en-IN')} (per person) × {tripTravellers || 1} people
+                      </p>
+                      <p className="text-base font-extrabold text-[#F0883E]">
+                        = ₹{Number(todaysCost).toLocaleString('en-IN')} Total
+                      </p>
+                    </div>
+                  ) : null}
+
                 </div>
 
                 {/* Projected Future Cost */}

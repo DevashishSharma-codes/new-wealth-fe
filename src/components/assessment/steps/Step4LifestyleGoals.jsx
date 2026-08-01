@@ -262,63 +262,170 @@ export function Step4LifestyleGoals() {
                         </div>
 
                         {/* Input grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <label
-                              className="block text-[13px] font-bold tracking-wide select-none"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              Target Year
-                            </label>
-                            <input
-                              type="number"
-                              value={goal.targetYear}
-                              onChange={(e) =>
-                                handleGoalInputChange(goal.id, 'targetYear', e.target.value)
-                              }
-                              onBlur={() => handleBlur(goal.id, 'targetYear')}
-                              placeholder="Enter target year"
-                              className={`${
-                                goal.targetYear !== undefined && goal.targetYear !== null && goal.targetYear.toString().length > 0
-                                  ? 'neu-field-filled'
-                                  : 'neu-field'
-                              } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
-                                (touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear ? 'border-red-400' : ''
-                              }`}
-                            />
-                            {(touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear && (
-                              <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].targetYear}</span>
-                            )}
-                          </div>
+                        {catName === 'Foreign Tour' ? (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              {/* Target Year */}
+                              <div className="space-y-1.5">
+                                <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
+                                  Target Year
+                                </label>
+                                <input
+                                  type="number"
+                                  value={goal.targetYear || ''}
+                                  onChange={(e) => handleGoalInputChange(goal.id, 'targetYear', e.target.value)}
+                                  onBlur={() => handleBlur(goal.id, 'targetYear')}
+                                  placeholder="Enter target year"
+                                  className={`${
+                                    goal.targetYear !== undefined && goal.targetYear !== null && goal.targetYear.toString().length > 0
+                                      ? 'neu-field-filled'
+                                      : 'neu-field'
+                                  } w-full px-4 py-3.5 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                                    (touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear ? 'border-red-400' : ''
+                                  }`}
+                                />
+                                {(touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear && (
+                                  <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].targetYear}</span>
+                                )}
+                              </div>
 
-                          <div className="space-y-1.5">
-                            <label
-                              className="block text-[13px] font-bold tracking-wide select-none"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              Today's Cost
-                            </label>
-                            <input
-                              type="number"
-                              value={goal.todaysCost}
-                              onChange={(e) =>
-                                handleGoalInputChange(goal.id, 'todaysCost', e.target.value)
-                              }
-                              onBlur={() => handleBlur(goal.id, 'todaysCost')}
-                              placeholder="Enter today's cost"
-                              className={`${
-                                goal.todaysCost !== undefined && goal.todaysCost !== null && goal.todaysCost.toString().length > 0
-                                  ? 'neu-field-filled'
-                                  : 'neu-field'
-                              } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
-                                (touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost ? 'border-red-400' : ''
-                              }`}
-                            />
-                            {(touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost && (
-                              <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].todaysCost}</span>
-                            )}
+                              {/* Today's Cost (per person) */}
+                              <div className="space-y-1.5">
+                                <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
+                                  Approx. Today's Cost (per person)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={
+                                    goal.costPerPerson !== undefined
+                                      ? goal.costPerPerson
+                                      : goal.todaysCost && goal.travellers
+                                      ? Math.round(Number(goal.todaysCost) / Number(goal.travellers))
+                                      : goal.todaysCost || ''
+                                  }
+                                  onChange={(e) => {
+                                    const perPerson = e.target.value;
+                                    const people = Number(goal.travellers) || (2 + (childrenCount || 0));
+                                    const total = (Number(perPerson) || 0) * people;
+                                    updateGoal(goal.id, {
+                                      costPerPerson: perPerson,
+                                      travellers: String(people),
+                                      todaysCost: String(total),
+                                    });
+                                  }}
+                                  onBlur={() => handleBlur(goal.id, 'todaysCost')}
+                                  placeholder="Cost per person"
+                                  className={`${
+                                    goal.costPerPerson || goal.todaysCost ? 'neu-field-filled' : 'neu-field'
+                                  } w-full px-4 py-3.5 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                                    (touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost ? 'border-red-400' : ''
+                                  }`}
+                                />
+                                {(touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost && (
+                                  <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].todaysCost}</span>
+                                )}
+                              </div>
+
+                              {/* Number of People */}
+                              <div className="space-y-1.5">
+                                <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
+                                  Number of People
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={goal.travellers !== undefined ? goal.travellers : 2 + (childrenCount || 0)}
+                                  onChange={(e) => {
+                                    const people = e.target.value;
+                                    const perPerson =
+                                      goal.costPerPerson !== undefined
+                                        ? Number(goal.costPerPerson)
+                                        : goal.todaysCost && goal.travellers
+                                        ? Math.round(Number(goal.todaysCost) / Number(goal.travellers))
+                                        : Number(goal.todaysCost) || 0;
+                                    const total = perPerson * (Number(people) || 1);
+                                    updateGoal(goal.id, {
+                                      travellers: people,
+                                      costPerPerson: String(perPerson),
+                                      todaysCost: String(total),
+                                    });
+                                  }}
+                                  placeholder="Number of travellers"
+                                  className="neu-field w-full px-4 py-3.5 text-base font-medium rounded-2xl outline-none transition-all duration-200"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Total Today's Cost Calculation Box */}
+                            <div className="p-3.5 bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl text-xs font-semibold text-[#2B2A28] flex flex-wrap items-center justify-between gap-2 shadow-inner">
+                              <span className="text-[#8A8578] font-bold uppercase tracking-wider text-[11px]">Calculated Total Today's Cost:</span>
+                              <div>
+                                <span>₹{(Number(goal.costPerPerson || (goal.todaysCost && goal.travellers ? Math.round(Number(goal.todaysCost) / Number(goal.travellers)) : goal.todaysCost)) || 0).toLocaleString('en-IN')} (per person) × {Number(goal.travellers || 2 + (childrenCount || 0))} people = </span>
+                                <span className="text-[#F0883E] font-extrabold text-sm ml-1">
+                                  ₹{(Number(goal.todaysCost) || 0).toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label
+                                className="block text-[13px] font-bold tracking-wide select-none"
+                                style={{ color: TEXT_DARK }}
+                              >
+                                Target Year
+                              </label>
+                              <input
+                                type="number"
+                                value={goal.targetYear}
+                                onChange={(e) =>
+                                  handleGoalInputChange(goal.id, 'targetYear', e.target.value)
+                                }
+                                onBlur={() => handleBlur(goal.id, 'targetYear')}
+                                placeholder="Enter target year"
+                                className={`${
+                                  goal.targetYear !== undefined && goal.targetYear !== null && goal.targetYear.toString().length > 0
+                                    ? 'neu-field-filled'
+                                    : 'neu-field'
+                                } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                                  (touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear ? 'border-red-400' : ''
+                                }`}
+                              />
+                              {(touched[`${goal.id}-targetYear`] || showAllErrors) && errors[goal.id]?.targetYear && (
+                                <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].targetYear}</span>
+                              )}
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label
+                                className="block text-[13px] font-bold tracking-wide select-none"
+                                style={{ color: TEXT_DARK }}
+                              >
+                                Today's Cost
+                              </label>
+                              <input
+                                type="number"
+                                value={goal.todaysCost}
+                                onChange={(e) =>
+                                  handleGoalInputChange(goal.id, 'todaysCost', e.target.value)
+                                }
+                                onBlur={() => handleBlur(goal.id, 'todaysCost')}
+                                placeholder="Enter today's cost"
+                                className={`${
+                                  goal.todaysCost !== undefined && goal.todaysCost !== null && goal.todaysCost.toString().length > 0
+                                    ? 'neu-field-filled'
+                                    : 'neu-field'
+                                } w-full px-5 py-4 text-base font-medium rounded-2xl outline-none transition-all duration-200 ${
+                                  (touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost ? 'border-red-400' : ''
+                                }`}
+                              />
+                              {(touched[`${goal.id}-todaysCost`] || showAllErrors) && errors[goal.id]?.todaysCost && (
+                                <span className="text-xs text-red-500 font-medium block mt-1">{errors[goal.id].todaysCost}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Foreign Tour: "Plan Your Trip" link-button */}
                         {catName === 'Foreign Tour' && (

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAssessment } from '../../../hooks/useAssessment';
 import { calculateCorpus } from '../../../utils/formatters';
 import { MetricCards } from './MetricCards';
@@ -6,12 +6,15 @@ import { RetirementTable } from './RetirementTable';
 import { GoalsTable } from './GoalsTable';
 import { InsuranceTable } from './InsuranceTable';
 import { FullReportTemplate } from './FullReportTemplate';
-import { generateFullFrontendPdf } from '../../../utils/frontendPdfGenerator';
+import { generateFullFrontendPdf, triggerBlobDownload } from '../../../utils/frontendPdfGenerator';
+import { uploadReportPdf } from '../../../api/reportService';
 import client from '../../../config/api';
 
 export function ReportView() {
   const {
     calculationResult,
+    services,
+    testimonials,
     reportId,
     reportMessage,
     formData,
@@ -19,6 +22,10 @@ export function ReportView() {
     childrenCount,
     childrenData,
     assessmentId,
+    pdfBlob,
+    setPdfBlob,
+    isUploaded,
+    setIsUploaded,
     downloadReport
   } = useAssessment();
 
@@ -34,6 +41,66 @@ export function ReportView() {
   const roadmapRef = useRef(null);
   const downloadLockedUntilRef = useRef(0);
 
+  const [isAutoPreparingPdf, setIsAutoPreparingPdf] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [loadingDots, setLoadingDots] = useState('');
+  const fullReportRef = useRef(null);
+  const autoPreparedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isGeneratingPdf && !(isAutoPreparingPdf && !pdfBlob)) return;
+    const interval = setInterval(() => {
+      setLoadingDots((prev) => (prev.length >= 4 ? '' : prev + '.'));
+    }, 350);
+    return () => clearInterval(interval);
+  }, [isGeneratingPdf, isAutoPreparingPdf, pdfBlob]);
+
+  useEffect(() => {
+    if (!calculationResult || autoPreparedRef.current) return;
+
+    let checkAttempts = 0;
+    const prepareAndUploadPdf = async () => {
+      if (!fullReportRef.current) {
+        if (checkAttempts < 40) {
+          checkAttempts++;
+          setTimeout(prepareAndUploadPdf, 100);
+        } else {
+          console.warn("[ReportView] fullReportRef container not found after 4 seconds.");
+        }
+        return;
+      }
+
+      // Mark as auto-prepared ONLY AFTER container ref is confirmed present
+      autoPreparedRef.current = true;
+      setIsAutoPreparingPdf(true);
+
+      try {
+        console.log("[ReportView] Auto-generating PDF blob on frontend after Step 5 completion...");
+        const filename = `wealth-wisdom-report-${assessmentId ? assessmentId.substring(0, 8) : 'assessment'}.pdf`;
+        
+        // 1. Generate PDF blob in memory
+        const blob = await generateFullFrontendPdf(fullReportRef.current, filename, false);
+        setPdfBlob(blob);
+        console.log("[ReportView] Frontend PDF generated successfully! Size:", blob.size);
+
+        // 2. Upload PDF blob directly to backend POST /api/v1/report/{assessment_id}/upload
+        if (assessmentId) {
+          console.log("[ReportView] Uploading generated PDF to backend POST /report/" + assessmentId + "/upload...");
+          const uploadRes = await uploadReportPdf(assessmentId, blob, filename);
+          setIsUploaded(true);
+          console.log("[ReportView] PDF successfully uploaded to backend and dispatched via email!", uploadRes);
+        }
+      } catch (err) {
+        console.error("[ReportView] Auto PDF background preparation/upload failed:", err);
+      } finally {
+        setIsAutoPreparingPdf(false);
+      }
+    };
+
+    const timer = setTimeout(prepareAndUploadPdf, 200);
+    return () => clearTimeout(timer);
+  }, [calculationResult, assessmentId]);
+
   const handleOpenContactModal = () => {
     setContactName(formData?.name || '');
     setContactEmail(formData?.email || '');
@@ -44,20 +111,42 @@ export function ReportView() {
     setIsContactModalOpen(true);
   };
 
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const fullReportRef = useRef(null);
+  const pdfBlobRef = useRef(pdfBlob);
+  useEffect(() => {
+    pdfBlobRef.current = pdfBlob;
+  }, [pdfBlob]);
 
   const handleDownloadClick = async () => {
-    try {
-      setIsGeneratingPdf(true);
-      const filename = `wealth-wisdom-report-${assessmentId ? assessmentId.substring(0, 8) : 'download'}.pdf`;
-      await generateFullFrontendPdf(fullReportRef.current, filename);
-    } catch (err) {
-      console.error("Frontend PDF Generation failed:", err);
-      alert("Download failed: " + err.message);
-    } finally {
-      setIsGeneratingPdf(false);
+    const filename = `wealth-wisdom-report-${assessmentId ? assessmentId.substring(0, 8) : 'download'}.pdf`;
+
+    const activeBlob = pdfBlob || pdfBlobRef.current;
+    if (activeBlob) {
+      console.log("[ReportView] Instant 0-delay download triggered from pre-generated PDF blob.");
+      triggerBlobDownload(activeBlob, filename);
+      return;
     }
+
+    setIsGeneratingPdf(true);
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (pdfBlobRef.current) {
+        clearInterval(interval);
+        setIsGeneratingPdf(false);
+        console.log("[ReportView] Background PDF ready! Triggering instant download.");
+        triggerBlobDownload(pdfBlobRef.current, filename);
+      } else if (attempts > 30) {
+        clearInterval(interval);
+        console.log("[ReportView] Background PDF timeout, generating on-demand...");
+        generateFullFrontendPdf(fullReportRef.current, filename, false)
+          .then((blob) => {
+            setPdfBlob(blob);
+            triggerBlobDownload(blob, filename);
+          })
+          .catch((err) => alert("Download failed: " + err.message))
+          .finally(() => setIsGeneratingPdf(false));
+      }
+    }, 100);
   };
 
   const handleContactSubmit = async (e) => {
@@ -164,12 +253,35 @@ export function ReportView() {
           type="button"
           onClick={handleDownloadClick}
           disabled={isGeneratingPdf}
-          className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer disabled:opacity-60"
+          className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center gap-2 w-full md:w-auto justify-center shrink-0 bg-[#1C1B1A] hover:bg-slate-800 text-white cursor-pointer disabled:opacity-75"
         >
-          <svg className="w-4 h-4 text-[#ED8B36]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            className="w-4 h-4 text-[#ED8B36]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          {isGeneratingPdf ? "Generating PDF in Browser..." : "Download PDF Report"}
+          {isGeneratingPdf ? (
+            <span className="flex items-center">
+              Downloading PDF
+              <span className="inline-block w-6 text-left text-[#ED8B36] font-mono font-extrabold text-base ml-0.5">
+                {loadingDots}
+              </span>
+            </span>
+          ) : isAutoPreparingPdf && !pdfBlob ? (
+            <span className="flex items-center">
+              Preparing PDF
+              <span className="inline-block w-6 text-left text-[#ED8B36] font-mono font-extrabold text-base ml-0.5">
+                {loadingDots}
+              </span>
+            </span>
+          ) : (
+            "Download PDF Report"
+          )}
         </button>
       </div>
 
@@ -490,121 +602,127 @@ export function ReportView() {
 
       {/* Get In Touch Contact Modal */}
       {isContactModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in select-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in select-none">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-[#1C1B1A]/40 backdrop-blur-xs transition-opacity cursor-pointer" 
             onClick={() => setIsContactModalOpen(false)}
           />
           
-          {/* Modal Content */}
-          <div className="relative w-full max-w-lg bg-[#FAF7F2] border border-[#EFE9DF] rounded-[2rem] shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto z-10 text-left">
+          {/* Outer Modal Container */}
+          <div className="relative w-full max-w-lg bg-[#FAF7F2] border border-[#EFE9DF] rounded-2xl sm:rounded-[2rem] shadow-2xl overflow-hidden z-10 text-left max-h-[85vh] sm:max-h-[90vh] flex flex-col">
             {/* Close Button */}
             <button 
               type="button"
               onClick={() => setIsContactModalOpen(false)}
-              className="absolute top-5 right-5 text-[#8E8A80] hover:text-[#1C1B1A] transition-colors w-8 h-8 rounded-full flex items-center justify-center neu-btn-flat-inactive cursor-pointer"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 text-[#8E8A80] hover:text-[#1C1B1A] transition-colors w-8 h-8 rounded-full flex items-center justify-center neu-btn-flat-inactive cursor-pointer z-20"
+              aria-label="Close modal"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            {submitSuccess ? (
-              <div className="py-8 text-center space-y-4">
-                <div className="w-16 h-16 bg-[#FFF6ED] text-[#ED8B36] rounded-full flex items-center justify-center mx-auto border border-[#EFE9DF] shadow-inner">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="font-heading text-xl font-extrabold text-[#1C1B1A]">Request Submitted!</h3>
-                <p className="text-xs sm:text-sm text-[#8E8A80] max-w-xs mx-auto">
-                  Thank you! Our expert financial advisor will get in touch with you shortly to help you build your custom plan.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setIsContactModalOpen(false)}
-                  className="neu-btn-raised px-6 py-2.5 text-xs font-bold rounded-xl mt-2 cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleContactSubmit} className="space-y-4">
-                <div className="text-[11px] font-bold text-[#ED8B36] tracking-wider uppercase mb-1">
-                  GET EXPERT GUIDANCE FOR YOUR FINANCIAL FUTURE
-                </div>
-                <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#1C1B1A] leading-tight mb-2">
-                  Book Your Consultation
-                </h3>
-
-                {submitError && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold">
-                    {submitError}
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-[#4A4740]">Your Name*</label>
-                  <input
-                    type="text"
-                    required
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Enter your full name"
-                    className={`${contactName ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-[#4A4740]">Email address*</label>
-                  <input
-                    type="email"
-                    required
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="Enter your email address"
-                    className={`${contactEmail ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-[#4A4740]">Mobile Number*</label>
-                  <div className="flex gap-2">
-                    <div className="neu-prefix rounded-xl px-3 py-3 text-xs sm:text-sm font-semibold select-none shrink-0 flex items-center justify-center font-sans">
-                      +91
+            {/* Scrollable Inner Body Container */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar scrollbar-none rounded-2xl sm:rounded-[2rem]">
+              <div className="p-6 sm:p-8 space-y-4">
+                {submitSuccess ? (
+                  <div className="py-8 text-center space-y-4">
+                    <div className="w-16 h-16 bg-[#FFF6ED] text-[#ED8B36] rounded-full flex items-center justify-center mx-auto border border-[#EFE9DF] shadow-inner">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
-                    <input
-                      type="tel"
-                      required
-                      value={contactMobile}
-                      onChange={(e) => setContactMobile(e.target.value)}
-                      placeholder="Enter your mobile number"
-                      className={`${contactMobile ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
-                    />
+                    <h3 className="font-heading text-xl font-extrabold text-[#1C1B1A]">Request Submitted!</h3>
+                    <p className="text-xs sm:text-sm text-[#8E8A80] max-w-xs mx-auto">
+                      Thank you! Our expert financial advisor will get in touch with you shortly to help you build your custom plan.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsContactModalOpen(false)}
+                      className="neu-btn-raised px-6 py-2.5 text-xs font-bold rounded-xl mt-2 cursor-pointer"
+                    >
+                      Close
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div className="text-[11px] font-bold text-[#ED8B36] tracking-wider uppercase mb-1">
+                      GET EXPERT GUIDANCE FOR YOUR FINANCIAL FUTURE
+                    </div>
+                    <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#1C1B1A] leading-tight mb-2">
+                      Book Your Consultation
+                    </h3>
 
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-[#4A4740]">Message</label>
-                  <textarea
-                    rows="3"
-                    value={contactMessage}
-                    onChange={(e) => setContactMessage(e.target.value)}
-                    placeholder="Enter your message (optional)"
-                    className={`${contactMessage ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200 resize-none`}
-                  />
-                </div>
+                    {submitError && (
+                      <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold">
+                        {submitError}
+                      </div>
+                    )}
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full neu-btn-raised py-3 font-bold text-xs sm:text-sm cursor-pointer mt-2 disabled:opacity-50"
-                >
-                  {isSubmitting ? "Submitting..." : "Get My Complete Financial Roadmap ➔"}
-                </button>
-              </form>
-            )}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold text-[#4A4740]">Your Name*</label>
+                      <input
+                        type="text"
+                        required
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        placeholder="Enter your full name"
+                        className={`${contactName ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold text-[#4A4740]">Email address*</label>
+                      <input
+                        type="email"
+                        required
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="Enter your email address"
+                        className={`${contactEmail ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold text-[#4A4740]">Mobile Number*</label>
+                      <div className="flex gap-2">
+                        <div className="neu-prefix rounded-xl px-3 py-3 text-xs sm:text-sm font-semibold select-none shrink-0 flex items-center justify-center font-sans">
+                          +91
+                        </div>
+                        <input
+                          type="tel"
+                          required
+                          value={contactMobile}
+                          onChange={(e) => setContactMobile(e.target.value)}
+                          placeholder="Enter your mobile number"
+                          className={`${contactMobile ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold text-[#4A4740]">Message</label>
+                      <textarea
+                        rows="3"
+                        value={contactMessage}
+                        onChange={(e) => setContactMessage(e.target.value)}
+                        placeholder="Enter your message (optional)"
+                        className={`${contactMessage ? 'neu-field-filled' : 'neu-field'} w-full px-4 py-3 text-xs sm:text-sm rounded-xl outline-none transition-all duration-200 resize-none`}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full neu-btn-raised py-3 font-bold text-xs sm:text-sm cursor-pointer mt-2 disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Submitting..." : "Get My Complete Financial Roadmap ➔"}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -616,6 +734,8 @@ export function ReportView() {
           formData={{ ...formData, activeGoals, goals: activeGoals }}
           childrenData={childrenData}
           calculationResult={calculationResult}
+          services={services}
+          testimonials={testimonials}
           assessmentId={assessmentId}
         />
       </div>

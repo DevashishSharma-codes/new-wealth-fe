@@ -127,13 +127,13 @@ export function Step2PersonalDetails() {
                 {/* Monthly Expenses */}
                 <div className="grid grid-cols-1 sm:grid-cols-2">
                   <FormField
-                    label="Your Monthly Household Expense"
+                    label="Your Monthly Household Expense P.M. (Per Month)"
                     name="monthlyExpense"
                     value={formData.monthlyExpense}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
                     error={(touched.monthlyExpense || showAllErrors) ? errors.monthlyExpense : null}
-                    placeholder="Enter your monthly expense"
+                    placeholder="Enter your monthly expense (P.M.)"
                     type="number"
                     required={true}
                   />

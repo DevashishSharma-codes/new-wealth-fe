@@ -358,13 +358,13 @@ export function Step3FamilyDetails() {
                                   required={true}
                                 />
                                 <FormField
-                                  label="Today's Cost"
+                                  label={g.goalType?.toLowerCase().includes('education') || g.goalType?.toLowerCase().includes('graduation') || g.goalType === 'Higher Education' ? "Approx. Today's Cost" : "Today's Cost"}
                                   name={`childTodaysCost-${i}-${gIdx}`}
                                   value={g.todaysCost}
                                   onChange={(e) => handleChildGoalChange(i, gIdx, 'todaysCost', e.target.value)}
                                   onBlur={() => handleBlur(i, `goals-${gIdx}-todaysCost`)}
                                   error={(touched[`${i}-goals-${gIdx}-todaysCost`] || showAllErrors) ? hasTodaysCostErr : null}
-                                  placeholder="Enter today's cost"
+                                  placeholder="Enter today's cost (approx.)"
                                   type="number"
                                   required={true}
                                 />

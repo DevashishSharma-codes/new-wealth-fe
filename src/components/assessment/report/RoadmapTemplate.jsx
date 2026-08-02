@@ -1,62 +1,5 @@
 import React, { forwardRef } from 'react';
-
-/**
- * Helper to infer the real child name from childrenData if child_name is missing or generic ("Child 1", "Child 2").
- */
-const getActualChildName = (goal, childrenData = []) => {
-  let name = (goal.child_name || goal.childName || '').trim();
-  const isGeneric = !name || /^child\s*\d+('s)?$/i.test(name);
-
-  if (isGeneric && Array.isArray(childrenData) && childrenData.length > 0) {
-    let childIdx = -1;
-    if (goal.child_number !== undefined && goal.child_number !== null) {
-      childIdx = parseInt(goal.child_number, 10) - 1;
-    } else if (goal.child_index !== undefined && goal.child_index !== null) {
-      childIdx = parseInt(goal.child_index, 10);
-    } else {
-      const goalStr = `${goal.goal || ''} ${goal.goal_type || ''} ${goal.name || ''}`;
-      const match = goalStr.match(/child\s*(\d+)/i);
-      if (match && match[1]) {
-        childIdx = parseInt(match[1], 10) - 1;
-      }
-    }
-
-    if (childIdx >= 0 && childrenData[childIdx] && childrenData[childIdx].name) {
-      name = childrenData[childIdx].name.trim();
-    }
-  }
-
-  if (!name || /^child\s*\d+('s)?$/i.test(name)) {
-    return '';
-  }
-  return name.replace(/'s$/i, '');
-};
-
-const formatGoalTitle = (goal, childrenData = []) => {
-  const rawTitle = (goal.goal_type || goal.goal || goal.title || goal.name || 'Financial Goal').trim();
-  const childName = getActualChildName(goal, childrenData);
-
-  let specificType = rawTitle
-    .replace(/^child\s*\d+('s)?\s*/i, '')
-    .replace(/^child\s*/i, '')
-    .replace(/\s*goal$/i, '')
-    .trim();
-
-  if (childName && (specificType.toLowerCase() === childName.toLowerCase() || specificType.toLowerCase().includes(childName.toLowerCase()))) {
-    specificType = 'Other Goal';
-  } else if (!specificType || specificType.toLowerCase() === 'other') {
-    specificType = 'Other Goal';
-  }
-
-  if (childName) {
-    if (rawTitle.toLowerCase().startsWith(`${childName.toLowerCase()}'s`)) {
-      return rawTitle;
-    }
-    return `${childName}'s ${specificType}`;
-  }
-
-  return specificType === 'Other Goal' ? (rawTitle.toLowerCase().includes('other') ? 'Other Goal' : rawTitle) : specificType;
-};
+import { formatGoalTitle, getActualChildName } from '../../../utils/formatters';
 
 /**
  * RoadmapTemplate React Component - 100% Exact Canva Template Replica
@@ -174,7 +117,7 @@ export const RoadmapTemplate = forwardRef(({ goals = [], childrenData = [], clie
             {/* Dynamic Blocks with Auto-Expanding Pill Cards Closer to the Road */}
             {pageGoals.map((goal, idx) => {
               const year = goal.target_year || goal.year || 'TBD';
-              const title = formatGoalTitle(goal, childrenData);
+              const title = formatGoalTitle(goal, childrenData, sortedGoals);
               const isLeft = idx % 2 === 0;
 
               let yTop = startY;

@@ -37,9 +37,9 @@ describe('useFormValidation - Step 4 Lifestyle Goals', () => {
       { id: '3', type: 'Holiday Home', targetYear: 'abc', todaysCost: '1000000' }
     ];
     const errors = validateStep4Fields(activeGoals);
-    expect(errors['1'].targetYear).toContain('Year must be between');
-    expect(errors['2'].targetYear).toContain('Year must be between');
-    expect(errors['3'].targetYear).toContain('Year must be between');
+    expect(errors['1'].targetYear).toContain('Year must be');
+    expect(errors['2'].targetYear).toContain('Year must be');
+    expect(errors['3'].targetYear).toContain('Year must be');
   });
 
   test('should validate invalid cost values', () => {

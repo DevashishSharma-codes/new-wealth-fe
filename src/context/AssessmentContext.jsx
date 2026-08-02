@@ -392,7 +392,7 @@ export default function AssessmentProvider({ children }) {
       const apiGoals = [];
 
       // Child education goals
-      childrenData.slice(0, childrenCount).forEach((c) => {
+      childrenData.slice(0, childrenCount).forEach((c, idx) => {
         if (!c) return;
         
         const goalsToSubmit = c.goals && Array.isArray(c.goals) ? c.goals : [
@@ -402,11 +402,14 @@ export default function AssessmentProvider({ children }) {
         goalsToSubmit.forEach((g) => {
           if (g.goalType && g.targetYear && g.todaysCost) {
             const mappedType =
-              g.goalType === "Higher Education"
+              (g.goalType === "Higher Education" || g.goalType === "Higher Studies" || g.goalType === "Graduation")
                 ? "Graduation"
                 : g.goalType === "Marriage"
                 ? "Marriage"
                 : "Other";
+            
+            const childRealName = (c.name || '').trim() || `Child ${idx + 1}`;
+
             const goalObj = {
               category: "child_goal",
               goal_type: mappedType,
@@ -420,8 +423,9 @@ export default function AssessmentProvider({ children }) {
             const customChildGoalName = (g.goalName || g.name || g.goal_name || "").toString().trim();
             if (customChildGoalName) {
               goalObj.goal_name = customChildGoalName;
-            } else if (mappedType === "Other") {
-              goalObj.goal_name = `${c.name || 'Child'} Goal`;
+            } else {
+              const displayType = mappedType === "Graduation" ? "Higher Studies" : mappedType;
+              goalObj.goal_name = `${childRealName}'s ${displayType}`;
             }
             apiGoals.push(goalObj);
           }

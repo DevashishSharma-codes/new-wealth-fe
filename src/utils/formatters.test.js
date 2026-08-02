@@ -1,4 +1,4 @@
-import { calculateCorpus, calculateReadinessScore, buildCalcPayload } from './formatters';
+import { calculateCorpus, calculateReadinessScore, buildCalcPayload, getActualChildName, formatGoalTitle } from './formatters';
 
 describe('formatters - new-wealth-fe', () => {
   describe('calculateCorpus', () => {
@@ -109,6 +109,40 @@ describe('formatters - new-wealth-fe', () => {
       expect(payload.client_annual_ret_reqd).toBe(1000000);
       expect(payload.household_monthly).toBe(0);
       expect(payload.spouse_epf_annual).toBe(0);
+    });
+  });
+
+  describe('formatGoalTitle & getActualChildName', () => {
+    test('should change Graduation / Education to Higher Studies for child goals with custom child name', () => {
+      const goal = { category: 'child_goal', goal_type: 'Graduation', child_number: 1 };
+      const childrenData = [{ name: 'Aarav' }];
+      expect(formatGoalTitle(goal, childrenData)).toBe("Aarav's Higher Studies");
+    });
+
+    test('should format child marriage goal with child name', () => {
+      const goal = { category: 'child_goal', goal_type: 'Marriage', child_number: 1 };
+      const childrenData = [{ name: 'Aarav' }];
+      expect(formatGoalTitle(goal, childrenData)).toBe("Aarav's Marriage");
+    });
+
+    test('should format generic Child 1 when child name is not explicitly set', () => {
+      const goal = { category: 'child_goal', goal_type: 'Graduation', child_number: 1 };
+      expect(formatGoalTitle(goal, [])).toBe("Child 1's Higher Studies");
+    });
+
+    test('should format non-child Graduation goal to Higher Studies without child name', () => {
+      const goal = { category: 'lifestyle', goal_type: 'Graduation' };
+      expect(formatGoalTitle(goal, [])).toBe("Higher Studies");
+    });
+
+    test('should assign distinct respective names to goals of multiple children', () => {
+      const childrenData = [{ name: 'Aarav' }, { name: 'Priya' }];
+      const goal1 = { category: 'child_goal', goal_type: 'Graduation', child_number: 1 };
+      const goal2 = { category: 'child_goal', goal_type: 'Marriage', child_number: 2 };
+      const allGoals = [goal1, goal2];
+
+      expect(formatGoalTitle(goal1, childrenData, allGoals)).toBe("Aarav's Higher Studies");
+      expect(formatGoalTitle(goal2, childrenData, allGoals)).toBe("Priya's Marriage");
     });
   });
 });

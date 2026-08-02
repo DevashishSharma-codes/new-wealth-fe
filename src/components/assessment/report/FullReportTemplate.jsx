@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import { RoadmapTemplate } from './RoadmapTemplate';
+import { formatGoalTitle, getActualChildName } from '../../../utils/formatters';
 
 /**
  * FullReportTemplate React Component
@@ -151,7 +152,16 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
   }
 
   const goals = calculationResult?.goals?.items || [];
-  const activeChildren = childrenData.length > 0 ? childrenData : (formData.children || []);
+  const activeChildren =
+    (Array.isArray(childrenData) && childrenData.length > 0)
+      ? childrenData
+      : (Array.isArray(formData?.children) && formData.children.length > 0)
+      ? formData.children
+      : (Array.isArray(formData?.childrenData) && formData.childrenData.length > 0)
+      ? formData.childrenData
+      : (Array.isArray(calculationResult?.children) && calculationResult.children.length > 0)
+      ? calculationResult.children
+      : [];
   const totalGoalsMonthlySip = formatDisplayVal(calculationResult?.goals?.total_monthly_sip, '₹0');
 
   // Retirement Summary
@@ -170,62 +180,6 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
   const insuranceData = calculationResult?.insurance || {};
   const totalInsuranceNeed = formatDisplayVal(insuranceData.total_required, '₹31,08,66,558');
 
-  const formatGoalTitle = (g = {}, childrenArr = activeChildren) => {
-    if (typeof g === 'string') return g;
-    const rawTitle = ensureString(g.goal_type || g.title || g.goal || g.name, 'Financial Goal');
-    let childName = (g.child_name || g.childName || '').trim();
-
-    if (!childName || /^child\s*\d+('s)?$/i.test(childName)) {
-      let childIdx = -1;
-      if (g.child_number !== undefined && g.child_number !== null) {
-        childIdx = parseInt(g.child_number, 10) - 1;
-      } else if (g.child_index !== undefined && g.child_index !== null) {
-        childIdx = parseInt(g.child_index, 10);
-      } else {
-        const match = `${rawTitle} ${g.goal || ''}`.match(/child\s*(\d+)/i);
-        if (match && match[1]) {
-          childIdx = parseInt(match[1], 10) - 1;
-        }
-      }
-      if (childIdx >= 0 && Array.isArray(childrenArr) && childrenArr[childIdx] && childrenArr[childIdx].name) {
-        childName = childrenArr[childIdx].name.trim();
-      }
-    }
-
-    if (childName && /^child\s*\d+('s)?$/i.test(childName)) {
-      childName = '';
-    } else if (childName) {
-      childName = childName.replace(/'s$/i, '');
-    }
-
-    let specificGoalType = rawTitle.trim();
-    const isOtherGoal = specificGoalType.toLowerCase().includes('other');
-
-    specificGoalType = specificGoalType
-      .replace(/^child\s*\d+('s)?\s*/i, '')
-      .replace(/^child\s*/i, '')
-      .replace(/\s*goal$/i, '')
-      .trim();
-
-    if (childName && (specificGoalType.toLowerCase() === childName.toLowerCase() || specificGoalType.toLowerCase().includes(childName.toLowerCase()))) {
-      specificGoalType = 'Other Goal';
-    } else if (!specificGoalType || specificGoalType.toLowerCase() === 'other') {
-      specificGoalType = 'Other Goal';
-    }
-
-    if (childName) {
-      if (rawTitle.toLowerCase().startsWith(`${childName.toLowerCase()}'s`)) {
-        return rawTitle;
-      } else if (isOtherGoal || specificGoalType === 'Other Goal') {
-        return `${childName}'s Other Goal`;
-      } else {
-        return `${childName}'s ${specificGoalType}`;
-      }
-    }
-    return specificGoalType || 'Financial Goal';
-  };
-
-  // Map exact real 3D icons attached by user
   const getGoalIcon = (goalType = '') => {
     const t = goalType.toLowerCase();
     if (t.includes('renovation')) return '/assets/report/real_3d_home_renovation.png';
@@ -239,7 +193,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
     if (t.includes('big') || t.includes('purchase')) return '/assets/report/real_3d_big_purchases.png';
     if (t.includes('estate')) return '/assets/report/real_3d_estate_for_children.png';
     if (t.includes('post') || t.includes('master')) return '/assets/report/real_3d_post_graduation.png';
-    if (t.includes('graduation') || t.includes('education') || t.includes('college') || t.includes('school')) return '/assets/report/real_3d_child_graduation.png';
+    if (t.includes('graduation') || t.includes('education') || t.includes('studies') || t.includes('college') || t.includes('school')) return '/assets/report/real_3d_child_graduation.png';
     if (t.includes('marriage') || t.includes('wedding')) return '/assets/report/real_3d_child_marriage.png';
     if (t.includes('child')) return '/assets/report/real_3d_child_other.png';
     return '/assets/report/real_3d_other_goals.png';
@@ -840,67 +794,15 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
       {/* PAGES 3..N: INDIVIDUAL GOAL PAGES */}
       {goals.map((g, idx) => {
           const rawTitle = g.goal_type || g.goal || 'Financial Goal';
-          let childName = (g.child_name || g.childName || '').trim();
-
-          // Infer child name from activeChildren if generic ("Child 1", "Child 2") or empty
-          if (!childName || /^child\s*\d+('s)?$/i.test(childName)) {
-            let childIdx = -1;
-            if (g.child_number !== undefined && g.child_number !== null) {
-              childIdx = parseInt(g.child_number, 10) - 1;
-            } else if (g.child_index !== undefined && g.child_index !== null) {
-              childIdx = parseInt(g.child_index, 10);
-            } else {
-              const match = `${rawTitle} ${g.goal || ''}`.match(/child\s*(\d+)/i);
-              if (match && match[1]) {
-                childIdx = parseInt(match[1], 10) - 1;
-              }
-            }
-            if (childIdx >= 0 && activeChildren[childIdx] && activeChildren[childIdx].name) {
-              childName = activeChildren[childIdx].name.trim();
-            }
-          }
-
-          if (childName && /^child\s*\d+('s)?$/i.test(childName)) {
-            childName = '';
-          } else if (childName) {
-            childName = childName.replace(/'s$/i, '');
-          }
-
-          // Clean specific goal name from backend data (e.g. "Higher Education", "Graduation", "Marriage", "Business Setup", "Other")
-          let specificGoalType = (g.goal_type || g.title || g.goal || rawTitle || 'Goal').trim();
-          const isOtherGoal = specificGoalType.toLowerCase().includes('other');
-
-          specificGoalType = specificGoalType
-            .replace(/^child\s*\d+('s)?\s*/i, '')
-            .replace(/^child\s*/i, '')
-            .replace(/\s*goal$/i, '')
-            .trim();
-
-          if (childName && (specificGoalType.toLowerCase() === childName.toLowerCase() || specificGoalType.toLowerCase().includes(childName.toLowerCase()))) {
-            specificGoalType = 'Other Goal';
-          } else if (!specificGoalType || specificGoalType.toLowerCase() === 'other') {
-            specificGoalType = 'Other Goal';
-          }
-
-          let goalName = '';
-          if (childName) {
-            if (rawTitle.toLowerCase().startsWith(`${childName.toLowerCase()}'s`)) {
-              goalName = rawTitle;
-            } else if (isOtherGoal || specificGoalType === 'Other Goal') {
-              goalName = `${childName}'s Other Goal`;
-            } else {
-              goalName = `${childName}'s ${specificGoalType}`;
-            }
-          } else {
-            goalName = specificGoalType;
-          }
+          const goalName = formatGoalTitle(g, activeChildren, goals);
+          const childName = getActualChildName(g, activeChildren, goals);
 
           const targetYear = ensureString(g.target_year || g.year, '2027');
           const currentCost = formatDisplayVal(g.current_cost || g.today_cost, '₹20,00,000');
           const futureCost = formatDisplayVal(g.future_cost, '₹21,20,000');
           const monthlySip = formatDisplayVal(g.monthly_sip, '₹1,66,060');
-          const iconPath = getGoalIcon(rawTitle);
-          const advisoryQuote = getGoalAdvisoryQuote(rawTitle);
+          const iconPath = getGoalIcon(rawTitle + ' ' + goalName);
+          const advisoryQuote = getGoalAdvisoryQuote(rawTitle + ' ' + goalName);
 
           const isForeignTour = idx === firstForeignTourGoalIndex;
           const shouldRenderForeignTourPage = isForeignTour;
@@ -908,11 +810,15 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
           const isEducation =
             goalName.toLowerCase().includes('education') ||
             goalName.toLowerCase().includes('graduation') ||
+            goalName.toLowerCase().includes('higher studies') ||
+            goalName.toLowerCase().includes('studies') ||
             goalName.toLowerCase().includes('college') ||
             goalName.toLowerCase().includes('university') ||
             goalName.toLowerCase().includes('school') ||
             rawTitle.toLowerCase().includes('education') ||
             rawTitle.toLowerCase().includes('graduation') ||
+            rawTitle.toLowerCase().includes('higher studies') ||
+            rawTitle.toLowerCase().includes('studies') ||
             rawTitle.toLowerCase().includes('college') ||
             rawTitle.toLowerCase().includes('university') ||
             rawTitle.toLowerCase().includes('school');
@@ -1190,7 +1096,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                   }}
                 >
                   <div style={{ fontSize: '13px', color: '#ff8c32', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                    Personalized For You
+                    Personalized For {childName ? childName : 'You'}
                   </div>
                   <div style={{ fontSize: '22px', fontWeight: 900, color: '#ffffff', marginTop: '2px', letterSpacing: '-0.01em' }}>
                     Most Relevant Options
@@ -1401,7 +1307,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
             </tr>
             {goals.length > 0 ? (
               goals.map((g, idx) => {
-                const goalTitle = formatGoalTitle(g, activeChildren) || g.goal_type || g.title || g.goal || 'Lifestyle & Child Goals';
+                const goalTitle = formatGoalTitle(g, activeChildren, goals) || g.goal_type || g.title || g.goal || 'Lifestyle & Child Goals';
                 const futureVal = formatDisplayVal(g.future_cost, '₹ 21,20,000');
                 return (
                   <tr key={idx}>
@@ -1488,7 +1394,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
 
             {/* Lifestyle & Child Goals Rows */}
             {goals.map((g, idx) => {
-              const goalTitle = formatGoalTitle(g, activeChildren);
+              const goalTitle = formatGoalTitle(g, activeChildren, goals);
               const goalYear = ensureString(g.target_year || g.year, '—');
               const goalSip = formatDisplayVal(g.monthly_sip, '—');
               return (

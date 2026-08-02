@@ -8,7 +8,7 @@ import { EducationPlanModal } from '../modals/EducationPlanModal';
 import { FloatingDropdownModal } from '../../ui/FloatingDropdownModal';
 
 const CHILD_GOAL_TYPE_OPTIONS = [
-  { label: 'Higher Education', value: 'Higher Education', subtext: 'University, degree & college funding', icon: '🎓' },
+  { label: 'Higher Studies', value: 'Higher Studies', subtext: 'University, degree & college funding', icon: '🎓' },
   { label: 'Marriage', value: 'Marriage', subtext: 'Wedding expenses & celebration fund', icon: '💍' },
   { label: 'Business Setup', value: 'Business Setup', subtext: 'Seed capital & startup funding for child', icon: '💼' },
   { label: 'Career Fund', value: 'Career Fund', subtext: 'Professional training, skills & certifications', icon: '🚀' },
@@ -358,7 +358,7 @@ export function Step3FamilyDetails() {
                                   required={true}
                                 />
                                 <FormField
-                                  label={g.goalType?.toLowerCase().includes('education') || g.goalType?.toLowerCase().includes('graduation') || g.goalType === 'Higher Education' ? "Approx. Today's Cost" : "Today's Cost"}
+                                  label={g.goalType?.toLowerCase().includes('education') || g.goalType?.toLowerCase().includes('graduation') || g.goalType?.toLowerCase().includes('studies') || g.goalType === 'Higher Education' || g.goalType === 'Higher Studies' ? "Approx. Today's Cost" : "Today's Cost"}
                                   name={`childTodaysCost-${i}-${gIdx}`}
                                   value={g.todaysCost}
                                   onChange={(e) => handleChildGoalChange(i, gIdx, 'todaysCost', e.target.value)}
@@ -371,7 +371,7 @@ export function Step3FamilyDetails() {
                               </div>
 
                               {/* Education Planner Tool link */}
-                              {g.goalType === 'Higher Education' && (
+                              {(g.goalType === 'Higher Education' || g.goalType === 'Higher Studies') && (
                                 <div className="pt-1">
                                   <a 
                                     href="#education-plan"

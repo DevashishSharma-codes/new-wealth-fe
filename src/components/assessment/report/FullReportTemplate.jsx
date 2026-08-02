@@ -74,6 +74,24 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
       return String(s);
     });
 
+  const defaultTestimonials = [
+    {
+      quote: "Wealth Wisdom made my retirement planning clear and straightforward. Highly professional advice!",
+      author: "Rajesh Sharma",
+      designation: "IT Executive"
+    },
+    {
+      quote: "Extremely reliable wealth management team. They helped me plan for both my children's higher education.",
+      author: "Priya Patel",
+      designation: "Business Owner"
+    },
+    {
+      quote: "Tailored investment guidance with complete transparency. Couldn't have asked for a better financial partner.",
+      author: "Amitabh Verma",
+      designation: "Doctor"
+    }
+  ];
+
   const inputTestimonials = (testimonials && testimonials.length > 0)
     ? testimonials
     : (calculationResult?.testimonials && calculationResult.testimonials.length > 0)
@@ -110,11 +128,23 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
     servicePages.push([]);
   }
 
+  // Ensure activeTestimonials is formatted in groups/multiples of 3 per page exactly so it never breaks
+  let paddedTestimonials = [...activeTestimonials];
+  if (paddedTestimonials.length === 0) {
+    paddedTestimonials = [...defaultTestimonials];
+  } else if (paddedTestimonials.length % 3 !== 0) {
+    const remainder = paddedTestimonials.length % 3;
+    const needed = 3 - remainder;
+    for (let i = 0; i < needed; i++) {
+      paddedTestimonials.push(defaultTestimonials[i % defaultTestimonials.length]);
+    }
+  }
+
   // Testimonial Pages Pagination (3 testimonials per page)
   const testimonialPages = [];
   const tChunkSize = 3;
-  for (let i = 0; i < activeTestimonials.length; i += tChunkSize) {
-    testimonialPages.push(activeTestimonials.slice(i, i + tChunkSize));
+  for (let i = 0; i < paddedTestimonials.length; i += tChunkSize) {
+    testimonialPages.push(paddedTestimonials.slice(i, i + tChunkSize));
   }
   if (testimonialPages.length === 0) {
     testimonialPages.push([]);
@@ -960,13 +990,13 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                     <div
                       style={{
                         position: 'absolute',
-                        top: '18px',
-                        left: '18px',
-                        right: '28px',
-                        bottom: '42px',
+                        top: '16px',
+                        left: '16px',
+                        right: '24px',
+                        bottom: '38px',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        alignItems: 'flex-start',
+                        justifyContent: 'flex-start',
                         padding: '4px',
                         boxSizing: 'border-box',
                         overflow: 'hidden',
@@ -974,10 +1004,11 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                     >
                       <p
                         style={{
-                          fontSize: '12.5px',
-                          lineHeight: 1.45,
-                          fontWeight: 700,
-                          color: '#001a66',
+                          fontSize: '13.5px',
+                          lineHeight: 1.4,
+                          fontWeight: 400,
+                          fontStyle: 'italic',
+                          color: '#000000',
                           margin: 0,
                           fontFamily: '"Montserrat", "Segoe UI", Helvetica, Arial, sans-serif',
                           textAlign: 'left',

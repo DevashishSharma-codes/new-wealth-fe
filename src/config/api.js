@@ -18,8 +18,10 @@ const client = axios.create({
 });
 
 client.interceptors.request.use((config) => {
-  if (API_KEY && !config.headers["X-API-Key"]) {
-    config.headers["X-API-Key"] = API_KEY;
+  const isAdminRoute = config.url?.includes("/admin");
+  const activeKey = isAdminRoute ? (ADMIN_API_KEY || API_KEY) : (API_KEY || ADMIN_API_KEY);
+  if (activeKey && !config.headers["X-API-Key"]) {
+    config.headers["X-API-Key"] = activeKey;
   }
 
   console.log("[API DEBUG] Outgoing request", {

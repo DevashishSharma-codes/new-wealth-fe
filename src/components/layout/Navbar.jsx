@@ -84,8 +84,8 @@ export function Navbar({ onOpenContact }) {
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 select-none ${
         isScrolled
-          ? "bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EFE9DF] shadow-md py-3"
-          : "bg-[#FAF7F2] border-b border-[#EFE9DF]/60 py-4"
+          ? "bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EFE9DF] shadow-md py-2"
+          : "bg-[#FAF7F2] border-b border-[#EFE9DF]/60 py-2.5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -95,7 +95,7 @@ export function Navbar({ onOpenContact }) {
           <img
             src={wealthWisdomLogo}
             alt="Wealth Wisdom Logo"
-            className="h-12 sm:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
         </Link>
 

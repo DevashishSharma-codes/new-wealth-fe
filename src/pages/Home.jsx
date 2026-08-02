@@ -306,7 +306,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col font-sans bg-[#FAF7F2] text-[#1C1B1A] selection:bg-brand-gold/30 selection:text-brand-blue">
 
       {/* 1. Top Promotional Banner */}
-      <div className="bg-[#FFF3E6] border-b border-orange-100 py-2.5 px-4 text-center">
+      <div className="bg-[#FFF3E6] border-b border-orange-100 py-1.5 px-4 text-center">
         <p className="text-xs sm:text-sm text-[#E56A1F] font-medium tracking-wide">
           Take charge of your future with a personalized goal-based financial plan &rarr;{' '}
           <Link to="/assessment" className="underline hover:text-[#ED8B36] font-bold transition-colors">
@@ -322,12 +322,12 @@ export default function Home() {
       <main className="flex-1">
 
         {/* Hero Header Section */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-12 space-y-4">
-              <h1 className="font-heading text-4xl sm:text-[46px] lg:text-[52px] font-extrabold text-[#1C1B1A] leading-[1.18] tracking-tight">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-4 sm:pb-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-12 space-y-3">
+              <h1 className="font-heading text-3xl sm:text-[42px] lg:text-[46px] font-extrabold text-[#1C1B1A] leading-[1.16] tracking-tight">
                 Turn Your{" "}
-                <span className="relative inline-flex items-center px-3.5 py-1.5 my-1 rounded-2xl bg-[#FFF6ED] border-2 border-[#ED8B36] text-[#ED8B36] shadow-2xs select-none">
+                <span className="relative inline-flex items-center px-3.5 py-1 my-0.5 rounded-2xl bg-[#FFF6ED] border-2 border-[#ED8B36] text-[#ED8B36] shadow-2xs select-none">
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={currentDreamIdx}
@@ -345,15 +345,15 @@ export default function Home() {
                 into Achievable Financial Goals
               </h1>
 
-              <p className="text-[#555D6E] text-[15px] sm:text-[16px] leading-[1.6] font-normal max-w-3xl">
+              <p className="text-[#555D6E] text-sm sm:text-[15px] leading-[1.55] font-normal max-w-3xl">
                 Achieve your aspirations with a flexible framework built for multiple goals, different timelines, and smarter planning. Discover the steps required to turn your dreams into reality.
               </p>
 
               {/* Hero CTA Button Container with Gliding Mouse Cursor */}
-              <div className="pt-3 flex flex-wrap items-center gap-4 relative inline-block">
+              <div className="pt-1.5 flex flex-wrap items-center gap-4 relative inline-block">
                 <Link
                   to="/assessment"
-                  className="relative group bg-[#ED8B36] hover:bg-[#E07A2E] text-white px-7 py-3.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95 z-10"
+                  className="relative group bg-[#ED8B36] hover:bg-[#E07A2E] text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95 z-10"
                 >
                   <span>Get Started</span>
                   <span className="text-lg font-extrabold group-hover:translate-x-1 transition-transform">&rarr;</span>
@@ -384,13 +384,13 @@ export default function Home() {
         </section>
 
         {/* Hero Image Grid */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             <div className="md:col-span-7 overflow-hidden rounded-3xl shadow-sm border border-slate-200/60 group relative">
-              <img src="/assets/hero_left.png" alt="Advisor with couple" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+              <img src="/assets/hero_left.png" alt="Advisor with couple" className="w-full h-[260px] sm:h-[300px] lg:h-[340px] xl:h-[370px] object-cover group-hover:scale-102 transition-transform duration-700 ease-out" />
             </div>
             <div className="md:col-span-5 overflow-hidden rounded-3xl shadow-sm border border-slate-200/60 group relative">
-              <img src="/assets/f0f7eaffd28bff647ab71073c5e804a9bb36aec8.jpg" alt="Couple with laptop" className="w-full h-full object-cover min-h-[300px] max-h-[460px] group-hover:scale-102 transition-transform duration-700 ease-out" />
+              <img src="/assets/f0f7eaffd28bff647ab71073c5e804a9bb36aec8.jpg" alt="Couple with laptop" className="w-full h-[260px] sm:h-[300px] lg:h-[340px] xl:h-[370px] object-cover group-hover:scale-102 transition-transform duration-700 ease-out" />
             </div>
           </div>
         </section>

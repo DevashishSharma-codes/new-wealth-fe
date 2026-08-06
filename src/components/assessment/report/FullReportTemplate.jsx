@@ -51,6 +51,33 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
   return String(val);
 };
 
+const formatInrFull = (val, defaultVal = '₹0') => {
+  if (val === null || val === undefined) return defaultVal;
+  if (typeof val === 'number') return `₹${Math.round(val).toLocaleString('en-IN')}`;
+  if (typeof val === 'object') {
+    if (val.raw !== undefined && typeof val.raw === 'number') {
+      return `₹${Math.round(val.raw).toLocaleString('en-IN')}`;
+    }
+    if (val.inr && typeof val.inr === 'string') return formatInrFull(val.inr, defaultVal);
+    if (val.formatted && typeof val.formatted === 'string') return formatInrFull(val.formatted, defaultVal);
+    if (val.display && typeof val.display === 'string') return formatInrFull(val.display, defaultVal);
+    return defaultVal;
+  }
+  let str = String(val).trim();
+  str = str.replace(/^₹\s+/, '₹');
+  if (str.includes('Cr')) {
+    const numStr = str.replace(/[^0-9.]/g, '');
+    const num = parseFloat(numStr);
+    if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
+  }
+  if (str.includes('Lakh') || str.match(/\bL\b/)) {
+    const numStr = str.replace(/[^0-9.]/g, '');
+    const num = parseFloat(numStr);
+    if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
+  }
+  return str;
+};
+
   const inputServices = (services && services.length > 0)
     ? services
     : (calculationResult?.services && calculationResult.services.length > 0)
@@ -164,21 +191,52 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
       : [];
   const totalGoalsMonthlySip = formatDisplayVal(calculationResult?.goals?.total_monthly_sip, '₹0');
 
-  // Retirement Summary
-  const clientRet = calculationResult?.client || {};
-  const clientRetAge = ensureString(formData.targetRetireAge || clientRet.retirement_age, '60');
-  const clientYearsToRet = ensureString(clientRet.years_to_retirement, '18');
-  const clientRetPeriod = '18';
-  const clientCorpusReq = formatDisplayVal(clientRet.corpus, '₹52,39,41,846');
-  const clientExpToday = formatDisplayVal(clientRet.monthly_expense_today, '₹10,00,000');
-  const clientExpAtRet = formatDisplayVal(clientRet.monthly_expense_at_ret, '₹28,54,339');
-  const clientMonthlySip = formatDisplayVal(clientRet.monthly_sip, '₹7,43,139');
-  const clientLumpSum = formatDisplayVal(clientRet.lump_sum, '₹6,81,33,183');
-  const clientProvisionsMade = formatDisplayVal(clientRet.provisions_made || calculationResult?.client_provisions_made || formData.provisionsMade || formData.pf_nps_sa, '₹0');
+  // Retirement Summary — Unwrap calcObj from calculationResult if nested
+  const calcObj = calculationResult?.data?.client
+    ? calculationResult.data
+    : (calculationResult?.calculation?.client
+        ? calculationResult.calculation
+        : (calculationResult?.result?.client
+            ? calculationResult.result
+            : (calculationResult?.client ? calculationResult : (calculationResult?.data || calculationResult || {}))));
+
+  const clientRet = calcObj?.client || calcObj?.client_data || {};
+  const spouseRet = calcObj?.spouse || calcObj?.spouse_data || {};
+  const summary = calcObj?.summary || calculationResult?.summary || {};
+
+  const clientRetAge = ensureString(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age, '60');
+  const clientYearsToRet = ensureString(clientRet.years_to_retirement || clientRet.years_until_retirement, '18');
+  const clientRetPeriod = ensureString(clientRet.retirement_period, '18');
+
+  const clientCorpusReq = formatInrFull(
+    clientRet.corpus || clientRet.net_corpus || clientRet.total_corpus || summary.total_retirement_corpus_required || calcObj?.total_retirement_corpus_required
+  );
+
+  const clientExpToday = formatInrFull(
+    clientRet.expenses_today_pm || clientRet.monthly_expense_today || clientRet.expenses_today || calcObj?.expenses_today_pm || formData.currentMonthlyExpense || formData.monthlyExpense
+  );
+
+  const clientExpAtRet = formatInrFull(
+    clientRet.expenses_at_retirement_pm || clientRet.monthly_expense_at_ret || clientRet.expenses_at_retirement || calcObj?.expenses_at_retirement_pm
+  );
+
+  const clientMonthlySip = formatInrFull(
+    clientRet.monthly_sip || summary.monthly_investment_required || calcObj?.monthly_sip
+  );
+
+  const clientLumpSum = formatInrFull(
+    clientRet.lump_sum || calcObj?.lump_sum
+  );
+
+  const clientProvisionsMade = formatInrFull(
+    clientRet.pf_corpus || clientRet.provisions_made || clientRet.pf_nps_sa || calcObj?.client_provisions_made || formData.provisionsMade || formData.pf_nps_sa
+  );
 
   // Insurance
-  const insuranceData = calculationResult?.insurance || {};
-  const totalInsuranceNeed = formatDisplayVal(insuranceData.total_required, '₹31,08,66,558');
+  const insuranceData = calcObj?.insurance || calculationResult?.insurance || {};
+  const totalInsuranceNeed = formatInrFull(
+    insuranceData.total_required || summary.average_insurance_required
+  );
 
   const getGoalIcon = (goalType = '') => {
     const t = goalType.toLowerCase();
@@ -941,7 +999,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                     }}
                   >
                     <div style={{ fontSize: '15px', color: '#ff8c32', fontWeight: 600 }}>
-                      {isForeignTour ? "Approx. Current Cost (per person)" : isEducation ? "Approx. Current Cost" : "Current Cost"}
+                      {isForeignTour || isEducation ? "Approx. Current Cost" : "Current Cost"}
                     </div>
                     <div style={{ fontSize: '26px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{currentCost}</div>
                   </div>
@@ -1039,7 +1097,9 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                         </div>
                         <div>
                           <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{cOpt.name}</div>
-                          <div style={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>{cOpt.cost}</div>
+                          <div style={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>
+                            {cOpt.cost}{cOpt.cost && !cOpt.cost.toLowerCase().includes('per person') ? ' (per person)' : ''}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1280,64 +1340,75 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
-            Insurance<br />Calculations
+            Insurance Need<br />Calculations
           </h1>
           <div style={{ width: '150px', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <img src="/assets/report/real_3d_insurance.png" alt="Shield Hand" style={{ maxWidth: '150px', maxHeight: '130px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
           </div>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', border: '1px solid #cbd5e1', marginTop: '8px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', border: '1px solid #cbd5e1', marginTop: '8px', tableLayout: 'fixed' }}>
           <thead>
             <tr style={{ backgroundColor: '#ff8c32', color: '#000000', fontWeight: 800, textAlign: 'center' }}>
-              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Goals to be protected</th>
-              <th style={{ padding: '12px 8px', border: '1px solid #cbd5e1' }}>For/ After years</th>
-              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>Amount</th>
-              <th style={{ padding: '12px 8px', border: '1px solid #cbd5e1' }}>Today's/ Future cost</th>
-              <th style={{ padding: '12px 10px', border: '1px solid #cbd5e1' }}>INSURANCE REQUIRED</th>
+              <th style={{ width: '23%', padding: '10px 4px', border: '1px solid #cbd5e1', lineHeight: '1.2' }}>Goals to be protected</th>
+              <th style={{ width: '12%', padding: '10px 4px', border: '1px solid #cbd5e1', lineHeight: '1.2' }}>For/ After years</th>
+              <th style={{ width: '24%', padding: '10px 4px', border: '1px solid #cbd5e1', lineHeight: '1.2' }}>Amount</th>
+              <th style={{ width: '14%', padding: '10px 4px', border: '1px solid #cbd5e1', lineHeight: '1.2' }}>Today's/ Future cost</th>
+              <th style={{ width: '27%', padding: '10px 4px', border: '1px solid #cbd5e1', lineHeight: '1.2' }}>INSURANCE REQUIRED</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Household Expense</td>
-              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 1,44,00,000</td>
-              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 21,80,49,597</td>
+              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Household Expense</td>
+              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{clientYearsToRet || 18}</td>
+              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                {formatInrFull(calculationResult.insurance?.items?.[0]?.amount || calculationResult.insurance?.household_expense?.amount, clientExpToday !== '₹0' ? clientExpToday : '₹0')}
+              </td>
+              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
+              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {formatInrFull(calculationResult.insurance?.items?.[0]?.pv || calculationResult.insurance?.household_expense?.insurance_required, '₹0')}
+              </td>
             </tr>
             {goals.length > 0 ? (
               goals.map((g, idx) => {
                 const goalTitle = formatGoalTitle(g, activeChildren, goals) || g.goal_type || g.title || g.goal || 'Lifestyle & Child Goals';
-                const futureVal = formatDisplayVal(g.future_cost, '₹ 21,20,000');
+                const futureVal = formatInrFull(g.future_cost, '₹0');
+                const reqIns = formatInrFull(g.insurance_required || g.required_insurance || g.insurance_need || g.future_cost, '₹0');
                 return (
                   <tr key={idx}>
-                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{goalTitle}</td>
-                    <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
-                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>{futureVal}</td>
-                    <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
-                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 19,62,963</td>
+                    <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{goalTitle}</td>
+                    <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{g.target_year || g.year || 1}</td>
+                    <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>{futureVal}</td>
+                    <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
+                    <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{reqIns}</td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Lifestyle &amp; Child Goals</td>
-                <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 21,20,000</td>
-                <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 19,62,963</td>
+                <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Lifestyle &amp; Child Goals</td>
+                <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
+                <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>₹0</td>
+                <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
+                <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>₹0</td>
               </tr>
             )}
             <tr>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Retirement Income(50 %)</td>
-              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>18</td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right' }}>₹ 60,00,000</td>
-              <td style={{ padding: '12px 8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700 }}>₹ 9,08,53,999</td>
+              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Retirement Income(50 %)</td>
+              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{clientYearsToRet || 18}</td>
+              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                {formatInrFull(calculationResult.insurance?.items?.[2]?.amount || calculationResult.insurance?.retirement_income?.amount, clientCorpusReq !== '₹0' ? clientCorpusReq : '₹0')}
+              </td>
+              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
+              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {formatInrFull(calculationResult.insurance?.items?.[2]?.pv || calculationResult.insurance?.retirement_income?.insurance_required, '₹0')}
+              </td>
             </tr>
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
-              <td colSpan="4" style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontSize: '13px' }}>Total insurance need</td>
-              <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '15px' }}>{totalInsuranceNeed}</td>
+              <td colSpan="4" style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontSize: '12px', color: '#000000' }}>Total insurance need</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '14px', color: '#000000', whiteSpace: 'nowrap' }}>
+                {formatInrFull(insuranceData.total_required || totalInsuranceNeed, '₹0')}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -1385,23 +1456,46 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
             </tr>
           </thead>
           <tbody>
-            {/* Retirement Planning Row */}
+            {/* Retirement Planning Row (Client) */}
             <tr>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>Retirement Planning</td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>{clientRetAge ? `${clientRetAge} Yrs` : '—'}</td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{clientMonthlySip}</td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
+                {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0)
+                  ? 'Retirement Planning (Client)'
+                  : 'Retirement Planning'}
+              </td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
+                {clientRetAge ? `${clientRetAge} Yrs` : '—'}
+              </td>
+              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                {formatInrFull(clientRet?.monthly_sip || clientMonthlySip, '₹0')}
+              </td>
             </tr>
+
+            {/* Retirement Planning Row (Spouse - if active) */}
+            {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0) && (
+              <tr>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
+                  Retirement Planning (Spouse)
+                </td>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
+                  {ensureString(formData.spouseTargetRetireAge || calculationResult.spouse?.retirement_age, '60')} Yrs
+                </td>
+                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                  {formatInrFull(calculationResult.spouse?.monthly_sip, '—')}
+                </td>
+              </tr>
+            )}
 
             {/* Lifestyle & Child Goals Rows */}
             {goals.map((g, idx) => {
               const goalTitle = formatGoalTitle(g, activeChildren, goals);
               const goalYear = ensureString(g.target_year || g.year, '—');
-              const goalSip = formatDisplayVal(g.monthly_sip, '—');
+              const goalSip = formatInrFull(g.monthly_sip, '—');
               return (
                 <tr key={idx}>
                   <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#334155' }}>{goalTitle}</td>
                   <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{goalYear}</td>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>{goalSip}</td>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{goalSip}</td>
                 </tr>
               );
             })}
@@ -1409,13 +1503,13 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
             {/* Combined Total Monthly Investment Row */}
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
               <td colSpan="2" style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontSize: '14px', color: '#000000' }}>Total Monthly Investment</td>
-              <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px', color: '#000000' }}>
+              <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px', color: '#000000', whiteSpace: 'nowrap' }}>
                 {(() => {
                   const clientSipRaw = clientRet?.monthly_sip?.raw || 0;
                   const spouseSipRaw = calculationResult?.spouse?.monthly_sip?.raw || 0;
                   const goalsSipRaw = calculationResult?.goals?.total_monthly_sip?.raw || 0;
                   const sumRaw = Math.round(clientSipRaw + spouseSipRaw + goalsSipRaw);
-                  return sumRaw > 0 ? `₹${sumRaw.toLocaleString('en-IN')}` : totalGoalsMonthlySip;
+                  return sumRaw > 0 ? `₹${sumRaw.toLocaleString('en-IN')}` : formatInrFull(totalGoalsMonthlySip, '₹0');
                 })()}
               </td>
             </tr>

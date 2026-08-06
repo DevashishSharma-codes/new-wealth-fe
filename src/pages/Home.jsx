@@ -108,55 +108,16 @@ const bentoCardShadow =
   "bg-[#F4F1EA] hover:bg-[#EFE9DC] scale-100 hover:scale-[0.985] " +
   "shadow-[2px_2px_6px_rgba(180,172,158,0.3),inset_4px_4px_10px_rgba(180,172,158,0.45),inset_-4px_-4px_10px_rgba(255,255,255,0.9)]";
 
-// Dynamic Morphing Bento Column Span calculator driven by active Spotlight index
-const computeDynamicBentoSpan = (idx, activeIdx, total) => {
-  if (total <= 3) return "lg:col-span-4";
-
-  if (activeIdx === 0) {
-    if (idx === 0) return "lg:col-span-8";
-    if (idx === 1) return "lg:col-span-4";
-    if (idx === 2 || idx === 3 || idx === 4) return "lg:col-span-4";
-    if (idx === 5) return "lg:col-span-12";
-  }
-  if (activeIdx === 1) {
-    if (idx === 0) return "lg:col-span-4";
-    if (idx === 1) return "lg:col-span-8";
-    if (idx === 2 || idx === 3 || idx === 4) return "lg:col-span-4";
-    if (idx === 5) return "lg:col-span-12";
-  }
-  if (activeIdx === 2) {
-    if (idx === 0) return "lg:col-span-7";
-    if (idx === 1) return "lg:col-span-5";
-    if (idx === 2) return "lg:col-span-6";
-    if (idx === 3) return "lg:col-span-3";
-    if (idx === 4) return "lg:col-span-3";
-    if (idx === 5) return "lg:col-span-12";
-  }
-  if (activeIdx === 3) {
-    if (idx === 0) return "lg:col-span-7";
-    if (idx === 1) return "lg:col-span-5";
-    if (idx === 2) return "lg:col-span-3";
-    if (idx === 3) return "lg:col-span-6";
-    if (idx === 4) return "lg:col-span-3";
-    if (idx === 5) return "lg:col-span-12";
-  }
-  if (activeIdx === 4) {
-    if (idx === 0) return "lg:col-span-7";
-    if (idx === 1) return "lg:col-span-5";
-    if (idx === 2) return "lg:col-span-3";
-    if (idx === 3) return "lg:col-span-3";
-    if (idx === 4) return "lg:col-span-6";
-    if (idx === 5) return "lg:col-span-12";
-  }
-  if (activeIdx === 5) {
-    if (idx === 0) return "lg:col-span-6";
-    if (idx === 1) return "lg:col-span-6";
-    if (idx === 2 || idx === 3 || idx === 4) return "lg:col-span-4";
-    if (idx === 5) return "lg:col-span-12";
-  }
-
-  const defaultSpans = ["lg:col-span-7", "lg:col-span-5", "lg:col-span-4", "lg:col-span-4", "lg:col-span-4", "lg:col-span-12"];
-  return defaultSpans[idx % defaultSpans.length];
+// Static Bento Column Span calculator for clean, non-animating Bento grid
+const computeStaticBentoSpan = (idx, total) => {
+  if (total <= 3) return "lg:col-span-4 md:col-span-6";
+  const mod = idx % 6;
+  if (mod === 0) return "lg:col-span-8 md:col-span-12";
+  if (mod === 1) return "lg:col-span-4 md:col-span-6";
+  if (mod === 2) return "lg:col-span-4 md:col-span-6";
+  if (mod === 3) return "lg:col-span-4 md:col-span-6";
+  if (mod === 4) return "lg:col-span-4 md:col-span-6";
+  return "lg:col-span-12 md:col-span-12";
 };
 
 const DEFAULT_SERVICES = [
@@ -450,7 +411,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ---------------- DYNAMIC FRAMER MOTION SPOTLIGHT BENTO GRID SERVICES ---------------- */}
+        {/* ---------------- STATIC BENTO GRID SERVICES WITH HOVER SPOTLIGHT ---------------- */}
         <section id="services" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 scroll-mt-20">
           
           {/* Section Heading Banner */}
@@ -462,39 +423,24 @@ export default function Home() {
               Our Comprehensive Financial Services
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
-              Explore our live dynamic wealth management services. Watch how our bento framework spotlights each financial discipline automatically.
+              Explore our structured wealth management and financial planning disciplines.
             </p>
           </div>
 
-          {/* Framer Motion Auto-Morphing Bento Grid */}
+          {/* Static Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
             {services.map((srv, idx) => {
               const IconComp = DEFAULT_ICONS[idx % DEFAULT_ICONS.length];
-              const spanClass = computeDynamicBentoSpan(idx, spotlightIndex, services.length);
-              const isSpotlight = idx === spotlightIndex;
+              const spanClass = computeStaticBentoSpan(idx, services.length);
 
               return (
-                <motion.div
+                <div
                   key={srv.id || idx}
-                  layout
-                  transition={{
-                    layout: { type: "spring", stiffness: 140, damping: 20, mass: 0.8 }
-                  }}
-                  onMouseEnter={() => {
-                    setSpotlightIndex(idx);
-                    setIsPaused(true);
-                  }}
-                  onMouseLeave={() => setIsPaused(false)}
-                  onClick={() => setSpotlightIndex(idx)}
-                  className={`${spanClass} bg-[#F4F1EA] rounded-[1.25rem] p-4 sm:p-5 flex flex-col justify-between gap-3 group relative overflow-hidden cursor-pointer ${
-                    isSpotlight
-                      ? "border-2 border-[#ED8B36] z-20"
-                      : "border border-[#E8E2D8] hover:border-[#ED8B36]/40"
-                  }`}
+                  onClick={() => setIsContactModalOpen(true)}
+                  className={`${spanClass} bg-[#F4F1EA] rounded-[1.25rem] p-5 flex flex-col justify-between gap-3 group relative overflow-hidden cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] border border-[#E8E2D8] hover:border-2 hover:border-[#ED8B36] hover:shadow-[0_12px_28px_rgba(237,139,54,0.22),inset_4px_4px_10px_rgba(180,172,158,0.35)]`}
                   style={{
-                    boxShadow: isSpotlight
-                      ? "2px 2px 8px rgba(237,139,54,0.35), inset 6px 6px 14px rgba(180,165,145,0.55), inset -6px -6px 14px rgba(255,255,255,1)"
-                      : "2px 2px 6px rgba(180,172,158,0.3), inset 4px 4px 10px rgba(180,172,158,0.45), inset -4px -4px 10px rgba(255,255,255,0.9)",
+                    boxShadow:
+                      "2px 2px 6px rgba(180,172,158,0.3), inset 4px 4px 10px rgba(180,172,158,0.45), inset -4px -4px 10px rgba(255,255,255,0.9)",
                   }}
                 >
                   {/* Glossy Beam Shimmer on Card Hover */}
@@ -502,14 +448,8 @@ export default function Home() {
 
                   <div className="space-y-2 relative z-10">
                     <div className="flex items-center justify-between">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-500 ${
-                        isSpotlight
-                          ? "bg-[#ED8B36] text-white shadow-md"
-                          : "bg-gradient-to-br from-amber-100 to-orange-50 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8)]"
-                      }`}>
-                        <div className={isSpotlight ? "[&_svg]:text-white" : ""}>
-                          <IconComp />
-                        </div>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-100 to-orange-50 text-[#ED8B36] shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8)] group-hover:bg-[#ED8B36] group-hover:text-white group-hover:shadow-md transition-all duration-300">
+                        <IconComp />
                       </div>
 
                       <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#ED8B36] bg-[#FFF6ED] border border-[#F5D7C1] px-2.5 py-0.5 rounded-full shadow-2xs">
@@ -517,23 +457,17 @@ export default function Home() {
                       </span>
                     </div>
 
-                    <h3 className={`font-heading font-bold transition-colors ${
-                      isSpotlight ? "text-lg text-[#1C1B1A]" : "text-base text-[#1E2B49]"
-                    }`}>
+                    <h3 className="font-heading font-bold text-base text-[#1E2B49] group-hover:text-[#ED8B36] transition-colors">
                       {srv.title}
                     </h3>
-                    <p className={`text-xs leading-relaxed transition-all ${
-                      isSpotlight ? "text-slate-700 font-medium line-clamp-3" : "text-slate-500 line-clamp-2"
-                    }`}>
+                    <p className="text-xs text-slate-600 leading-relaxed font-normal group-hover:text-slate-700 transition-colors">
                       {srv.description}
                     </p>
                   </div>
 
                   {/* Card Footer Action */}
                   <div className="pt-2 border-t border-[#E5DFD3]/80 flex items-center justify-between relative z-10">
-                    <span className={`text-[10px] font-extrabold transition-colors ${
-                      isSpotlight ? "text-[#ED8B36]" : "text-[#8E8A80]"
-                    }`}>
+                    <span className="text-[10px] font-extrabold text-[#8E8A80] group-hover:text-[#ED8B36] transition-colors">
                       Explore Service
                     </span>
                     <button
@@ -542,34 +476,14 @@ export default function Home() {
                         e.stopPropagation();
                         setIsContactModalOpen(true);
                       }}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shadow-2xs transition-all duration-300 cursor-pointer ${
-                        isSpotlight
-                          ? "bg-[#ED8B36] text-white shadow-md"
-                          : "bg-white border border-[#E5DFD3] text-[#ED8B36] group-hover:bg-[#ED8B36] group-hover:text-white"
-                      }`}
+                      className="w-6 h-6 rounded-full bg-white border border-[#E5DFD3] text-[#ED8B36] group-hover:bg-[#ED8B36] group-hover:text-white flex items-center justify-center font-bold text-[10px] shadow-2xs group-hover:shadow-md transition-all duration-300 cursor-pointer"
                     >
                       &rarr;
                     </button>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
-          </div>
-
-          {/* Dynamic Spotlight Indicator Dots */}
-          <div className="flex items-center justify-center gap-2 mt-6 select-none">
-            {services.map((_, dotIdx) => (
-              <button
-                key={dotIdx}
-                onClick={() => setSpotlightIndex(dotIdx)}
-                className={`h-2 rounded-full transition-all duration-500 cursor-pointer ${
-                  spotlightIndex === dotIdx
-                    ? "w-8 bg-[#ED8B36] shadow-xs"
-                    : "w-2 bg-[#E5DFD3] hover:bg-[#ED8B36]/50"
-                }`}
-                aria-label={`Jump to service ${dotIdx + 1}`}
-              />
-            ))}
           </div>
         </section>
 

@@ -1,5 +1,32 @@
 import React from 'react';
 
+const formatInrFullString = (val, defaultVal = '₹0') => {
+  if (val === null || val === undefined) return defaultVal;
+  if (typeof val === 'number') return `₹${Math.round(val).toLocaleString('en-IN')}`;
+  if (typeof val === 'object') {
+    if (val.raw !== undefined && typeof val.raw === 'number') {
+      return `₹${Math.round(val.raw).toLocaleString('en-IN')}`;
+    }
+    if (val.inr && typeof val.inr === 'string') return formatInrFullString(val.inr, defaultVal);
+    if (val.formatted && typeof val.formatted === 'string') return formatInrFullString(val.formatted, defaultVal);
+    if (val.display && typeof val.display === 'string') return formatInrFullString(val.display, defaultVal);
+    return defaultVal;
+  }
+  let str = String(val).trim();
+  str = str.replace(/^₹\s+/, '₹');
+  if (str.includes('Cr')) {
+    const numStr = str.replace(/[^0-9.]/g, '');
+    const num = parseFloat(numStr);
+    if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
+  }
+  if (str.includes('Lakh') || str.match(/\bL\b/i)) {
+    const numStr = str.replace(/[^0-9.]/g, '');
+    const num = parseFloat(numStr);
+    if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
+  }
+  return str;
+};
+
 export function GoalsTable({ calculationResult }) {
   if (!calculationResult) return null;
 
@@ -16,9 +43,9 @@ export function GoalsTable({ calculationResult }) {
     items.push({
       goal: 'Retirement Planning (Client)',
       target_year: targetYear,
-      current_cost: { inr: clientRet.expenses_today_pm?.inr ? `${clientRet.expenses_today_pm.inr} p.m.` : '₹0 p.m.' },
-      future_cost: { inr: clientRet.corpus?.inr || '₹0' },
-      monthly_sip: { inr: clientRet.monthly_sip?.inr || '₹0' },
+      current_cost: formatInrFullString(clientRet.expenses_today_pm) + ' p.m.',
+      future_cost: formatInrFullString(clientRet.corpus),
+      monthly_sip: formatInrFullString(clientRet.monthly_sip),
     });
   }
 
@@ -29,15 +56,20 @@ export function GoalsTable({ calculationResult }) {
     items.push({
       goal: 'Retirement Planning (Spouse)',
       target_year: targetYear,
-      current_cost: { inr: spouseRet.expenses_today_pm?.inr ? `${spouseRet.expenses_today_pm.inr} p.m.` : '₹0 p.m.' },
-      future_cost: { inr: spouseRet.corpus?.inr || '₹0' },
-      monthly_sip: { inr: spouseRet.monthly_sip?.inr || '₹0' },
+      current_cost: formatInrFullString(spouseRet.expenses_today_pm) + ' p.m.',
+      future_cost: formatInrFullString(spouseRet.corpus),
+      monthly_sip: formatInrFullString(spouseRet.monthly_sip),
     });
   }
 
   // 3. Add all other goals (Education, Foreign Tour, etc.)
   rawGoalItems.forEach((g) => {
-    items.push(g);
+    items.push({
+      ...g,
+      current_cost_display: formatInrFullString(g.current_cost || g.today_cost),
+      future_cost_display: formatInrFullString(g.future_cost),
+      monthly_sip_display: formatInrFullString(g.monthly_sip),
+    });
   });
 
   if (items.length === 0) return null;
@@ -47,7 +79,7 @@ export function GoalsTable({ calculationResult }) {
   const spouseSipRaw = spouseRet?.monthly_sip?.raw || 0;
   const goalsSipRaw = calculationResult.goals?.total_monthly_sip?.raw || 0;
   const combinedTotalSipRaw = Math.round(clientSipRaw + spouseSipRaw + goalsSipRaw);
-  const totalSipDisplay = combinedTotalSipRaw > 0 ? `₹${combinedTotalSipRaw.toLocaleString('en-IN')}` : (calculationResult.goals?.total_monthly_sip?.inr || '₹0');
+  const totalSipDisplay = combinedTotalSipRaw > 0 ? `₹${combinedTotalSipRaw.toLocaleString('en-IN')}` : formatInrFullString(calculationResult.goals?.total_monthly_sip);
 
   return (
     <div className="space-y-4">
@@ -68,17 +100,18 @@ export function GoalsTable({ calculationResult }) {
           </thead>
           <tbody className="divide-y divide-[#EFE9DF]/30 text-[#1C1B1A]">
             {items.map((g, idx) => {
-              const isForeignTour = (g.goal || '').toLowerCase().includes('foreign') || (g.goal || '').toLowerCase().includes('tour') || (g.goal || '').toLowerCase().includes('vacation') || (g.goal || '').toLowerCase().includes('trip');
-              const costDisplay = g.current_cost?.inr || g.today_cost || '₹0';
+              const costDisplay = g.current_cost_display || g.current_cost || '₹0';
+              const futureDisplay = g.future_cost_display || g.future_cost || '₹0';
+              const sipDisplay = g.monthly_sip_display || g.monthly_sip || '₹0';
               return (
                 <tr key={idx} className="bg-white/60 hover:bg-white/90 transition-colors">
                   <td className="px-4 py-3 font-semibold">{g.goal}</td>
                   <td className="px-4 py-3 text-center text-slate-600 whitespace-nowrap">{g.target_year}</td>
                   <td className="px-4 py-3 text-right font-medium whitespace-nowrap">
-                    {costDisplay}{isForeignTour && !costDisplay.includes('per person') ? ' (per person)' : ''}
+                    {costDisplay}
                   </td>
-                  <td className="px-4 py-3 text-right font-medium whitespace-nowrap">{g.future_cost?.inr || '₹0'}</td>
-                  <td className="px-4 py-3 text-right font-bold text-[#ED8B36] whitespace-nowrap">{g.monthly_sip?.inr || '₹0'}</td>
+                  <td className="px-4 py-3 text-right font-medium whitespace-nowrap">{futureDisplay}</td>
+                  <td className="px-4 py-3 text-right font-bold text-[#ED8B36] whitespace-nowrap">{sipDisplay}</td>
                 </tr>
               );
             })}

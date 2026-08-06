@@ -186,31 +186,42 @@ export function ReportView() {
 
   const getMoneyDisplay = (money) => {
     if (!money) return "₹0";
-    if (money.raw === 0) return "₹0";
-    return money.inr || "₹0";
+    if (typeof money === 'number') return `₹${Math.round(money).toLocaleString('en-IN')}`;
+    if (typeof money === 'object') {
+      if (money.raw !== undefined && typeof money.raw === 'number') {
+        return `₹${Math.round(money.raw).toLocaleString('en-IN')}`;
+      }
+      let str = money.inr || money.formatted || money.display || "₹0";
+      return formatInrFullString(str);
+    }
+    return formatInrFullString(String(money));
   };
 
-  let displayInsurance = "₹0";
-  let displayCorpus = "₹0";
-  let displayMonthly = "₹0";
+  const formatInrFullString = (str) => {
+    if (!str) return "₹0";
+    let cleaned = String(str).trim().replace(/^₹\s+/, '₹');
+    if (cleaned.includes('Cr')) {
+      const num = parseFloat(cleaned.replace(/[^0-9.]/g, ''));
+      if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
+    }
+    if (cleaned.includes('Lakh') || cleaned.match(/\bL\b/i)) {
+      const num = parseFloat(cleaned.replace(/[^0-9.]/g, ''));
+      if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
+    }
+    return cleaned;
+  };
 
-  if (calculationResult.summary) {
-    displayInsurance = getMoneyDisplay(calculationResult.summary.average_insurance_required);
-    displayCorpus = getMoneyDisplay(calculationResult.summary.total_retirement_corpus_required);
-    displayMonthly = getMoneyDisplay(calculationResult.summary.monthly_investment_required);
-  } else {
-    const insRaw = calculationResult.insurance?.total_required?.raw || 0;
-    displayInsurance = `₹${(insRaw / 10000000).toFixed(2)} Cr`;
+  const displayInsurance = getMoneyDisplay(
+    calculationResult.summary?.average_insurance_required || calculationResult.insurance?.total_required
+  );
 
-    const clientCorpus = calculationResult.client?.corpus?.raw || 0;
-    const spouseCorpus = calculationResult.spouse?.corpus?.raw || 0;
-    displayCorpus = `₹${((clientCorpus + spouseCorpus) / 10000000).toFixed(2)} Cr`;
+  const displayCorpus = getMoneyDisplay(
+    calculationResult.summary?.total_retirement_corpus_required || calculationResult.client?.corpus
+  );
 
-    const clientSip = calculationResult.client?.monthly_sip?.raw || 0;
-    const spouseSip = calculationResult.spouse?.monthly_sip?.raw || 0;
-    const goalsSip = calculationResult.goals?.total_monthly_sip?.raw || 0;
-    displayMonthly = `₹${Math.round(clientSip + spouseSip + goalsSip).toLocaleString('en-IN')}`;
-  }
+  const displayMonthly = getMoneyDisplay(
+    calculationResult.summary?.monthly_investment_required || calculationResult.client?.monthly_sip
+  );
 
 
   const hasGoals = calculationResult.goals?.items?.length > 0;

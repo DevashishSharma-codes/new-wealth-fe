@@ -266,10 +266,12 @@ export function Step4LifestyleGoals() {
                           <div className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                               {/* Target Year */}
-                              <div className="space-y-1.5">
-                                <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
-                                  Target Year
-                                </label>
+                              <div className="space-y-1.5 flex flex-col justify-end">
+                                <div className="min-h-[42px] flex items-end">
+                                  <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
+                                    Target Year
+                                  </label>
+                                </div>
                                 <input
                                   type="number"
                                   value={goal.targetYear || ''}
@@ -290,10 +292,12 @@ export function Step4LifestyleGoals() {
                               </div>
 
                               {/* Today's Cost (per person) */}
-                              <div className="space-y-1.5">
-                                <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
-                                  Approx. Today's Cost (per person)
-                                </label>
+                              <div className="space-y-1.5 flex flex-col justify-end">
+                                <div className="min-h-[42px] flex items-end">
+                                  <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
+                                    Approx. Today's Cost (per person)
+                                  </label>
+                                </div>
                                 <input
                                   type="number"
                                   value={
@@ -327,10 +331,12 @@ export function Step4LifestyleGoals() {
                               </div>
 
                               {/* Number of People */}
-                              <div className="space-y-1.5">
-                                <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
-                                  Number of People
-                                </label>
+                              <div className="space-y-1.5 flex flex-col justify-end">
+                                <div className="min-h-[42px] flex items-end">
+                                  <label className="block text-[13px] font-bold tracking-wide select-none" style={{ color: TEXT_DARK }}>
+                                    Number of People
+                                  </label>
+                                </div>
                                 <input
                                   type="number"
                                   min="1"
@@ -510,13 +516,15 @@ export function Step4LifestyleGoals() {
                     {/* Input grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {/* Goal Name */}
-                      <div className="space-y-1.5 sm:col-span-1">
-                        <label
-                          className="block text-[13px] font-bold tracking-wide select-none"
-                          style={{ color: TEXT_DARK }}
-                        >
-                          Goal Name
-                        </label>
+                      <div className="space-y-1.5 sm:col-span-1 flex flex-col justify-end">
+                        <div className="min-h-[42px] flex items-end">
+                          <label
+                            className="block text-[13px] font-bold tracking-wide select-none"
+                            style={{ color: TEXT_DARK }}
+                          >
+                            Goal Name
+                          </label>
+                        </div>
                         <input
                           type="text"
                           value={goal.goalName || ''}
@@ -531,13 +539,15 @@ export function Step4LifestyleGoals() {
                       </div>
 
                       {/* Target Year */}
-                      <div className="space-y-1.5">
-                        <label
-                          className="block text-[13px] font-bold tracking-wide select-none"
-                          style={{ color: TEXT_DARK }}
-                        >
-                          Target Year
-                        </label>
+                      <div className="space-y-1.5 flex flex-col justify-end">
+                        <div className="min-h-[42px] flex items-end">
+                          <label
+                            className="block text-[13px] font-bold tracking-wide select-none"
+                            style={{ color: TEXT_DARK }}
+                          >
+                            Target Year
+                          </label>
+                        </div>
                         <input
                           type="number"
                           value={goal.targetYear || ''}
@@ -560,13 +570,15 @@ export function Step4LifestyleGoals() {
                       </div>
 
                       {/* Today's Cost */}
-                      <div className="space-y-1.5">
-                        <label
-                          className="block text-[13px] font-bold tracking-wide select-none"
-                          style={{ color: TEXT_DARK }}
-                        >
-                          Today's Cost
-                        </label>
+                      <div className="space-y-1.5 flex flex-col justify-end">
+                        <div className="min-h-[42px] flex items-end">
+                          <label
+                            className="block text-[13px] font-bold tracking-wide select-none"
+                            style={{ color: TEXT_DARK }}
+                          >
+                            Today's Cost
+                          </label>
+                        </div>
                         <input
                           type="number"
                           value={goal.todaysCost || ''}

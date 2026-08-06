@@ -18,6 +18,7 @@ export function ReportView() {
     reportId,
     reportMessage,
     formData,
+    reportData,
     activeGoals,
     childrenCount,
     childrenData,
@@ -55,6 +56,11 @@ export function ReportView() {
     return () => clearInterval(interval);
   }, [isGeneratingPdf, isAutoPreparingPdf, pdfBlob]);
 
+  const pdfBlobRef = useRef(pdfBlob);
+  useEffect(() => {
+    pdfBlobRef.current = pdfBlob;
+  }, [pdfBlob]);
+
   useEffect(() => {
     if (!calculationResult || autoPreparedRef.current) return;
 
@@ -70,18 +76,18 @@ export function ReportView() {
         return;
       }
 
-      // Mark as auto-prepared ONLY AFTER container ref is confirmed present
       autoPreparedRef.current = true;
       setIsAutoPreparingPdf(true);
 
       try {
-        console.log("[ReportView] Auto-generating PDF blob on frontend after Step 5 completion...");
+        console.log("[ReportView] Auto pre-generating PDF blob on frontend after Step 5 completion...");
         const filename = `wealth-wisdom-report-${assessmentId ? assessmentId.substring(0, 8) : 'assessment'}.pdf`;
         
-        // 1. Generate PDF blob in memory
+        // 1. Pre-generate PDF blob in memory
         const blob = await generateFullFrontendPdf(fullReportRef.current, filename, false);
         setPdfBlob(blob);
-        console.log("[ReportView] Frontend PDF generated successfully! Size:", blob.size);
+        pdfBlobRef.current = blob;
+        console.log("[ReportView] Frontend pre-generated PDF ready! Size:", blob.size);
 
         // 2. Upload PDF blob directly to backend POST /api/v1/report/{assessment_id}/upload
         if (assessmentId) {
@@ -111,11 +117,6 @@ export function ReportView() {
     setIsContactModalOpen(true);
   };
 
-  const pdfBlobRef = useRef(pdfBlob);
-  useEffect(() => {
-    pdfBlobRef.current = pdfBlob;
-  }, [pdfBlob]);
-
   const handleDownloadClick = async () => {
     const filename = `wealth-wisdom-report-${assessmentId ? assessmentId.substring(0, 8) : 'download'}.pdf`;
 
@@ -126,6 +127,7 @@ export function ReportView() {
       return;
     }
 
+    // If pre-generation is still running, wait for it, else generate on demand
     setIsGeneratingPdf(true);
     let attempts = 0;
     const interval = setInterval(() => {
@@ -135,12 +137,13 @@ export function ReportView() {
         setIsGeneratingPdf(false);
         console.log("[ReportView] Background PDF ready! Triggering instant download.");
         triggerBlobDownload(pdfBlobRef.current, filename);
-      } else if (attempts > 30) {
+      } else if (attempts > 35) {
         clearInterval(interval);
-        console.log("[ReportView] Background PDF timeout, generating on-demand...");
+        console.log("[ReportView] Background PDF wait timeout, generating on demand...");
         generateFullFrontendPdf(fullReportRef.current, filename, false)
           .then((blob) => {
             setPdfBlob(blob);
+            pdfBlobRef.current = blob;
             triggerBlobDownload(blob, filename);
           })
           .catch((err) => alert("Download failed: " + err.message))
@@ -211,16 +214,24 @@ export function ReportView() {
     return cleaned;
   };
 
+  const invSummary = calculationResult?.investment_summary || 
+                     calculationResult?.data?.investment_summary || 
+                     calculationResult?.calculation?.investment_summary ||
+                     reportData?.investment_summary ||
+                     reportData?.data?.investment_summary;
+
   const displayInsurance = getMoneyDisplay(
-    calculationResult.summary?.average_insurance_required || calculationResult.insurance?.total_required
+    calculationResult.summary?.average_insurance_required || calculationResult.insurance?.total_required || reportData?.insurance?.total_required
   );
 
   const displayCorpus = getMoneyDisplay(
-    calculationResult.summary?.total_retirement_corpus_required || calculationResult.client?.corpus
+    calculationResult.summary?.total_retirement_corpus_required || calculationResult.client?.corpus || reportData?.summary?.total_retirement_corpus_required
   );
 
   const displayMonthly = getMoneyDisplay(
-    calculationResult.summary?.monthly_investment_required || calculationResult.client?.monthly_sip
+    invSummary?.total_monthly_investment ||
+    calculationResult.summary?.monthly_investment_required ||
+    calculationResult.client?.monthly_sip
   );
 
 
@@ -745,6 +756,7 @@ export function ReportView() {
           formData={{ ...formData, activeGoals, goals: activeGoals }}
           childrenData={childrenData}
           calculationResult={calculationResult}
+          reportData={reportData}
           services={services}
           testimonials={testimonials}
           assessmentId={assessmentId}

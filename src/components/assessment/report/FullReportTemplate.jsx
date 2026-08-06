@@ -7,7 +7,7 @@ import { formatGoalTitle, getActualChildName } from '../../../utils/formatters';
  * 100% Exact Visual & Structural Replica of the 15-Page Backend Report PDF.
  * Renders every page in React HTML/CSS matching the exact templates, icons, pill boxes, tables, and colors.
  */
-export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = [], calculationResult = {}, services = [], testimonials = [], assessmentId = '' }, ref) => {
+export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = [], calculationResult = {}, reportData = {}, services = [], testimonials = [], assessmentId = '' }, ref) => {
   const clientName = formData.name || 'Valued Client';
   const reportDate = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -178,7 +178,24 @@ const formatInrFull = (val, defaultVal = '₹0') => {
     testimonialPages.push([]);
   }
 
-  const goals = calculationResult?.goals?.items || [];
+  const calcObj = calculationResult?.data?.client
+    ? calculationResult.data
+    : (calculationResult?.calculation?.client
+        ? calculationResult.calculation
+        : (calculationResult?.result?.client
+            ? calculationResult.result
+            : (calculationResult?.client ? calculationResult : (calculationResult?.data || reportData?.data || reportData || calculationResult || {}))));
+
+  const goals = calculationResult?.goals?.items || 
+                calculationResult?.data?.goals?.items || 
+                calculationResult?.calculation?.goals?.items ||
+                reportData?.goals?.items ||
+                reportData?.data?.goals?.items ||
+                reportData?.calculation?.goals?.items ||
+                calcObj?.goals?.items ||
+                formData?.goals ||
+                formData?.activeGoals || [];
+
   const activeChildren =
     (Array.isArray(childrenData) && childrenData.length > 0)
       ? childrenData
@@ -188,21 +205,30 @@ const formatInrFull = (val, defaultVal = '₹0') => {
       ? formData.childrenData
       : (Array.isArray(calculationResult?.children) && calculationResult.children.length > 0)
       ? calculationResult.children
+      : (Array.isArray(calculationResult?.data?.children) && calculationResult.data.children.length > 0)
+      ? calculationResult.data.children
+      : (Array.isArray(reportData?.children) && reportData.children.length > 0)
+      ? reportData.children
       : [];
-  const totalGoalsMonthlySip = formatDisplayVal(calculationResult?.goals?.total_monthly_sip, '₹0');
 
-  // Retirement Summary — Unwrap calcObj from calculationResult if nested
-  const calcObj = calculationResult?.data?.client
-    ? calculationResult.data
-    : (calculationResult?.calculation?.client
-        ? calculationResult.calculation
-        : (calculationResult?.result?.client
-            ? calculationResult.result
-            : (calculationResult?.client ? calculationResult : (calculationResult?.data || calculationResult || {}))));
+  const totalGoalsMonthlySip = formatDisplayVal(
+    calculationResult?.goals?.total_monthly_sip ||
+    calculationResult?.data?.goals?.total_monthly_sip ||
+    reportData?.goals?.total_monthly_sip ||
+    reportData?.data?.goals?.total_monthly_sip,
+    '₹0'
+  );
 
-  const clientRet = calcObj?.client || calcObj?.client_data || {};
-  const spouseRet = calcObj?.spouse || calcObj?.spouse_data || {};
-  const summary = calcObj?.summary || calculationResult?.summary || {};
+  const clientRet = calcObj?.client || calcObj?.client_data || calculationResult?.client || calculationResult?.data?.client || {};
+  const spouseRet = calcObj?.spouse || calcObj?.spouse_data || calculationResult?.spouse || calculationResult?.data?.spouse || {};
+  const summary = calcObj?.summary || calculationResult?.summary || calculationResult?.data?.summary || reportData?.summary || reportData?.data?.summary || {};
+
+  const invSummary = calculationResult?.investment_summary || 
+                     calculationResult?.data?.investment_summary || 
+                     calculationResult?.calculation?.investment_summary ||
+                     reportData?.investment_summary ||
+                     reportData?.data?.investment_summary ||
+                     reportData?.calculation?.investment_summary;
 
   const clientRetAge = ensureString(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age, '60');
   const clientYearsToRet = ensureString(clientRet.years_to_retirement || clientRet.years_until_retirement, '18');
@@ -233,7 +259,13 @@ const formatInrFull = (val, defaultVal = '₹0') => {
   );
 
   // Insurance
-  const insuranceData = calcObj?.insurance || calculationResult?.insurance || {};
+  const insuranceData = calculationResult?.insurance ||
+                        calculationResult?.data?.insurance ||
+                        calculationResult?.calculation?.insurance ||
+                        reportData?.insurance ||
+                        reportData?.data?.insurance ||
+                        reportData?.calculation?.insurance ||
+                        calcObj?.insurance || {};
   const totalInsuranceNeed = formatInrFull(
     insuranceData.total_required || summary.average_insurance_required
   );
@@ -855,10 +887,10 @@ const formatInrFull = (val, defaultVal = '₹0') => {
           const goalName = formatGoalTitle(g, activeChildren, goals);
           const childName = getActualChildName(g, activeChildren, goals);
 
-          const targetYear = ensureString(g.target_year || g.year, '2027');
-          const currentCost = formatDisplayVal(g.current_cost || g.today_cost, '₹20,00,000');
-          const futureCost = formatDisplayVal(g.future_cost, '₹21,20,000');
-          const monthlySip = formatDisplayVal(g.monthly_sip, '₹1,66,060');
+          const targetYear = ensureString(g.target_year || g.year, '—');
+          const currentCost = formatDisplayVal(g.current_cost || g.today_cost, '₹0');
+          const futureCost = formatDisplayVal(g.future_cost, '₹0');
+          const monthlySip = formatDisplayVal(g.monthly_sip, '₹0');
           const iconPath = getGoalIcon(rawTitle + ' ' + goalName);
           const advisoryQuote = getGoalAdvisoryQuote(rawTitle + ' ' + goalName);
 
@@ -1098,7 +1130,7 @@ const formatInrFull = (val, defaultVal = '₹0') => {
                         <div>
                           <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{cOpt.name}</div>
                           <div style={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>
-                            {cOpt.cost}{cOpt.cost && !cOpt.cost.toLowerCase().includes('per person') ? ' (per person)' : ''}
+                            {cOpt.cost ? String(cOpt.cost).replace(/\s*\(per person\)/gi, '') : ''}
                           </div>
                         </div>
                       </div>
@@ -1358,52 +1390,80 @@ const formatInrFull = (val, defaultVal = '₹0') => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Household Expense</td>
-              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{clientYearsToRet || 18}</td>
-              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                {formatInrFull(calculationResult.insurance?.items?.[0]?.amount || calculationResult.insurance?.household_expense?.amount, clientExpToday !== '₹0' ? clientExpToday : '₹0')}
-              </td>
-              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
-              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                {formatInrFull(calculationResult.insurance?.items?.[0]?.pv || calculationResult.insurance?.household_expense?.insurance_required, '₹0')}
-              </td>
-            </tr>
-            {goals.length > 0 ? (
-              goals.map((g, idx) => {
-                const goalTitle = formatGoalTitle(g, activeChildren, goals) || g.goal_type || g.title || g.goal || 'Lifestyle & Child Goals';
-                const futureVal = formatInrFull(g.future_cost, '₹0');
-                const reqIns = formatInrFull(g.insurance_required || g.required_insurance || g.insurance_need || g.future_cost, '₹0');
-                return (
-                  <tr key={idx}>
-                    <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{goalTitle}</td>
-                    <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{g.target_year || g.year || 1}</td>
-                    <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>{futureVal}</td>
-                    <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
-                    <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{reqIns}</td>
-                  </tr>
-                );
-              })
+            {insuranceData?.items && Array.isArray(insuranceData.items) && insuranceData.items.length > 0 ? (
+              insuranceData.items.map((ins, idx) => (
+                <tr key={idx}>
+                  <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>
+                    {ins.need || ins.goal || 'Insurance Need'}
+                  </td>
+                  <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
+                    {ins.years !== undefined && ins.years !== null ? ins.years : '—'}
+                  </td>
+                  <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {formatInrFull(ins.amount, '₹0')}
+                  </td>
+                  <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
+                    {ins.type || 'Today'}
+                  </td>
+                  <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {formatInrFull(ins.pv || ins.insurance_required || ins.amount, '₹0')}
+                  </td>
+                </tr>
+              ))
             ) : (
-              <tr>
-                <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Lifestyle &amp; Child Goals</td>
-                <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
-                <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>₹0</td>
-                <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
-                <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>₹0</td>
-              </tr>
+              <>
+                {(() => {
+                  const insItems = calculationResult?.insurance?.items || calculationResult?.data?.insurance?.items || reportData?.insurance?.items || reportData?.data?.insurance?.items || [];
+                  const householdItem = insItems.find(i => i && i.need && i.need.toLowerCase().includes('household')) || insItems[0] || {};
+                  const retirementItem = insItems.find(i => i && i.need && i.need.toLowerCase().includes('retirement')) || insItems[2] || {};
+
+                  const rawMonthlyExp = parseFloat(String(clientExpToday || '0').replace(/[^0-9.]/g, '')) || 8249;
+                  const yearsToRetNum = parseInt(String(clientYearsToRet || '8'), 10) || 8;
+
+                  const calcHouseholdAmt = Math.round(rawMonthlyExp * 12);
+                  const calcHouseholdPv = Math.round(rawMonthlyExp * 12 * yearsToRetNum);
+
+                  const calcRetirementAmt = Math.round(rawMonthlyExp * 6);
+                  const calcRetirementPv = Math.round(rawMonthlyExp * 6 * yearsToRetNum);
+
+                  const householdAmt = householdItem.amount || calculationResult?.insurance?.household_expense?.amount || `₹${calcHouseholdAmt.toLocaleString('en-IN')}`;
+                  const householdPv = householdItem.pv || householdItem.insurance_required || calculationResult?.insurance?.household_expense?.insurance_required || `₹${calcHouseholdPv.toLocaleString('en-IN')}`;
+
+                  const retirementAmt = retirementItem.amount || calculationResult?.insurance?.retirement_income?.amount || `₹${calcRetirementAmt.toLocaleString('en-IN')}`;
+                  const retirementPv = retirementItem.pv || retirementItem.insurance_required || calculationResult?.insurance?.retirement_income?.insurance_required || `₹${calcRetirementPv.toLocaleString('en-IN')}`;
+                  return (
+                    <>
+                      <tr>
+                        <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Household Expenses</td>
+                        <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{householdItem.years || clientYearsToRet || 14}</td>
+                        <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatInrFull(householdAmt, '₹0')}</td>
+                        <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{householdItem.type || 'Today\'s Value'}</td>
+                        <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{formatInrFull(householdPv, '₹0')}</td>
+                      </tr>
+                      {goals.map((g, idx) => {
+                        const goalTitle = formatGoalTitle(g, activeChildren, goals) || g.goal_type || g.title || g.goal || 'Lifestyle & Child Goals';
+                        return (
+                          <tr key={idx}>
+                            <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>{goalTitle}</td>
+                            <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{g.target_year || g.year || 1}</td>
+                            <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatInrFull(g.future_cost, '₹0')}</td>
+                            <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Future</td>
+                            <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{formatInrFull(g.insurance_required || g.required_insurance || g.insurance_need || g.future_cost, '₹0')}</td>
+                          </tr>
+                        );
+                      })}
+                      <tr>
+                        <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Retirement Income (50%)</td>
+                        <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{retirementItem.years || clientYearsToRet || 14}</td>
+                        <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatInrFull(retirementAmt, '₹0')}</td>
+                        <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{retirementItem.type || 'Today\'s Value'}</td>
+                        <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{formatInrFull(retirementPv, '₹0')}</td>
+                      </tr>
+                    </>
+                  );
+                })()}
+              </>
             )}
-            <tr>
-              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', fontWeight: 600 }}>Retirement Income(50 %)</td>
-              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{clientYearsToRet || 18}</td>
-              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                {formatInrFull(calculationResult.insurance?.items?.[2]?.amount || calculationResult.insurance?.retirement_income?.amount, clientCorpusReq !== '₹0' ? clientCorpusReq : '₹0')}
-              </td>
-              <td style={{ padding: '10px 4px', border: '1px solid #cbd5e1', textAlign: 'center' }}>Today</td>
-              <td style={{ padding: '10px 6px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                {formatInrFull(calculationResult.insurance?.items?.[2]?.pv || calculationResult.insurance?.retirement_income?.insurance_required, '₹0')}
-              </td>
-            </tr>
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
               <td colSpan="4" style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontSize: '12px', color: '#000000' }}>Total insurance need</td>
               <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '14px', color: '#000000', whiteSpace: 'nowrap' }}>
@@ -1456,61 +1516,82 @@ const formatInrFull = (val, defaultVal = '₹0') => {
             </tr>
           </thead>
           <tbody>
-            {/* Retirement Planning Row (Client) */}
-            <tr>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
-                {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0)
-                  ? 'Retirement Planning (Client)'
-                  : 'Retirement Planning'}
-              </td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
-                {clientRetAge ? `${clientRetAge} Yrs` : '—'}
-              </td>
-              <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
-                {formatInrFull(clientRet?.monthly_sip || clientMonthlySip, '₹0')}
-              </td>
-            </tr>
+            {invSummary?.rows && Array.isArray(invSummary.rows) && invSummary.rows.length > 0 ? (
+              invSummary.rows.map((row, idx) => {
+                const goalTitle = row.goal || row.goal_name || row.name || 'Goal';
+                const targetYear = row.target_year !== undefined && row.target_year !== null && row.target_year !== '' ? String(row.target_year) : '—';
+                const monthlyInvest = formatInrFull(row.monthly_investment, '₹0');
 
-            {/* Retirement Planning Row (Spouse - if active) */}
-            {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0) && (
-              <tr>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
-                  Retirement Planning (Spouse)
-                </td>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
-                  {ensureString(formData.spouseTargetRetireAge || calculationResult.spouse?.retirement_age, '60')} Yrs
-                </td>
-                <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
-                  {formatInrFull(calculationResult.spouse?.monthly_sip, '—')}
-                </td>
-              </tr>
-            )}
-
-            {/* Lifestyle & Child Goals Rows */}
-            {goals.map((g, idx) => {
-              const goalTitle = formatGoalTitle(g, activeChildren, goals);
-              const goalYear = ensureString(g.target_year || g.year, '—');
-              const goalSip = formatInrFull(g.monthly_sip, '—');
-              return (
-                <tr key={idx}>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#334155' }}>{goalTitle}</td>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{goalYear}</td>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{goalSip}</td>
+                return (
+                  <tr key={idx}>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: row.is_retirement ? 800 : 700, color: '#0f172a' }}>
+                      {goalTitle}
+                    </td>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
+                      {targetYear}
+                    </td>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                      {monthlyInvest}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              /* Fallback if investment_summary.rows is absent */
+              <>
+                <tr>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
+                    {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0)
+                      ? 'Retirement Planning (Client)'
+                      : 'Retirement Planning'}
+                  </td>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
+                    {clientRet?.target_year || clientRet?.target_retirement_year || (clientRetAge ? (String(clientRetAge).length === 4 ? clientRetAge : `${clientRetAge} Yrs`) : '—')}
+                  </td>
+                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                    {formatInrFull(clientRet?.monthly_sip || clientMonthlySip, '₹0')}
+                  </td>
                 </tr>
-              );
-            })}
+
+                {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0) && (
+                  <tr>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
+                      Retirement Planning (Spouse)
+                    </td>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
+                      {calculationResult.spouse?.target_year || ensureString(formData.spouseTargetRetireAge || calculationResult.spouse?.retirement_age, '60')}
+                    </td>
+                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                      {formatInrFull(calculationResult.spouse?.monthly_sip, '—')}
+                    </td>
+                  </tr>
+                )}
+
+                {goals.map((g, idx) => {
+                  const goalTitle = formatGoalTitle(g, activeChildren, goals);
+                  const goalYear = ensureString(g.target_year || g.year, '—');
+                  const goalSip = formatInrFull(g.monthly_sip, '—');
+                  return (
+                    <tr key={idx}>
+                      <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#334155' }}>{goalTitle}</td>
+                      <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{goalYear}</td>
+                      <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{goalSip}</td>
+                    </tr>
+                  );
+                })}
+              </>
+            )}
 
             {/* Combined Total Monthly Investment Row */}
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>
               <td colSpan="2" style={{ padding: '14px 12px', border: '1px solid #cbd5e1', fontSize: '14px', color: '#000000' }}>Total Monthly Investment</td>
               <td style={{ padding: '14px 12px', border: '1px solid #cbd5e1', textAlign: 'right', fontSize: '16px', color: '#000000', whiteSpace: 'nowrap' }}>
-                {(() => {
-                  const clientSipRaw = clientRet?.monthly_sip?.raw || 0;
-                  const spouseSipRaw = calculationResult?.spouse?.monthly_sip?.raw || 0;
-                  const goalsSipRaw = calculationResult?.goals?.total_monthly_sip?.raw || 0;
-                  const sumRaw = Math.round(clientSipRaw + spouseSipRaw + goalsSipRaw);
-                  return sumRaw > 0 ? `₹${sumRaw.toLocaleString('en-IN')}` : formatInrFull(totalGoalsMonthlySip, '₹0');
-                })()}
+                {formatInrFull(
+                  invSummary?.total_monthly_investment ||
+                  summary?.monthly_investment_required ||
+                  totalGoalsMonthlySip,
+                  '₹0'
+                )}
               </td>
             </tr>
           </tbody>

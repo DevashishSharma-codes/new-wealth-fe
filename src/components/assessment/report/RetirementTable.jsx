@@ -30,6 +30,14 @@ const formatInrFullString = (val, defaultVal = '₹0') => {
 export function RetirementTable({ formData, calculationResult }) {
   if (!calculationResult) return null;
 
+  const clientRet = calculationResult.client || calculationResult.data?.client;
+  const spouseRet = calculationResult.spouse || calculationResult.data?.spouse;
+
+  if (!clientRet) return null;
+
+  const clientTargetAge = formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age || 60;
+  const spouseTargetAge = formData.spouseTargetRetireAge || spouseRet?.retirement_age || spouseRet?.target_retirement_age || 60;
+
   return (
     <div className="space-y-6">
       <h3 className="text-sm font-bold text-[#E56A1F] uppercase tracking-wider flex items-center gap-2">
@@ -46,47 +54,47 @@ export function RetirementTable({ formData, calculationResult }) {
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
               <span className="text-[#A69E90] block">Target Retirement Age</span>
-              <span className="font-bold text-[#1C1B1A]">{calculationResult.client.years_to_retirement + calculationResult.client.retirement_period - 20} Years</span>
+              <span className="font-bold text-[#1C1B1A]">{clientTargetAge} Years</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Years to Retirement</span>
-              <span className="font-bold text-[#1C1B1A]">{calculationResult.client.years_to_retirement} Years</span>
+              <span className="font-bold text-[#1C1B1A]">{clientRet.years_to_retirement || 0} Years</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Monthly Expense P.M. (Today)</span>
-              <span className="font-bold text-[#1C1B1A]">{formatInrFullString(calculationResult.client.expenses_today_pm)}</span>
+              <span className="font-bold text-[#1C1B1A]">{formatInrFullString(clientRet.expenses_today_pm)}</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Inflation-Adjusted Expense (P.M.)</span>
-              <span className="font-bold text-[#1C1B1A]">{formatInrFullString(calculationResult.client.expenses_at_retirement_pm)}</span>
+              <span className="font-bold text-[#1C1B1A]">{formatInrFullString(clientRet.expenses_at_retirement_pm)}</span>
             </div>
             <div className="col-span-2 border-t border-[#E5E2DA] pt-3">
               <span className="text-[#A69E90] block">Total Required Corpus</span>
-              <span className="font-extrabold text-base text-[#1E2B49]">{formatInrFullString(calculationResult.client.corpus)}</span>
+              <span className="font-extrabold text-base text-[#1E2B49]">{formatInrFullString(clientRet.corpus)}</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Projected PF Corpus</span>
-              <span className="font-bold text-slate-700">{formatInrFullString(calculationResult.client.pf_corpus)}</span>
+              <span className="font-bold text-slate-700">{formatInrFullString(clientRet.pf_corpus)}</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Corpus Deficit Gap</span>
-              <span className="font-bold text-[#E56A1F]">{formatInrFullString(calculationResult.client.net_corpus)}</span>
+              <span className="font-bold text-[#E56A1F]">{formatInrFullString(clientRet.net_corpus)}</span>
             </div>
             <div className="col-span-2 border-t border-[#E5E2DA] pt-3 grid grid-cols-2 gap-4">
               <div>
                 <span className="text-[#A69E90] block">Monthly SIP Required</span>
-                <span className="font-bold text-[#ED8B36]">{formatInrFullString(calculationResult.client.monthly_sip)} / mo</span>
+                <span className="font-bold text-[#ED8B36]">{formatInrFullString(clientRet.monthly_sip)} / mo</span>
               </div>
               <div>
                 <span className="text-[#A69E90] block">Lump Sum Alternative</span>
-                <span className="font-bold text-slate-800">{formatInrFullString(calculationResult.client.lump_sum)}</span>
+                <span className="font-bold text-slate-800">{formatInrFullString(clientRet.lump_sum)}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Spouse card */}
-        {calculationResult.spouse && calculationResult.spouse.corpus?.raw > 0 ? (
+        {spouseRet && spouseRet.corpus?.raw > 0 ? (
           <div className="neu-card-raised rounded-2xl p-5 space-y-4">
             <div className="font-heading text-base font-bold text-[#1E2B49] border-b border-[#FAF7F2] pb-2">
               Spouse ({formData.spouseName || 'Spouse'})
@@ -94,40 +102,40 @@ export function RetirementTable({ formData, calculationResult }) {
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
                 <span className="text-[#A69E90] block">Target Retirement Age</span>
-                <span className="font-bold text-[#1C1B1A]">{calculationResult.spouse.years_to_retirement + calculationResult.spouse.retirement_period - 25} Years</span>
+                <span className="font-bold text-[#1C1B1A]">{spouseTargetAge} Years</span>
               </div>
               <div>
                 <span className="text-[#A69E90] block">Years to Retirement</span>
-                <span className="font-bold text-[#1C1B1A]">{calculationResult.spouse.years_to_retirement} Years</span>
+                <span className="font-bold text-[#1C1B1A]">{spouseRet.years_to_retirement || 0} Years</span>
               </div>
               <div>
                 <span className="text-[#A69E90] block">Monthly Expense P.M. (Today)</span>
-                <span className="font-bold text-[#1C1B1A]">{formatInrFullString(calculationResult.spouse.expenses_today_pm)}</span>
+                <span className="font-bold text-[#1C1B1A]">{formatInrFullString(spouseRet.expenses_today_pm)}</span>
               </div>
               <div>
                 <span className="text-[#A69E90] block">Inflation-Adjusted Expense (P.M.)</span>
-                <span className="font-bold text-[#1C1B1A]">{formatInrFullString(calculationResult.spouse.expenses_at_retirement_pm)}</span>
+                <span className="font-bold text-[#1C1B1A]">{formatInrFullString(spouseRet.expenses_at_retirement_pm)}</span>
               </div>
               <div className="col-span-2 border-t border-[#E5E2DA] pt-3">
                 <span className="text-[#A69E90] block">Total Required Corpus</span>
-                <span className="font-extrabold text-base text-[#1E2B49]">{formatInrFullString(calculationResult.spouse.corpus)}</span>
+                <span className="font-extrabold text-base text-[#1E2B49]">{formatInrFullString(spouseRet.corpus)}</span>
               </div>
               <div>
                 <span className="text-[#A69E90] block">Projected PF Corpus</span>
-                <span className="font-bold text-slate-700">{formatInrFullString(calculationResult.spouse.pf_corpus)}</span>
+                <span className="font-bold text-slate-700">{formatInrFullString(spouseRet.pf_corpus)}</span>
               </div>
               <div>
                 <span className="text-[#A69E90] block">Corpus Deficit Gap</span>
-                <span className="font-bold text-[#E56A1F]">{formatInrFullString(calculationResult.spouse.net_corpus)}</span>
+                <span className="font-bold text-[#E56A1F]">{formatInrFullString(spouseRet.net_corpus)}</span>
               </div>
               <div className="col-span-2 border-t border-[#E5E2DA] pt-3 grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-[#A69E90] block">Monthly SIP Required</span>
-                  <span className="font-bold text-[#ED8B36]">{formatInrFullString(calculationResult.spouse.monthly_sip)} / mo</span>
+                  <span className="font-bold text-[#ED8B36]">{formatInrFullString(spouseRet.monthly_sip)} / mo</span>
                 </div>
                 <div>
                   <span className="text-[#A69E90] block">Lump Sum Alternative</span>
-                  <span className="font-bold text-slate-800">{formatInrFullString(calculationResult.spouse.lump_sum)}</span>
+                  <span className="font-bold text-slate-800">{formatInrFullString(spouseRet.lump_sum)}</span>
                 </div>
               </div>
             </div>

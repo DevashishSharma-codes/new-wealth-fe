@@ -557,7 +557,19 @@ export default function AssessmentProvider({ children }) {
             setTestimonials(payloadData.testimonials);
           }
           if (payloadData.calculation) {
-            setCalculationResult(payloadData.calculation);
+            const calcObj = {
+              ...initialCalcResult,
+              ...payloadData.calculation,
+              insurance: payloadData.insurance || payloadData.calculation.insurance || initialCalcResult?.insurance,
+              investment_summary: payloadData.investment_summary || payloadData.calculation.investment_summary || initialCalcResult?.investment_summary
+            };
+            setCalculationResult(calcObj);
+          } else if (payloadData.investment_summary || payloadData.insurance) {
+            setCalculationResult((prev) => prev ? {
+              ...prev,
+              insurance: payloadData.insurance || prev.insurance,
+              investment_summary: payloadData.investment_summary || prev.investment_summary
+            } : prev);
           }
         }
       } catch (reportDataErr) {

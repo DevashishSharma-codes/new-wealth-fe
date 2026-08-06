@@ -30,9 +30,9 @@ const formatInrFullString = (val, defaultVal = '₹0') => {
 export function GoalsTable({ calculationResult }) {
   if (!calculationResult) return null;
 
-  const rawGoalItems = calculationResult.goals?.items || [];
-  const clientRet = calculationResult.client;
-  const spouseRet = calculationResult.spouse;
+  const rawGoalItems = calculationResult.goals?.items || calculationResult.data?.goals?.items || [];
+  const clientRet = calculationResult.client || calculationResult.data?.client;
+  const spouseRet = calculationResult.spouse || calculationResult.data?.spouse;
 
   const items = [];
 
@@ -75,11 +75,13 @@ export function GoalsTable({ calculationResult }) {
   if (items.length === 0) return null;
 
   // Total monthly SIP display
-  const clientSipRaw = clientRet?.monthly_sip?.raw || 0;
-  const spouseSipRaw = spouseRet?.monthly_sip?.raw || 0;
-  const goalsSipRaw = calculationResult.goals?.total_monthly_sip?.raw || 0;
-  const combinedTotalSipRaw = Math.round(clientSipRaw + spouseSipRaw + goalsSipRaw);
-  const totalSipDisplay = combinedTotalSipRaw > 0 ? `₹${combinedTotalSipRaw.toLocaleString('en-IN')}` : formatInrFullString(calculationResult.goals?.total_monthly_sip);
+  const invSummary = calculationResult?.investment_summary || 
+                     calculationResult?.data?.investment_summary;
+  const totalSipDisplay = formatInrFullString(
+    invSummary?.total_monthly_investment ||
+    calculationResult.summary?.monthly_investment_required ||
+    calculationResult.goals?.total_monthly_sip
+  );
 
   return (
     <div className="space-y-4">

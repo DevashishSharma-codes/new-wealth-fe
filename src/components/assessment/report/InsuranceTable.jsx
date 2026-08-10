@@ -10,19 +10,23 @@ const formatInrFullString = (val, defaultVal = '₹0') => {
     if (val.inr && typeof val.inr === 'string') return formatInrFullString(val.inr, defaultVal);
     if (val.formatted && typeof val.formatted === 'string') return formatInrFullString(val.formatted, defaultVal);
     if (val.display && typeof val.display === 'string') return formatInrFullString(val.display, defaultVal);
+    if (val.value !== undefined) return formatInrFullString(val.value, defaultVal);
     return defaultVal;
   }
   let str = String(val).trim();
-  str = str.replace(/^₹\s+/, '₹');
-  if (str.includes('Cr')) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (!str) return defaultVal;
+  let cleanStr = str.replace(/^₹\s*/, '');
+  if (/cr|crore/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
   }
-  if (str.includes('Lakh') || str.match(/\bL\b/i)) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (/lakh|\bl\b/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
+  }
+  const rawNum = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
+  if (!isNaN(rawNum) && rawNum > 0) {
+    return `₹${Math.round(rawNum).toLocaleString('en-IN')}`;
   }
   return str;
 };

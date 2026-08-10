@@ -10,19 +10,23 @@ const formatInrFullString = (val, defaultVal = '₹0') => {
     if (val.inr && typeof val.inr === 'string') return formatInrFullString(val.inr, defaultVal);
     if (val.formatted && typeof val.formatted === 'string') return formatInrFullString(val.formatted, defaultVal);
     if (val.display && typeof val.display === 'string') return formatInrFullString(val.display, defaultVal);
+    if (val.value !== undefined) return formatInrFullString(val.value, defaultVal);
     return defaultVal;
   }
   let str = String(val).trim();
-  str = str.replace(/^₹\s+/, '₹');
-  if (str.includes('Cr')) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (!str) return defaultVal;
+  let cleanStr = str.replace(/^₹\s*/, '');
+  if (/cr|crore/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
   }
-  if (str.includes('Lakh') || str.match(/\bL\b/i)) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (/lakh|\bl\b/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
+  }
+  const rawNum = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
+  if (!isNaN(rawNum) && rawNum > 0) {
+    return `₹${Math.round(rawNum).toLocaleString('en-IN')}`;
   }
   return str;
 };
@@ -35,8 +39,8 @@ export function RetirementTable({ formData, calculationResult }) {
 
   if (!clientRet) return null;
 
-  const clientTargetAge = formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age || 60;
-  const spouseTargetAge = formData.spouseTargetRetireAge || spouseRet?.retirement_age || spouseRet?.target_retirement_age || 60;
+  const clientTargetAge = formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age;
+  const spouseTargetAge = formData.spouseTargetRetireAge || spouseRet?.retirement_age || spouseRet?.target_retirement_age;
 
   return (
     <div className="space-y-6">
@@ -54,11 +58,11 @@ export function RetirementTable({ formData, calculationResult }) {
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
               <span className="text-[#A69E90] block">Target Retirement Age</span>
-              <span className="font-bold text-[#1C1B1A]">{clientTargetAge} Years</span>
+              <span className="font-bold text-[#1C1B1A]">{clientTargetAge ? `${clientTargetAge} Years` : '—'}</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Years to Retirement</span>
-              <span className="font-bold text-[#1C1B1A]">{clientRet.years_to_retirement || 0} Years</span>
+              <span className="font-bold text-[#1C1B1A]">{clientRet.years_to_retirement ? `${clientRet.years_to_retirement} Years` : '—'}</span>
             </div>
             <div>
               <span className="text-[#A69E90] block">Monthly Expense P.M. (Today)</span>

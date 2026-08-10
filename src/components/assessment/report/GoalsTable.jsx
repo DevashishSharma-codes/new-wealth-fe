@@ -10,19 +10,23 @@ const formatInrFullString = (val, defaultVal = '₹0') => {
     if (val.inr && typeof val.inr === 'string') return formatInrFullString(val.inr, defaultVal);
     if (val.formatted && typeof val.formatted === 'string') return formatInrFullString(val.formatted, defaultVal);
     if (val.display && typeof val.display === 'string') return formatInrFullString(val.display, defaultVal);
+    if (val.value !== undefined) return formatInrFullString(val.value, defaultVal);
     return defaultVal;
   }
   let str = String(val).trim();
-  str = str.replace(/^₹\s+/, '₹');
-  if (str.includes('Cr')) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (!str) return defaultVal;
+  let cleanStr = str.replace(/^₹\s*/, '');
+  if (/cr|crore/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
   }
-  if (str.includes('Lakh') || str.match(/\bL\b/i)) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (/lakh|\bl\b/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
+  }
+  const rawNum = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
+  if (!isNaN(rawNum) && rawNum > 0) {
+    return `₹${Math.round(rawNum).toLocaleString('en-IN')}`;
   }
   return str;
 };
@@ -36,10 +40,13 @@ export function GoalsTable({ calculationResult }) {
 
   const items = [];
 
-  // 1. Add Client Retirement
-  if (clientRet && (clientRet.monthly_sip?.raw > 0 || clientRet.corpus?.raw > 0)) {
+  // 1. Add Client Retirement if selected / calculated
+  const clientSipVal = clientRet?.monthly_sip?.raw || (clientRet?.monthly_sip ? parseFloat(String(clientRet.monthly_sip).replace(/[^0-9.]/g, '')) : 0);
+  const clientCorpusVal = clientRet?.corpus?.raw || (clientRet?.corpus ? parseFloat(String(clientRet.corpus).replace(/[^0-9.]/g, '')) : 0);
+
+  if (clientRet && (clientSipVal > 0 || clientCorpusVal > 0)) {
     const currentYear = new Date().getFullYear();
-    const targetYear = clientRet.years_to_retirement ? currentYear + clientRet.years_to_retirement : 'Retirement';
+    const targetYear = clientRet.years_to_retirement ? currentYear + clientRet.years_to_retirement : (clientRet.target_year || clientRet.target_retirement_year || 'Retirement');
     items.push({
       goal: 'Retirement Planning (Client)',
       target_year: targetYear,
@@ -50,9 +57,12 @@ export function GoalsTable({ calculationResult }) {
   }
 
   // 2. Add Spouse Retirement (if active)
-  if (spouseRet && (spouseRet.monthly_sip?.raw > 0 || spouseRet.corpus?.raw > 0)) {
+  const spouseSipVal = spouseRet?.monthly_sip?.raw || (spouseRet?.monthly_sip ? parseFloat(String(spouseRet.monthly_sip).replace(/[^0-9.]/g, '')) : 0);
+  const spouseCorpusVal = spouseRet?.corpus?.raw || (spouseRet?.corpus ? parseFloat(String(spouseRet.corpus).replace(/[^0-9.]/g, '')) : 0);
+
+  if (spouseRet && (spouseSipVal > 0 || spouseCorpusVal > 0)) {
     const currentYear = new Date().getFullYear();
-    const targetYear = spouseRet.years_to_retirement ? currentYear + spouseRet.years_to_retirement : 'Retirement';
+    const targetYear = spouseRet.years_to_retirement ? currentYear + spouseRet.years_to_retirement : (spouseRet.target_year || spouseRet.target_retirement_year || 'Retirement');
     items.push({
       goal: 'Retirement Planning (Spouse)',
       target_year: targetYear,
@@ -64,9 +74,20 @@ export function GoalsTable({ calculationResult }) {
 
   // 3. Add all other goals (Education, Foreign Tour, etc.)
   rawGoalItems.forEach((g) => {
+    const rawG = String(g.goal || g.goal_type || g.title || '').toLowerCase();
+    const isTour = rawG.includes('tour') || rawG.includes('foreign') || rawG.includes('vacation') || rawG.includes('trip');
+    const perPersonAmt = g.cost_per_person || g.costPerPerson;
+    let costDisplay = formatInrFullString(g.current_cost || g.today_cost);
+    if (isTour) {
+      if (perPersonAmt) {
+        costDisplay = `${formatInrFullString(perPersonAmt)} (per person)`;
+      } else if (costDisplay && !costDisplay.toLowerCase().includes('per person')) {
+        costDisplay = `${costDisplay} (per person)`;
+      }
+    }
     items.push({
       ...g,
-      current_cost_display: formatInrFullString(g.current_cost || g.today_cost),
+      current_cost_display: costDisplay,
       future_cost_display: formatInrFullString(g.future_cost),
       monthly_sip_display: formatInrFullString(g.monthly_sip),
     });

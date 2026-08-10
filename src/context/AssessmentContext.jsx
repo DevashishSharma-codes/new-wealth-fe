@@ -161,31 +161,38 @@ export default function AssessmentProvider({ children }) {
         updated[index] = { name: "", occupation: "", dependent: "Yes", dob: "", age: "", goalType: "", targetYear: "", todaysCost: "", goals: [{ id: Date.now() + Math.random(), goalType: "", targetYear: "", todaysCost: "" }] };
       }
       
-      const child = { ...updated[index], ...fields };
+      const child = { ...updated[index] };
 
-      if (!child.goals || !Array.isArray(child.goals)) {
-        child.goals = [{ id: Date.now() + Math.random(), goalType: child.goalType || "", targetYear: child.targetYear || "", todaysCost: child.todaysCost || "" }];
-      }
-
-      if (fields.hasOwnProperty("goalType") || fields.hasOwnProperty("targetYear") || fields.hasOwnProperty("todaysCost")) {
-        const updatedGoals = [...child.goals];
-        if (updatedGoals[0]) {
-          updatedGoals[0] = {
-            ...updatedGoals[0],
-            ...(fields.hasOwnProperty("goalType") ? { goalType: fields.goalType } : {}),
-            ...(fields.hasOwnProperty("targetYear") ? { targetYear: fields.targetYear } : {}),
-            ...(fields.hasOwnProperty("todaysCost") ? { todaysCost: fields.todaysCost } : {}),
-          };
-          child.goals = updatedGoals;
+      if (fields.hasOwnProperty("goals") && Array.isArray(fields.goals)) {
+        child.goals = fields.goals;
+        if (fields.goals.length > 0) {
+          const firstGoal = fields.goals[0];
+          child.goalType = firstGoal.goalType || "";
+          child.targetYear = firstGoal.targetYear || "";
+          child.todaysCost = firstGoal.todaysCost || "";
         }
+      } else if (fields.hasOwnProperty("goalType") || fields.hasOwnProperty("targetYear") || fields.hasOwnProperty("todaysCost")) {
+        const goalsList = child.goals && Array.isArray(child.goals) ? [...child.goals] : [];
+        if (goalsList.length === 0) {
+          goalsList.push({ id: Date.now() + Math.random(), goalType: "", targetYear: "", todaysCost: "" });
+        }
+        goalsList[0] = {
+          ...goalsList[0],
+          ...(fields.hasOwnProperty("goalType") ? { goalType: fields.goalType } : {}),
+          ...(fields.hasOwnProperty("targetYear") ? { targetYear: fields.targetYear } : {}),
+          ...(fields.hasOwnProperty("todaysCost") ? { todaysCost: fields.todaysCost } : {}),
+        };
+        child.goals = goalsList;
+        if (fields.hasOwnProperty("goalType")) child.goalType = fields.goalType;
+        if (fields.hasOwnProperty("targetYear")) child.targetYear = fields.targetYear;
+        if (fields.hasOwnProperty("todaysCost")) child.todaysCost = fields.todaysCost;
       }
 
-      if (fields.hasOwnProperty("goals") && fields.goals.length > 0) {
-        const firstGoal = fields.goals[0];
-        child.goalType = firstGoal.goalType || "";
-        child.targetYear = firstGoal.targetYear || "";
-        child.todaysCost = firstGoal.todaysCost || "";
-      }
+      Object.keys(fields).forEach((key) => {
+        if (key !== "goals" && key !== "goalType" && key !== "targetYear" && key !== "todaysCost") {
+          child[key] = fields[key];
+        }
+      });
 
       if (fields.hasOwnProperty("dob") && fields.dob) {
         const parts = fields.dob.split("/");
@@ -310,7 +317,7 @@ export default function AssessmentProvider({ children }) {
         client_designation: formData.designation,
         client_company: formData.companyName,
         client_dob: formData.dob,
-        client_retirement_age: parseInt(formData.targetRetireAge) || 60,
+        client_retirement_age: formData.targetRetireAge ? (parseInt(formData.targetRetireAge, 10) || 0) : 0,
         spouse_retirement_age: 0,
       };
       if (formData.spouseName && formData.spouseName.trim()) {
@@ -391,15 +398,15 @@ export default function AssessmentProvider({ children }) {
     try {
       const apiGoals = [];
 
-      // Child education goals
+      // Child education & milestone goals
       childrenData.slice(0, childrenCount).forEach((c, idx) => {
         if (!c) return;
         
-        const goalsToSubmit = c.goals && Array.isArray(c.goals) ? c.goals : [
+        const goalsToSubmit = c.goals && Array.isArray(c.goals) && c.goals.length > 0 ? c.goals : [
           { goalType: c.goalType, targetYear: c.targetYear, todaysCost: c.todaysCost }
         ];
 
-        goalsToSubmit.forEach((g) => {
+        goalsToSubmit.forEach((g, gIdx) => {
           if (g.goalType && g.targetYear && g.todaysCost) {
             const mappedType =
               (g.goalType === "Higher Education" || g.goalType === "Higher Studies" || g.goalType === "Graduation")
@@ -423,8 +430,10 @@ export default function AssessmentProvider({ children }) {
             const customChildGoalName = (g.goalName || g.name || g.goal_name || "").toString().trim();
             if (customChildGoalName) {
               goalObj.goal_name = customChildGoalName;
+            } else if (g.goalType === "Others" || g.goalType === "Other") {
+              goalObj.goal_name = `${childRealName}'s Other Goal`;
             } else {
-              const displayType = mappedType === "Graduation" ? "Higher Studies" : mappedType;
+              const displayType = mappedType === "Graduation" ? "Higher Studies" : (g.goalType || mappedType);
               goalObj.goal_name = `${childRealName}'s ${displayType}`;
             }
             apiGoals.push(goalObj);
@@ -476,37 +485,17 @@ export default function AssessmentProvider({ children }) {
     setIsCalculating(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Use "0" for any empty numeric fields instead of hardcoded defaults
     let finalFormData = { ...formData };
-    const isRetEmpty = !formData.targetRetireAge && !formData.yearsUntilRetirement && !formData.requiredAnnualIncome &&
-                       !formData.epfEmployerShare && !formData.epfEmployeeShare && !formData.epfTotalCorpus &&
-                       !formData.npsEmployerShare && !formData.npsEmployeeShare && !formData.npsTotalCorpus &&
-                       !formData.superEmployerShare && !formData.superTotalCorpus;
-
-    if (!isRetEmpty) {
-      const numericFields = [
-        'targetRetireAge', 'yearsUntilRetirement', 'requiredAnnualIncome',
-        'epfEmployerShare', 'epfEmployeeShare', 'epfTotalCorpus',
-        'npsEmployerShare', 'npsEmployeeShare', 'npsTotalCorpus',
-        'superEmployerShare', 'superTotalCorpus',
-      ];
-      numericFields.forEach((field) => {
-        if (!finalFormData[field] || !finalFormData[field].toString().trim()) {
-          finalFormData[field] = "0";
-        }
-      });
-      setFormData(finalFormData);
-    }
 
     try {
-      // 1. Submit Flow 2 again with final retirement age (just in case target retirement age changed in step 5)
+      // 1. Submit Flow 2 again with final retirement age
       const flow2Payload = {
         client_name: finalFormData.name,
         client_occupation: finalFormData.occupation,
         client_designation: finalFormData.designation,
         client_company: finalFormData.companyName,
         client_dob: finalFormData.dob,
-        client_retirement_age: finalFormData.targetRetireAge ? (parseInt(finalFormData.targetRetireAge) || 60) : 60,
+        client_retirement_age: finalFormData.targetRetireAge ? (parseInt(finalFormData.targetRetireAge, 10) || 0) : 0,
         spouse_retirement_age: 0,
       };
       if (finalFormData.spouseName && finalFormData.spouseName.trim()) {

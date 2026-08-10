@@ -36,21 +36,6 @@ const ensureString = (val, fallback = '') => {
   return String(val);
 };
 
-const formatDisplayVal = (val, defaultVal = '₹0') => {
-  if (val === null || val === undefined) return defaultVal;
-  if (typeof val === 'string') return val;
-  if (typeof val === 'number') return `₹${val.toLocaleString('en-IN')}`;
-  if (typeof val === 'object') {
-    if (val.inr && typeof val.inr === 'string') return val.inr;
-    if (val.display && typeof val.display === 'string') return val.display;
-    if (val.formatted && typeof val.formatted === 'string') return val.formatted;
-    if (val.raw !== undefined && typeof val.raw === 'number') return `₹${val.raw.toLocaleString('en-IN')}`;
-    if (val.value !== undefined) return formatDisplayVal(val.value, defaultVal);
-    return defaultVal;
-  }
-  return String(val);
-};
-
 const formatInrFull = (val, defaultVal = '₹0') => {
   if (val === null || val === undefined) return defaultVal;
   if (typeof val === 'number') return `₹${Math.round(val).toLocaleString('en-IN')}`;
@@ -61,21 +46,30 @@ const formatInrFull = (val, defaultVal = '₹0') => {
     if (val.inr && typeof val.inr === 'string') return formatInrFull(val.inr, defaultVal);
     if (val.formatted && typeof val.formatted === 'string') return formatInrFull(val.formatted, defaultVal);
     if (val.display && typeof val.display === 'string') return formatInrFull(val.display, defaultVal);
+    if (val.value !== undefined) return formatInrFull(val.value, defaultVal);
     return defaultVal;
   }
   let str = String(val).trim();
-  str = str.replace(/^₹\s+/, '₹');
-  if (str.includes('Cr')) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (!str) return defaultVal;
+  let cleanStr = str.replace(/^₹\s*/, '');
+  if (/cr|crore/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
   }
-  if (str.includes('Lakh') || str.match(/\bL\b/)) {
-    const numStr = str.replace(/[^0-9.]/g, '');
-    const num = parseFloat(numStr);
+  if (/lakh|\bl\b/i.test(cleanStr)) {
+    const num = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
     if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
   }
+  const rawNum = parseFloat(cleanStr.replace(/[^0-9.]/g, ''));
+  if (!isNaN(rawNum) && rawNum > 0) {
+    return `₹${Math.round(rawNum).toLocaleString('en-IN')}`;
+  }
   return str;
+};
+
+const formatDisplayVal = (val, defaultVal = '₹0') => {
+  if (val === null || val === undefined) return defaultVal;
+  return formatInrFull(val, defaultVal);
 };
 
   const inputServices = (services && services.length > 0)
@@ -230,9 +224,9 @@ const formatInrFull = (val, defaultVal = '₹0') => {
                      reportData?.data?.investment_summary ||
                      reportData?.calculation?.investment_summary;
 
-  const clientRetAge = ensureString(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age, '60');
-  const clientYearsToRet = ensureString(clientRet.years_to_retirement || clientRet.years_until_retirement, '18');
-  const clientRetPeriod = ensureString(clientRet.retirement_period, '18');
+  const clientRetAge = (formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age) ? ensureString(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age) : '—';
+  const clientYearsToRet = (clientRet.years_to_retirement || clientRet.years_until_retirement) ? ensureString(clientRet.years_to_retirement || clientRet.years_until_retirement) : '—';
+  const clientRetPeriod = clientRet.retirement_period ? ensureString(clientRet.retirement_period) : '—';
 
   const clientCorpusReq = formatInrFull(
     clientRet.corpus || clientRet.net_corpus || clientRet.total_corpus || summary.total_retirement_corpus_required || calcObj?.total_retirement_corpus_required
@@ -256,6 +250,16 @@ const formatInrFull = (val, defaultVal = '₹0') => {
 
   const clientProvisionsMade = formatInrFull(
     clientRet.pf_corpus || clientRet.provisions_made || clientRet.pf_nps_sa || calcObj?.client_provisions_made || formData.provisionsMade || formData.pf_nps_sa
+  );
+
+  const hasClientRetirement = Boolean(
+    (clientRet && (clientRet.monthly_sip?.raw > 0 || clientRet.corpus?.raw > 0)) ||
+    (formData?.targetRetireAge && formData.targetRetireAge.toString().trim() !== '' && formData.targetRetireAge.toString().trim() !== '0') ||
+    (clientMonthlySip && clientMonthlySip !== '₹0' && clientMonthlySip !== '—')
+  );
+
+  const hasSpouseRetirement = Boolean(
+    calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0)
   );
 
   // Insurance
@@ -612,7 +616,7 @@ const formatInrFull = (val, defaultVal = '₹0') => {
             flag: item.flag || (matched ? matched.flag : '✈️'),
             code,
             name: destName,
-            cost: item.cost ? (typeof item.cost === 'number' ? `₹${item.cost.toLocaleString('en-IN')}` : String(item.cost)) : (matched ? fmtInrRange(matched.budget) : '₹3,50,000 - ₹5,00,000'),
+            cost: item.cost ? (typeof item.cost === 'number' ? `₹${item.cost.toLocaleString('en-IN')} (per person)` : (String(item.cost).toLowerCase().includes('per person') ? String(item.cost) : `${item.cost} (per person)`)) : (matched ? `${fmtInrRange(matched.budget)} (per person)` : '₹3,50,000 - ₹5,00,000 (per person)'),
           });
         } else if (typeof item === 'string' && item) {
           let matched = DB_TOUR_DESTINATIONS.find(d => d.name.toLowerCase().includes(item.toLowerCase()) || item.toLowerCase().includes(d.name.toLowerCase()));
@@ -621,7 +625,7 @@ const formatInrFull = (val, defaultVal = '₹0') => {
             flag: matched ? matched.flag : '✈️',
             code,
             name: matched ? matched.name : item,
-            cost: matched ? fmtInrRange(matched.budget) : '₹3,50,000 - ₹5,00,000',
+            cost: matched ? `${fmtInrRange(matched.budget)} (per person)` : '₹3,50,000 - ₹5,00,000 (per person)',
           });
         }
       });
@@ -634,7 +638,7 @@ const formatInrFull = (val, defaultVal = '₹0') => {
         const fillers = [...DB_TOUR_DESTINATIONS]
           .sort((a, b) => Math.abs(a.budget - perPersonBudget) - Math.abs(b.budget - perPersonBudget))
           .filter(d => !selectedNames.has(d.name.toLowerCase()))
-          .map(d => ({ flag: d.flag, code: d.code, name: d.name, cost: fmtInrRange(d.budget) }));
+          .map(d => ({ flag: d.flag, code: d.code, name: d.name, cost: `${fmtInrRange(d.budget)} (per person)` }));
 
         const final5 = [...list, ...fillers].slice(0, 5);
         console.log('🚀 [REPORT LOGGER] Top 5 Tour Options for Report:', final5.map(x => x.name));
@@ -652,7 +656,7 @@ const formatInrFull = (val, defaultVal = '₹0') => {
       flag: d.flag,
       code: d.code,
       name: d.name,
-      cost: fmtInrRange(d.budget),
+      cost: `${fmtInrRange(d.budget)} (per person)`,
     }));
     console.log('🚀 [REPORT LOGGER] Top 5 Tour Options for Report (Calculated):', final5.map(x => x.name));
     return final5;
@@ -897,6 +901,31 @@ const formatInrFull = (val, defaultVal = '₹0') => {
           const isForeignTour = idx === firstForeignTourGoalIndex;
           const shouldRenderForeignTourPage = isForeignTour;
 
+          const isTourGoal =
+            goalName.toLowerCase().includes('tour') ||
+            goalName.toLowerCase().includes('foreign') ||
+            goalName.toLowerCase().includes('vacation') ||
+            goalName.toLowerCase().includes('trip') ||
+            rawTitle.toLowerCase().includes('tour') ||
+            rawTitle.toLowerCase().includes('foreign') ||
+            rawTitle.toLowerCase().includes('vacation') ||
+            rawTitle.toLowerCase().includes('trip');
+
+          let tourCostDisplay = currentCost;
+          if (isTourGoal) {
+            const perPersonRaw = g.costPerPerson || g.cost_per_person;
+            if (perPersonRaw) {
+              tourCostDisplay = formatDisplayVal(perPersonRaw, currentCost);
+            } else {
+              const rawVal = extractTargetBudget(g, 0);
+              const travellersCount = Number(g.travellers || g.people || formData?.travellers || 3);
+              if (rawVal > 150000 && travellersCount > 1) {
+                const perPersonAmt = Math.round(rawVal / travellersCount);
+                tourCostDisplay = `₹${perPersonAmt.toLocaleString('en-IN')}`;
+              }
+            }
+          }
+
           const isEducation =
             goalName.toLowerCase().includes('education') ||
             goalName.toLowerCase().includes('graduation') ||
@@ -1030,10 +1059,12 @@ const formatInrFull = (val, defaultVal = '₹0') => {
                       backgroundColor: '#ffffff',
                     }}
                   >
-                    <div style={{ fontSize: '15px', color: '#ff8c32', fontWeight: 600 }}>
-                      {isForeignTour || isEducation ? "Approx. Current Cost" : "Current Cost"}
+                    <div style={{ fontSize: isTourGoal ? '13.5px' : '15px', color: '#ff8c32', fontWeight: 600 }}>
+                      {isTourGoal ? "Approx. Current Cost (per person)" : isEducation ? "Approx. Current Cost" : "Current Cost"}
                     </div>
-                    <div style={{ fontSize: '26px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{currentCost}</div>
+                    <div style={{ fontSize: '26px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>
+                      {isTourGoal ? tourCostDisplay : currentCost}
+                    </div>
                   </div>
 
                   {/* Future Cost Pill */}
@@ -1130,7 +1161,7 @@ const formatInrFull = (val, defaultVal = '₹0') => {
                         <div>
                           <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{cOpt.name}</div>
                           <div style={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>
-                            {cOpt.cost ? String(cOpt.cost).replace(/\s*\(per person\)/gi, '') : ''}
+                            {cOpt.cost ? (String(cOpt.cost).toLowerCase().includes('per person') ? String(cOpt.cost) : `${cOpt.cost} (per person)`) : ''}
                           </div>
                         </div>
                       </div>
@@ -1212,143 +1243,143 @@ const formatInrFull = (val, defaultVal = '₹0') => {
         );
       })}
 
-      {/* PAGE 9: RETIREMENT PLANNING PAGE */}
-      <div
-        className="report-page"
-        style={{
-          width: '595px',
-          height: '842px',
-          backgroundColor: '#ffffff',
-          boxSizing: 'border-box',
-          padding: '30px 40px',
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          pageBreakAfter: 'always',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-            Retirement<br />Planning
-          </h1>
-          <div style={{ width: '190px', height: '170px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <img src="/assets/report/real_3d_retirement.png" alt="Beach Chair" style={{ maxWidth: '190px', maxHeight: '170px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
+      {/* PAGE 9: RETIREMENT PLANNING PAGE (Only rendered if retirement details are filled) */}
+      {hasClientRetirement && (
+        <div
+          className="report-page"
+          style={{
+            width: '595px',
+            height: '842px',
+            backgroundColor: '#ffffff',
+            boxSizing: 'border-box',
+            padding: '30px 40px',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            pageBreakAfter: 'always',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <img src="/assets/wealth-wisdom-logo.png" alt="Wealth Wisdom Logo" style={{ height: '48px', objectFit: 'contain', margin: '0 auto' }} />
           </div>
-        </div>
 
-        {/* 3 Top Pure Vector SVG Bubbly Inset Cards Row (Zero HTML2Canvas Corner Checkerboxes) */}
-        <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
-          {[
-            { label: 'Retirement Age', val: clientRetAge },
-            { label: 'Retirement Period', val: clientRetPeriod },
-            { label: 'Years to Retirement', val: clientYearsToRet },
-          ].map((card, idx) => (
-            <div
-              key={idx}
-              style={{
-                flex: 1,
-                height: '95px',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxSizing: 'border-box',
-              }}
-            >
-              {/* Pure SVG Vector Bubbly Inset Shadow */}
-              <svg
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+              Retirement<br />Planning
+            </h1>
+            <div style={{ width: '190px', height: '170px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <img src="/assets/report/real_3d_retirement.png" alt="Beach Chair" style={{ maxWidth: '190px', maxHeight: '170px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
+            </div>
+          </div>
+
+          {/* 3 Top Pure Vector SVG Bubbly Inset Cards Row */}
+          <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+            {[
+              { label: 'Retirement Age', val: clientRetAge },
+              { label: 'Retirement Period', val: clientRetPeriod },
+              { label: 'Years to Retirement', val: clientYearsToRet },
+            ].map((card, idx) => (
+              <div
+                key={idx}
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  zIndex: 1,
-                  borderRadius: '22px',
-                  overflow: 'hidden',
+                  flex: 1,
+                  height: '95px',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxSizing: 'border-box',
                 }}
               >
-                <defs>
-                  <filter id={`neu-inset-${idx}`} x="-20%" y="-20%" width="140%" height="140%">
-                    <feOffset dx="3" dy="3" />
-                    <feGaussianBlur stdDeviation="3.5" result="offset-blur" />
-                    <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
-                    <feFlood flood-color="#94a3b8" flood-opacity="0.7" result="color" />
-                    <feComposite operator="in" in="color" in2="inverse" result="shadow" />
-                    <feComposite operator="over" in="shadow" in2="SourceGraphic" />
-                  </filter>
-                </defs>
-                <rect width="100%" height="100%" rx="22" fill="#e6ebf2" stroke="#cbd5e1" strokeWidth="1.5" filter={`url(#neu-inset-${idx})`} />
-              </svg>
+                <svg
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 1,
+                    borderRadius: '22px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <defs>
+                    <filter id={`neu-inset-${idx}`} x="-20%" y="-20%" width="140%" height="140%">
+                      <feOffset dx="3" dy="3" />
+                      <feGaussianBlur stdDeviation="3.5" result="offset-blur" />
+                      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
+                      <feFlood flood-color="#94a3b8" flood-opacity="0.7" result="color" />
+                      <feComposite operator="in" in="color" in2="inverse" result="shadow" />
+                      <feComposite operator="over" in="shadow" in2="SourceGraphic" />
+                    </filter>
+                  </defs>
+                  <rect width="100%" height="100%" rx="22" fill="#e6ebf2" stroke="#cbd5e1" strokeWidth="1.5" filter={`url(#neu-inset-${idx})`} />
+                </svg>
 
-              {/* Centered Content */}
-              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#475569',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                    marginBottom: '6px',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {card.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: '26px',
-                    fontWeight: 900,
-                    color: '#0f172a',
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  {card.val}
+                <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      textAlign: 'center',
+                      lineHeight: 1.2,
+                      marginBottom: '6px',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {card.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '26px',
+                      fontWeight: 900,
+                      color: '#0f172a',
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    {card.val}
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Dark Blue Corpus Pill */}
+          <div style={{ backgroundColor: '#001a66', borderRadius: '24px', padding: '16px', textAlign: 'center', color: '#ffffff' }}>
+            <div style={{ fontSize: '14px', color: '#ff8c32', fontWeight: 600 }}>Corpus Required</div>
+            <div style={{ fontSize: '30px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientCorpusReq}</div>
+          </div>
+
+          {/* Provisions Made (PF, NPS & SA) */}
+          <div style={{ backgroundColor: '#001a66', borderRadius: '18px', padding: '14px 20px', textAlign: 'center', color: '#ffffff' }}>
+            <div style={{ color: '#ff8c32', fontSize: '14px', fontWeight: 700 }}>Provisions Made (PF, NPS &amp; SA)</div>
+            <div style={{ color: '#ff8c32', fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>{clientProvisionsMade}</div>
+          </div>
+
+          {/* Expense Pills Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at today's rate (P.M.)</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientExpToday}</div>
             </div>
-          ))}
-        </div>
-
-        {/* Dark Blue Corpus Pill */}
-        <div style={{ backgroundColor: '#001a66', borderRadius: '24px', padding: '16px', textAlign: 'center', color: '#ffffff' }}>
-          <div style={{ fontSize: '14px', color: '#ff8c32', fontWeight: 600 }}>Corpus Required</div>
-          <div style={{ fontSize: '30px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientCorpusReq}</div>
-        </div>
-
-        {/* Provisions Made (PF, NPS & SA) - Label on Top, Value Centered Below */}
-        <div style={{ backgroundColor: '#001a66', borderRadius: '18px', padding: '14px 20px', textAlign: 'center', color: '#ffffff' }}>
-          <div style={{ color: '#ff8c32', fontSize: '14px', fontWeight: 700 }}>Provisions Made (PF, NPS &amp; SA)</div>
-          <div style={{ color: '#ff8c32', fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>{clientProvisionsMade}</div>
-        </div>
-
-        {/* Expense Pills Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at today's rate (P.M.)</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientExpToday}</div>
-          </div>
-          <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at Retirement (P.M.)</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientExpAtRet}</div>
-          </div>
-          <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Monthly Investment Required</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientMonthlySip}</div>
-          </div>
-          <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Lump Sum Investment Required</div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientLumpSum}</div>
+            <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Expense at Retirement (P.M.)</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientExpAtRet}</div>
+            </div>
+            <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Monthly Investment Required</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientMonthlySip}</div>
+            </div>
+            <div style={{ border: '2.5px solid #002b80', borderRadius: '18px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: '#ff8c32', fontWeight: 600 }}>Lump Sum Investment Required</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientLumpSum}</div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* PAGE 10: INSURANCE CALCULATIONS PAGE */}
       <div
@@ -1516,8 +1547,48 @@ const formatInrFull = (val, defaultVal = '₹0') => {
             </tr>
           </thead>
           <tbody>
-            {invSummary?.rows && Array.isArray(invSummary.rows) && invSummary.rows.length > 0 ? (
-              invSummary.rows.map((row, idx) => {
+            {(() => {
+              let rowsToRender = [];
+              if (invSummary?.rows && Array.isArray(invSummary.rows) && invSummary.rows.length > 0) {
+                rowsToRender = [...invSummary.rows];
+                if (!hasClientRetirement) {
+                  rowsToRender = rowsToRender.filter(row => !row.is_retirement && !String(row.goal || row.goal_name || '').toLowerCase().includes('retirement'));
+                }
+              }
+
+              const containsRetirementRow = rowsToRender.some(row => row.is_retirement || String(row.goal || row.goal_name || '').toLowerCase().includes('retirement'));
+
+              const finalRows = [];
+              if (hasClientRetirement && !containsRetirementRow) {
+                finalRows.push({
+                  goal: hasSpouseRetirement ? 'Retirement Planning (Client)' : 'Retirement Planning',
+                  target_year: clientRet?.target_year || clientRet?.target_retirement_year || (clientRetAge && clientRetAge !== '—' ? (String(clientRetAge).length === 4 ? clientRetAge : `${clientRetAge} Yrs`) : '—'),
+                  monthly_investment: clientRet?.monthly_sip || clientMonthlySip,
+                  is_retirement: true,
+                });
+                if (hasSpouseRetirement) {
+                  finalRows.push({
+                    goal: 'Retirement Planning (Spouse)',
+                    target_year: calculationResult.spouse?.target_year || ensureString(formData.spouseTargetRetireAge || calculationResult.spouse?.retirement_age, '—'),
+                    monthly_investment: calculationResult.spouse?.monthly_sip,
+                    is_retirement: true,
+                  });
+                }
+              }
+
+              if (rowsToRender.length > 0) {
+                finalRows.push(...rowsToRender);
+              } else {
+                goals.forEach(g => {
+                  finalRows.push({
+                    goal: formatGoalTitle(g, activeChildren, goals),
+                    target_year: ensureString(g.target_year || g.year, '—'),
+                    monthly_investment: g.monthly_sip,
+                  });
+                });
+              }
+
+              return finalRows.map((row, idx) => {
                 const goalTitle = row.goal || row.goal_name || row.name || 'Goal';
                 const targetYear = row.target_year !== undefined && row.target_year !== null && row.target_year !== '' ? String(row.target_year) : '—';
                 const monthlyInvest = formatInrFull(row.monthly_investment, '₹0');
@@ -1535,52 +1606,8 @@ const formatInrFull = (val, defaultVal = '₹0') => {
                     </td>
                   </tr>
                 );
-              })
-            ) : (
-              /* Fallback if investment_summary.rows is absent */
-              <>
-                <tr>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
-                    {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0)
-                      ? 'Retirement Planning (Client)'
-                      : 'Retirement Planning'}
-                  </td>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
-                    {clientRet?.target_year || clientRet?.target_retirement_year || (clientRetAge ? (String(clientRetAge).length === 4 ? clientRetAge : `${clientRetAge} Yrs`) : '—')}
-                  </td>
-                  <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
-                    {formatInrFull(clientRet?.monthly_sip || clientMonthlySip, '₹0')}
-                  </td>
-                </tr>
-
-                {calculationResult?.spouse && (calculationResult.spouse?.monthly_sip?.raw > 0 || calculationResult.spouse?.corpus?.raw > 0) && (
-                  <tr>
-                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 800, color: '#0f172a' }}>
-                      Retirement Planning (Spouse)
-                    </td>
-                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>
-                      {calculationResult.spouse?.target_year || ensureString(formData.spouseTargetRetireAge || calculationResult.spouse?.retirement_age, '60')}
-                    </td>
-                    <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
-                      {formatInrFull(calculationResult.spouse?.monthly_sip, '—')}
-                    </td>
-                  </tr>
-                )}
-
-                {goals.map((g, idx) => {
-                  const goalTitle = formatGoalTitle(g, activeChildren, goals);
-                  const goalYear = ensureString(g.target_year || g.year, '—');
-                  const goalSip = formatInrFull(g.monthly_sip, '—');
-                  return (
-                    <tr key={idx}>
-                      <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#334155' }}>{goalTitle}</td>
-                      <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{goalYear}</td>
-                      <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{goalSip}</td>
-                    </tr>
-                  );
-                })}
-              </>
-            )}
+              });
+            })()}
 
             {/* Combined Total Monthly Investment Row */}
             <tr style={{ backgroundColor: '#ff8c32', fontWeight: 900 }}>

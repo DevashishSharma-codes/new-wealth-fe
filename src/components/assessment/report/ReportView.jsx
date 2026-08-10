@@ -202,16 +202,21 @@ export function ReportView() {
 
   const formatInrFullString = (str) => {
     if (!str) return "₹0";
-    let cleaned = String(str).trim().replace(/^₹\s+/, '₹');
-    if (cleaned.includes('Cr')) {
+    let cleaned = String(str).trim().replace(/^₹\s*/, '');
+    if (!cleaned) return "₹0";
+    if (/cr|crore/i.test(cleaned)) {
       const num = parseFloat(cleaned.replace(/[^0-9.]/g, ''));
       if (!isNaN(num)) return `₹${Math.round(num * 10000000).toLocaleString('en-IN')}`;
     }
-    if (cleaned.includes('Lakh') || cleaned.match(/\bL\b/i)) {
+    if (/lakh|\bl\b/i.test(cleaned)) {
       const num = parseFloat(cleaned.replace(/[^0-9.]/g, ''));
       if (!isNaN(num)) return `₹${Math.round(num * 100000).toLocaleString('en-IN')}`;
     }
-    return cleaned;
+    const rawNum = parseFloat(cleaned.replace(/[^0-9.]/g, ''));
+    if (!isNaN(rawNum) && rawNum > 0) {
+      return `₹${Math.round(rawNum).toLocaleString('en-IN')}`;
+    }
+    return String(str).startsWith('₹') ? String(str) : `₹${str}`;
   };
 
   const invSummary = calculationResult?.investment_summary || 

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { RoadmapTemplate } from './RoadmapTemplate';
-import { formatGoalTitle, getActualChildName } from '../../../utils/formatters';
+import { formatGoalTitle, getActualChildName, stripSalutation } from '../../../utils/formatters';
 
 /**
  * FullReportTemplate React Component
@@ -8,7 +8,7 @@ import { formatGoalTitle, getActualChildName } from '../../../utils/formatters';
  * Renders every page in React HTML/CSS matching the exact templates, icons, pill boxes, tables, and colors.
  */
 export const FullReportTemplate = forwardRef(({ formData = {}, childrenData = [], calculationResult = {}, reportData = {}, services = [], testimonials = [], assessmentId = '' }, ref) => {
-  const clientName = formData.name || 'Valued Client';
+  const clientName = stripSalutation(formData.name) || 'Valued Client';
   const reportDate = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
@@ -834,9 +834,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
               maxWidth: '300px',
             }}
           >
-            {clientName.startsWith('Mr.') || clientName.startsWith('Ms.') || clientName.startsWith('Mrs.')
-              ? clientName
-              : `Mr. ${clientName}`}
+            {clientName}
           </h1>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>
             Generated on: {reportDate}

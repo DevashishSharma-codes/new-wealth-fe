@@ -1,4 +1,4 @@
-import { calculateCorpus, calculateReadinessScore, buildCalcPayload, getActualChildName, formatGoalTitle } from './formatters';
+import { calculateCorpus, calculateReadinessScore, buildCalcPayload, getActualChildName, formatGoalTitle, stripSalutation } from './formatters';
 
 describe('formatters - new-wealth-fe', () => {
   describe('calculateCorpus', () => {
@@ -143,6 +143,26 @@ describe('formatters - new-wealth-fe', () => {
 
       expect(formatGoalTitle(goal1, childrenData, allGoals)).toBe("Aarav's Higher Studies");
       expect(formatGoalTitle(goal2, childrenData, allGoals)).toBe("Priya's Marriage");
+    });
+  });
+
+  describe('stripSalutation', () => {
+    test('should strip Mr., Ms., Mrs., Dr., Prof., Shri, Smt, Master from name strings', () => {
+      expect(stripSalutation('Mr. Rahul Sharma')).toBe('Rahul Sharma');
+      expect(stripSalutation('Mr Rahul Sharma')).toBe('Rahul Sharma');
+      expect(stripSalutation('Ms. Priya')).toBe('Priya');
+      expect(stripSalutation('Mrs. Anjali Gupta')).toBe('Anjali Gupta');
+      expect(stripSalutation('Dr. Sameer')).toBe('Sameer');
+      expect(stripSalutation('Prof. Kumar')).toBe('Kumar');
+      expect(stripSalutation('Shri Rajesh')).toBe('Rajesh');
+      expect(stripSalutation('Smt. Sunita')).toBe('Sunita');
+      expect(stripSalutation('Master Rohan')).toBe('Rohan');
+    });
+
+    test('should leave names without salutation unchanged', () => {
+      expect(stripSalutation('Rahul Sharma')).toBe('Rahul Sharma');
+      expect(stripSalutation('Valued Client')).toBe('Valued Client');
+      expect(stripSalutation('')).toBe('');
     });
   });
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { stripSalutation } from '../../../utils/formatters';
 
 const formatInrFullString = (val, defaultVal = '₹0') => {
   if (val === null || val === undefined) return defaultVal;
@@ -53,7 +54,7 @@ export function RetirementTable({ formData, calculationResult }) {
         {/* Client card */}
         <div className="neu-card-raised rounded-2xl p-5 space-y-4">
           <div className="font-heading text-base font-bold text-[#1E2B49] border-b border-[#FAF7F2] pb-2">
-            Client ({formData.name || 'Primary Client'})
+            Client ({stripSalutation(formData?.name) || 'Primary Client'})
           </div>
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
@@ -101,7 +102,7 @@ export function RetirementTable({ formData, calculationResult }) {
         {spouseRet && spouseRet.corpus?.raw > 0 ? (
           <div className="neu-card-raised rounded-2xl p-5 space-y-4">
             <div className="font-heading text-base font-bold text-[#1E2B49] border-b border-[#FAF7F2] pb-2">
-              Spouse ({formData.spouseName || 'Spouse'})
+              Spouse ({stripSalutation(formData?.spouseName) || 'Spouse'})
             </div>
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>

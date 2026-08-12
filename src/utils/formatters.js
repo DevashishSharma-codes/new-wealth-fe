@@ -201,4 +201,16 @@ export const formatGoalTitle = (goal = {}, childrenData = [], allGoals = []) => 
   return specificType === 'Other Goal' ? (rawTitle.toLowerCase().includes('other') ? 'Other Goal' : rawTitle) : specificType;
 };
 
+/**
+ * Removes salutations such as Mr., Ms., Mrs., Miss, Dr., Prof., Shri, Smt, Master from a name string.
+ * @param {string} name 
+ * @returns {string}
+ */
+export const stripSalutation = (name = '') => {
+  if (!name || typeof name !== 'string') return '';
+  const cleaned = name.replace(/^(mrs|miss|master|prof|shri|smt|mr|ms|dr)\.?\s*/i, '').trim();
+  return cleaned || name;
+};
+
+
 

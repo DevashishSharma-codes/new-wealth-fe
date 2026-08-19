@@ -26,7 +26,7 @@ export function MetricCards({ displayInsurance, displayCorpus, displayMonthly })
           </svg>
         </div>
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-[#A69E90] tracking-wider uppercase block">TOTAL CORPUS REQUIRED</span>
+          <span className="text-[10px] font-bold text-[#A69E90] tracking-wider uppercase block">TOTAL RETIREMENT CORPUS</span>
           <span className="text-xl sm:text-2xl font-extrabold text-[#1E2B49] block">{displayCorpus}</span>
           <span className="text-[11px] text-[#8E8A80] leading-relaxed block pt-1">Estimated total corpus needed to achieve all your goals.</span>
         </div>

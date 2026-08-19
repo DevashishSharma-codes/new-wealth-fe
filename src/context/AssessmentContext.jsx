@@ -515,6 +515,31 @@ export default function AssessmentProvider({ children }) {
       }
       await assessmentService.submitFlow2(assessmentId, flow2Payload);
 
+      // 1b. Submit Flow 5 raw user entries
+      const flow5Payload = {
+        monthlyExpense: finalFormData.monthlyExpense,
+        monthly_expense: finalFormData.monthlyExpense,
+        requiredAnnualIncome: finalFormData.requiredAnnualIncome,
+        required_annual_income: finalFormData.requiredAnnualIncome,
+        epfCorpus: finalFormData.epfTotalCorpus,
+        epf_total_corpus: finalFormData.epfTotalCorpus,
+        epfEmployer: finalFormData.epfEmployerShare,
+        epf_employer_share: finalFormData.epfEmployerShare,
+        epfEmployee: finalFormData.epfEmployeeShare,
+        epf_employee_share: finalFormData.epfEmployeeShare,
+        npsCorpus: finalFormData.npsTotalCorpus,
+        nps_total_corpus: finalFormData.npsTotalCorpus,
+        npsEmployer: finalFormData.npsEmployerShare,
+        nps_employer_share: finalFormData.npsEmployerShare,
+        npsEmployee: finalFormData.npsEmployeeShare,
+        nps_employee_share: finalFormData.npsEmployeeShare,
+        superCorpus: finalFormData.superTotalCorpus,
+        super_total_corpus: finalFormData.superTotalCorpus,
+        superEmployer: finalFormData.superEmployerShare,
+        super_employer_share: finalFormData.superEmployerShare,
+      };
+      await assessmentService.submitFlow5(assessmentId, flow5Payload);
+
       // 2. Perform calculation payload building & API call
       const calcPayload = buildCalcPayload(finalFormData);
       console.log("%c 🧮 [STEP 5 CALC PAYLOAD]", "background:#1a1a1a;color:#4ade80;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;", {

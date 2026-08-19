@@ -224,9 +224,27 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                      reportData?.data?.investment_summary ||
                      reportData?.calculation?.investment_summary;
 
-  const clientRetAge = (formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age) ? ensureString(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age) : '—';
-  const clientYearsToRet = (clientRet.years_to_retirement || clientRet.years_until_retirement) ? ensureString(clientRet.years_to_retirement || clientRet.years_until_retirement) : '—';
-  const clientRetPeriod = clientRet.retirement_period ? ensureString(clientRet.retirement_period) : '—';
+  const retAgeVal = Number(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age || 0);
+  const clientRetAge = retAgeVal > 0 
+    ? `${retAgeVal} Years` 
+    : (formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age)
+    ? ensureString(formData.targetRetireAge || clientRet.retirement_age || clientRet.target_retirement_age)
+    : '—';
+
+  const yearsToRetVal = Number(clientRet.years_to_retirement || clientRet.years_until_retirement || formData.yearsUntilRetirement || 0);
+  const clientYearsToRet = yearsToRetVal > 0 
+    ? `${yearsToRetVal} Years` 
+    : (clientRet.years_to_retirement || clientRet.years_until_retirement)
+    ? ensureString(clientRet.years_to_retirement || clientRet.years_until_retirement)
+    : '—';
+
+  const rawRetPeriod = clientRet.retirement_period || clientRet.period || clientRet.retirement_duration || clientRet.retirement_years || formData.retirementPeriod || formData.retirement_period;
+  const lifeExpVal = Number(clientRet.life_expectancy || formData.lifeExpectancy || 80);
+  const computedRetPeriod = (retAgeVal > 0 && lifeExpVal > retAgeVal) ? `${lifeExpVal - retAgeVal} Years` : '20 Years';
+
+  const clientRetPeriod = rawRetPeriod
+    ? (String(rawRetPeriod).toLowerCase().includes('year') ? String(rawRetPeriod) : `${rawRetPeriod} Years`)
+    : computedRetPeriod;
 
   const clientCorpusReq = formatInrFull(
     clientRet.corpus || clientRet.net_corpus || clientRet.total_corpus || summary.total_retirement_corpus_required || calcObj?.total_retirement_corpus_required
@@ -890,7 +908,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
           const childName = getActualChildName(g, activeChildren, goals);
 
           const targetYear = ensureString(g.target_year || g.year, '—');
-          const currentCost = formatDisplayVal(g.current_cost || g.today_cost, '₹0');
+          const currentCost = formatDisplayVal(g.current_cost || g.today_cost || g.todaysCost, '₹0');
           const futureCost = formatDisplayVal(g.future_cost, '₹0');
           const monthlySip = formatDisplayVal(g.monthly_sip, '₹0');
           const iconPath = getGoalIcon(rawTitle + ' ' + goalName);
@@ -909,20 +927,21 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
             rawTitle.toLowerCase().includes('vacation') ||
             rawTitle.toLowerCase().includes('trip');
 
-          let tourCostDisplay = currentCost;
+          let tourTotalCost = currentCost;
           if (isTourGoal) {
-            const perPersonRaw = g.costPerPerson || g.cost_per_person;
-            if (perPersonRaw) {
-              tourCostDisplay = formatDisplayVal(perPersonRaw, currentCost);
-            } else {
-              const rawVal = extractTargetBudget(g, 0);
-              const travellersCount = Number(g.travellers || g.people || formData?.travellers || 3);
-              if (rawVal > 150000 && travellersCount > 1) {
-                const perPersonAmt = Math.round(rawVal / travellersCount);
-                tourCostDisplay = `₹${perPersonAmt.toLocaleString('en-IN')}`;
-              }
+            const perPersonRaw = Number(g.costPerPerson || g.cost_per_person || 0);
+            const travellersCount = Number(g.travellers || g.people || formData?.travellers || 0);
+            const totalRaw = Number(g.todaysCost || g.today_cost || g.current_cost || 0);
+
+            if (totalRaw > 0 && perPersonRaw > 0 && totalRaw === perPersonRaw && travellersCount > 1) {
+              tourTotalCost = `₹${Math.round(perPersonRaw * travellersCount).toLocaleString('en-IN')}`;
+            } else if (totalRaw > 0) {
+              tourTotalCost = formatDisplayVal(totalRaw, currentCost);
+            } else if (perPersonRaw > 0 && travellersCount > 1) {
+              tourTotalCost = `₹${Math.round(perPersonRaw * travellersCount).toLocaleString('en-IN')}`;
             }
           }
+
 
           const isEducation =
             goalName.toLowerCase().includes('education') ||
@@ -1057,11 +1076,11 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                       backgroundColor: '#ffffff',
                     }}
                   >
-                    <div style={{ fontSize: isTourGoal ? '13.5px' : '15px', color: '#ff8c32', fontWeight: 600 }}>
-                      {isTourGoal ? "Approx. Current Cost (per person)" : isEducation ? "Approx. Current Cost" : "Current Cost"}
+                    <div style={{ fontSize: '15px', color: '#ff8c32', fontWeight: 600 }}>
+                      {isTourGoal ? "Current Total Cost" : isEducation ? "Approx. Current Cost" : "Current Cost"}
                     </div>
                     <div style={{ fontSize: '26px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>
-                      {isTourGoal ? tourCostDisplay : currentCost}
+                      {isTourGoal ? tourTotalCost : currentCost}
                     </div>
                   </div>
 
@@ -1332,7 +1351,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
                   </div>
                   <div
                     style={{
-                      fontSize: '26px',
+                      fontSize: String(card.val || '').length > 6 ? '19px' : '26px',
                       fontWeight: 900,
                       color: '#0f172a',
                       letterSpacing: '-0.02em',
@@ -1347,7 +1366,7 @@ const formatDisplayVal = (val, defaultVal = '₹0') => {
 
           {/* Dark Blue Corpus Pill */}
           <div style={{ backgroundColor: '#001a66', borderRadius: '24px', padding: '16px', textAlign: 'center', color: '#ffffff' }}>
-            <div style={{ fontSize: '14px', color: '#ff8c32', fontWeight: 600 }}>Corpus Required</div>
+            <div style={{ fontSize: '14px', color: '#ff8c32', fontWeight: 600 }}>Total Retirement Corpus</div>
             <div style={{ fontSize: '30px', fontWeight: 900, color: '#ff8c32', marginTop: '2px' }}>{clientCorpusReq}</div>
           </div>
 

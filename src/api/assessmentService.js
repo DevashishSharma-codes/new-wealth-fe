@@ -48,6 +48,17 @@ export const submitFlow4 = (assessmentId, payload) => {
   });
 };
 
+export const submitFlow5 = (assessmentId, payload) => {
+  console.log(`[API REQUEST] POST /assessment/${assessmentId}/flow5`, payload);
+  return client.post(`/assessment/${assessmentId}/flow5`, payload).then((res) => {
+    console.log(`[API RESPONSE] POST /assessment/${assessmentId}/flow5 Status: 200`, res);
+    return res;
+  }).catch((err) => {
+    console.warn(`[submitFlow5] Non-critical error posting to /assessment/${assessmentId}/flow5:`, err);
+    return null;
+  });
+};
+
 export const calculateRetirement = (assessmentId, payload) => {
   console.log(`[API REQUEST] POST /calculate/${assessmentId}`, payload);
   return client.post(`/calculate/${assessmentId}`, payload).then((res) => {

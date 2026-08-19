@@ -76,13 +76,18 @@ export function GoalsTable({ calculationResult }) {
   rawGoalItems.forEach((g) => {
     const rawG = String(g.goal || g.goal_type || g.title || '').toLowerCase();
     const isTour = rawG.includes('tour') || rawG.includes('foreign') || rawG.includes('vacation') || rawG.includes('trip');
-    const perPersonAmt = g.cost_per_person || g.costPerPerson;
-    let costDisplay = formatInrFullString(g.current_cost || g.today_cost);
+    let costDisplay = formatInrFullString(g.current_cost || g.today_cost || g.todaysCost);
     if (isTour) {
-      if (perPersonAmt) {
-        costDisplay = `${formatInrFullString(perPersonAmt)} (per person)`;
-      } else if (costDisplay && !costDisplay.toLowerCase().includes('per person')) {
-        costDisplay = `${costDisplay} (per person)`;
+      const perPersonAmt = Number(g.cost_per_person || g.costPerPerson || 0);
+      const travellersCount = Number(g.travellers || g.people || 0);
+      const totalRaw = Number(g.current_cost || g.today_cost || g.todaysCost || 0);
+
+      if (totalRaw > 0 && perPersonAmt > 0 && totalRaw === perPersonAmt && travellersCount > 1) {
+        costDisplay = formatInrFullString(perPersonAmt * travellersCount);
+      } else if (totalRaw > 0) {
+        costDisplay = formatInrFullString(totalRaw);
+      } else if (perPersonAmt > 0 && travellersCount > 1) {
+        costDisplay = formatInrFullString(perPersonAmt * travellersCount);
       }
     }
     items.push({

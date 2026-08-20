@@ -515,29 +515,79 @@ export default function AssessmentProvider({ children }) {
       }
       await assessmentService.submitFlow2(assessmentId, flow2Payload);
 
-      // 1b. Submit Flow 5 raw user entries
-      const flow5Payload = {
-        monthlyExpense: finalFormData.monthlyExpense,
-        monthly_expense: finalFormData.monthlyExpense,
-        requiredAnnualIncome: finalFormData.requiredAnnualIncome,
-        required_annual_income: finalFormData.requiredAnnualIncome,
-        epfCorpus: finalFormData.epfTotalCorpus,
-        epf_total_corpus: finalFormData.epfTotalCorpus,
-        epfEmployer: finalFormData.epfEmployerShare,
-        epf_employer_share: finalFormData.epfEmployerShare,
-        epfEmployee: finalFormData.epfEmployeeShare,
-        epf_employee_share: finalFormData.epfEmployeeShare,
-        npsCorpus: finalFormData.npsTotalCorpus,
-        nps_total_corpus: finalFormData.npsTotalCorpus,
-        npsEmployer: finalFormData.npsEmployerShare,
-        nps_employer_share: finalFormData.npsEmployerShare,
-        npsEmployee: finalFormData.npsEmployeeShare,
-        nps_employee_share: finalFormData.npsEmployeeShare,
-        superCorpus: finalFormData.superTotalCorpus,
-        super_total_corpus: finalFormData.superTotalCorpus,
-        superEmployer: finalFormData.superEmployerShare,
-        super_employer_share: finalFormData.superEmployerShare,
+      // 1b. Submit Flow 5 raw user entries (strictly user-entered values, no frontend defaults)
+      const flow5Payload = {};
+      const addFlow5 = (key, rawVal, isNum = false) => {
+        if (rawVal !== undefined && rawVal !== null && rawVal.toString().trim() !== "") {
+          if (isNum) {
+            const parsed = parseFloat(rawVal);
+            if (!isNaN(parsed)) flow5Payload[key] = parsed;
+          } else {
+            flow5Payload[key] = rawVal;
+          }
+        }
       };
+
+      addFlow5("monthlyExpense", finalFormData.monthlyExpense);
+      addFlow5("monthly_expense", finalFormData.monthlyExpense);
+      addFlow5("requiredAnnualIncome", finalFormData.requiredAnnualIncome);
+      addFlow5("required_annual_income", finalFormData.requiredAnnualIncome);
+
+      // EPF
+      addFlow5("epfCorpus", finalFormData.epfTotalCorpus);
+      addFlow5("epf_total_corpus", finalFormData.epfTotalCorpus);
+      addFlow5("epfTotalCorpus", finalFormData.epfTotalCorpus);
+      addFlow5("epf_corpus", finalFormData.epfTotalCorpus);
+      addFlow5("epfEmployer", finalFormData.epfEmployerShare);
+      addFlow5("epf_employer_share", finalFormData.epfEmployerShare);
+      addFlow5("epfEmployerShare", finalFormData.epfEmployerShare);
+      addFlow5("epf_employer", finalFormData.epfEmployerShare);
+      addFlow5("epfEmployee", finalFormData.epfEmployeeShare);
+      addFlow5("epf_employee_share", finalFormData.epfEmployeeShare);
+      addFlow5("epfEmployeeShare", finalFormData.epfEmployeeShare);
+      addFlow5("epf_employee", finalFormData.epfEmployeeShare);
+
+      // NPS (OpenAPI params + aliases)
+      addFlow5("employer_nps_pm", finalFormData.npsEmployerShare, true);
+      addFlow5("self_nps_pm", finalFormData.npsEmployeeShare, true);
+      addFlow5("current_nps_accum", finalFormData.npsTotalCorpus, true);
+      addFlow5("npsCorpus", finalFormData.npsTotalCorpus);
+      addFlow5("nps_total_corpus", finalFormData.npsTotalCorpus);
+      addFlow5("npsTotalCorpus", finalFormData.npsTotalCorpus);
+      addFlow5("nps_corpus", finalFormData.npsTotalCorpus);
+      addFlow5("npsEmployer", finalFormData.npsEmployerShare);
+      addFlow5("nps_employer_share", finalFormData.npsEmployerShare);
+      addFlow5("npsEmployerShare", finalFormData.npsEmployerShare);
+      addFlow5("nps_employer", finalFormData.npsEmployerShare);
+      addFlow5("npsEmployee", finalFormData.npsEmployeeShare);
+      addFlow5("nps_employee_share", finalFormData.npsEmployeeShare);
+      addFlow5("npsEmployeeShare", finalFormData.npsEmployeeShare);
+      addFlow5("nps_employee", finalFormData.npsEmployeeShare);
+
+      // Superannuation / SA (OpenAPI params + aliases)
+      addFlow5("sa_pm", finalFormData.superEmployerShare, true);
+      addFlow5("current_sa_accum", finalFormData.superTotalCorpus, true);
+      addFlow5("superCorpus", finalFormData.superTotalCorpus);
+      addFlow5("super_total_corpus", finalFormData.superTotalCorpus);
+      addFlow5("superTotalCorpus", finalFormData.superTotalCorpus);
+      addFlow5("super_corpus", finalFormData.superTotalCorpus);
+      addFlow5("saCorpus", finalFormData.superTotalCorpus);
+      addFlow5("sa_total_corpus", finalFormData.superTotalCorpus);
+      addFlow5("saTotalCorpus", finalFormData.superTotalCorpus);
+      addFlow5("sa_corpus", finalFormData.superTotalCorpus);
+      addFlow5("superEmployer", finalFormData.superEmployerShare);
+      addFlow5("super_employer_share", finalFormData.superEmployerShare);
+      addFlow5("superEmployerShare", finalFormData.superEmployerShare);
+      addFlow5("super_employer", finalFormData.superEmployerShare);
+      addFlow5("saEmployer", finalFormData.superEmployerShare);
+      addFlow5("sa_employer_share", finalFormData.superEmployerShare);
+      addFlow5("sa_employer", finalFormData.superEmployerShare);
+
+      addFlow5("targetRetireAge", finalFormData.targetRetireAge);
+      addFlow5("target_retirement_age", finalFormData.targetRetireAge);
+      addFlow5("yearsUntilRetirement", finalFormData.yearsUntilRetirement);
+      addFlow5("years_until_retirement", finalFormData.yearsUntilRetirement);
+
       await assessmentService.submitFlow5(assessmentId, flow5Payload);
 
       // 2. Perform calculation payload building & API call

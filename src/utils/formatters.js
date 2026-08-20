@@ -27,32 +27,81 @@ export const buildCalcPayload = (formData) => {
     return {};
   }
 
-  // Send raw user-entered values — no frontend calculations, backend handles all math.
-  // EPF annual = sum of all monthly contribution shares across EPF + NPS + Super (raw, no * 12)
-  const clientEpfAnnual = (
-    (parseFloat(formData.epfEmployerShare) || 0) +
-    (parseFloat(formData.epfEmployeeShare) || 0) +
-    (parseFloat(formData.npsEmployerShare) || 0) +
-    (parseFloat(formData.npsEmployeeShare) || 0) +
-    (parseFloat(formData.superEmployerShare) || 0)
-  );
-
-  // EPF accum = sum of all accumulated corpus across EPF + NPS + Super (raw values)
-  const clientEpfAccum = (
-    (parseFloat(formData.epfTotalCorpus) || 0) +
-    (parseFloat(formData.npsTotalCorpus) || 0) +
-    (parseFloat(formData.superTotalCorpus) || 0)
-  );
-
-  return {
-    client_annual_ret_reqd: parseFloat(formData.requiredAnnualIncome) || 0,
-    household_monthly: parseFloat(formData.monthlyExpense) || 0,
-    client_epf_annual: clientEpfAnnual,
-    client_epf_accum: clientEpfAccum,
-    spouse_annual_ret_reqd: 0,
-    spouse_epf_annual: 0,
-    spouse_epf_accum: 0,
+  const parseNum = (val) => {
+    if (val === undefined || val === null || val.toString().trim() === '') return undefined;
+    const num = parseFloat(val);
+    return isNaN(num) ? undefined : num;
   };
+
+  const epfEmp = parseNum(formData.epfEmployerShare);
+  const epfSelf = parseNum(formData.epfEmployeeShare);
+  const epfAccum = parseNum(formData.epfTotalCorpus);
+
+  const npsEmp = parseNum(formData.npsEmployerShare);
+  const npsSelf = parseNum(formData.npsEmployeeShare);
+  const npsAccum = parseNum(formData.npsTotalCorpus);
+
+  const saEmp = parseNum(formData.superEmployerShare);
+  const saAccum = parseNum(formData.superTotalCorpus);
+
+  const reqIncome = parseNum(formData.requiredAnnualIncome);
+  const hhMonthly = parseNum(formData.monthlyExpense);
+
+  const epfAnnualShares = [epfEmp, epfSelf].filter(v => v !== undefined);
+  const clientEpfAnnual = epfAnnualShares.length > 0 ? epfAnnualShares.reduce((a, b) => a + b, 0) : undefined;
+  const clientEpfAccum = epfAccum;
+
+  const payload = {};
+
+  if (reqIncome !== undefined) payload.client_annual_ret_reqd = reqIncome;
+  if (hhMonthly !== undefined) payload.household_monthly = hhMonthly;
+  if (clientEpfAnnual !== undefined) payload.client_epf_annual = clientEpfAnnual;
+  if (clientEpfAccum !== undefined) payload.client_epf_accum = clientEpfAccum;
+
+  // OpenAPI standard parameters for NPS & Superannuation (SA) — strictly without frontend defaults
+  if (npsEmp !== undefined) {
+    payload.employer_nps_pm = npsEmp;
+    payload.nps_employer_share = npsEmp;
+  }
+  if (npsSelf !== undefined) {
+    payload.self_nps_pm = npsSelf;
+    payload.nps_employee_share = npsSelf;
+  }
+  if (npsAccum !== undefined) {
+    payload.current_nps_accum = npsAccum;
+    payload.nps_total_corpus = npsAccum;
+    payload.nps_corpus = npsAccum;
+    payload.npsTotalCorpus = npsAccum;
+    payload.npsCorpus = npsAccum;
+  }
+
+  if (saEmp !== undefined) {
+    payload.sa_pm = saEmp;
+    payload.super_employer_share = saEmp;
+    payload.sa_employer_share = saEmp;
+  }
+  if (saAccum !== undefined) {
+    payload.current_sa_accum = saAccum;
+    payload.super_total_corpus = saAccum;
+    payload.super_corpus = saAccum;
+    payload.superTotalCorpus = saAccum;
+    payload.superCorpus = saAccum;
+    payload.sa_total_corpus = saAccum;
+    payload.sa_corpus = saAccum;
+    payload.saTotalCorpus = saAccum;
+    payload.saCorpus = saAccum;
+  }
+
+  if (epfAccum !== undefined) {
+    payload.epf_total_corpus = epfAccum;
+    payload.epf_corpus = epfAccum;
+    payload.epfTotalCorpus = epfAccum;
+    payload.epfCorpus = epfAccum;
+  }
+  if (epfEmp !== undefined) payload.epf_employer_share = epfEmp;
+  if (epfSelf !== undefined) payload.epf_employee_share = epfSelf;
+
+  return payload;
 };
 
 /**

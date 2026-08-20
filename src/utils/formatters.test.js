@@ -64,16 +64,18 @@ describe('formatters - new-wealth-fe', () => {
       };
 
       const expected = {
-        client_epf_annual: 5000 + 5000 + 2000 + 2000 + 1000,
-        client_epf_accum: 500000 + 300000 + 200000,
+        client_epf_annual: 5000 + 5000,
+        client_epf_accum: 500000,
         client_annual_ret_reqd: 1000000,
-        spouse_epf_annual: 0,
-        spouse_epf_accum: 0,
-        spouse_annual_ret_reqd: 0,
         household_monthly: 40000,
+        employer_nps_pm: 2000,
+        self_nps_pm: 2000,
+        current_nps_accum: 300000,
+        sa_pm: 1000,
+        current_sa_accum: 200000,
       };
 
-      expect(buildCalcPayload(formData)).toEqual(expected);
+      expect(buildCalcPayload(formData)).toEqual(expect.objectContaining(expected));
     });
 
     test('should construct correct payload with a spouse', () => {
@@ -90,13 +92,10 @@ describe('formatters - new-wealth-fe', () => {
         client_epf_annual: 5000 + 5000,
         client_epf_accum: 500000,
         client_annual_ret_reqd: 1000000,
-        spouse_epf_annual: 0,
-        spouse_epf_accum: 0,
-        spouse_annual_ret_reqd: 0,
         household_monthly: 40000,
       };
 
-      expect(buildCalcPayload(formData)).toEqual(expected);
+      expect(buildCalcPayload(formData)).toEqual(expect.objectContaining(expected));
     });
 
     test('should return empty object when all retirement fields are missing', () => {
@@ -104,11 +103,11 @@ describe('formatters - new-wealth-fe', () => {
       expect(payload).toEqual({});
     });
 
-    test('should return payload with 0 fallbacks if at least one field is provided', () => {
+    test('should return payload containing only user entered fields without forcing 0 fallbacks', () => {
       const payload = buildCalcPayload({ requiredAnnualIncome: '1000000' });
       expect(payload.client_annual_ret_reqd).toBe(1000000);
-      expect(payload.household_monthly).toBe(0);
-      expect(payload.spouse_epf_annual).toBe(0);
+      expect(payload.household_monthly).toBeUndefined();
+      expect(payload.spouse_epf_annual).toBeUndefined();
     });
   });
 

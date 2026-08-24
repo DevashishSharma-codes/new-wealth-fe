@@ -84,8 +84,8 @@ export function Navbar({ onOpenContact }) {
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 select-none ${
         isScrolled
-          ? "bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EFE9DF] shadow-md py-2"
-          : "bg-[#FAF7F2] border-b border-[#EFE9DF]/60 py-2.5"
+          ? "bg-slate-900/80 backdrop-blur-xl border-b border-white/10 shadow-md py-2 text-white"
+          : "bg-transparent border-b border-transparent py-3 text-white"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -95,12 +95,12 @@ export function Navbar({ onOpenContact }) {
           <img
             src={wealthWisdomLogo}
             alt="Wealth Wisdom Logo"
-            className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105 brightness-0 invert drop-shadow-sm"
           />
         </Link>
 
-        {/* Desktop Nav Links with Direct Smooth Sliding Active Pill */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-[#FAF7F2] border border-[#EFE9DF] px-2.5 py-1.5 rounded-full shadow-[inset_2px_2px_4px_rgba(180,172,158,0.2),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] relative">
+        {/* Desktop Nav Links */}
+        <div className="hidden lg:flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-xs relative">
           {navLinks.map((link) => {
             const isActive =
               (link.id && activeSection === link.id && location.pathname === "/") ||
@@ -116,8 +116,8 @@ export function Navbar({ onOpenContact }) {
                     handleNavClick(link.href, link.isAction, link.id);
                   }
                 }}
-                className={`relative px-4 py-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer select-none ${
-                  isActive ? "text-white" : "text-[#2B2A28] hover:text-[#ED8B36]"
+                className={`relative px-4 py-1.5 rounded-full text-xs font-semibold transition-colors duration-200 cursor-pointer select-none ${
+                  isActive ? "text-slate-950 font-bold" : "text-white/90 hover:text-white"
                 }`}
               >
                 {isActive && (
@@ -128,7 +128,7 @@ export function Navbar({ onOpenContact }) {
                       stiffness: 450,
                       damping: 35
                     }}
-                    className="absolute inset-0 bg-[#ED8B36] rounded-full shadow-xs -z-0"
+                    className="absolute inset-0 bg-white rounded-full shadow-sm -z-0"
                   />
                 )}
                 <span className="relative z-10">{link.name}</span>
@@ -139,16 +139,16 @@ export function Navbar({ onOpenContact }) {
 
         {/* Right CTA Button */}
         <div className="hidden sm:flex items-center gap-3">
-          <div className="hidden xl:inline-flex items-center gap-1.5 bg-[#FFF6ED] border border-[#F5D7C1] text-[#ED8B36] text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider select-none">
-            <span className="w-2 h-2 rounded-full bg-[#ED8B36] animate-pulse" />
+          <div className="hidden xl:inline-flex items-center gap-1.5 bg-white/15 border border-white/30 text-white text-[11px] font-semibold px-3 py-1.5 rounded-full uppercase tracking-wider backdrop-blur-md select-none">
+            <span className="w-2 h-2 rounded-full bg-[#a3e635] animate-pulse" />
             <span>DIY Assessment</span>
           </div>
           <Link
             to="/assessment"
-            className="bg-[#2B2A28] hover:bg-[#403E3A] text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer active:scale-95"
+            className="bg-white hover:bg-slate-100 text-slate-950 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer active:scale-95"
           >
             <span>Start Assessment</span>
-            <span className="text-[#ED8B36] text-base font-extrabold">&rarr;</span>
+            <span className="text-emerald-700 text-base font-extrabold">&rarr;</span>
           </Link>
         </div>
 

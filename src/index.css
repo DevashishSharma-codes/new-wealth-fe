@@ -1,0 +1,439 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Helvetica Neue", sans-serif;
+  --font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Helvetica Neue", sans-serif;
+
+  --color-brand-blue: #1E2B49;
+  --color-brand-gold: #EAA850;
+  --color-brand-orange: #ED8B36;
+  --color-brand-dark: #1C1B1A;
+  --color-brand-light: #FBFBFA;
+  --color-brand-beige: #FAF8F5;
+  --color-brand-accent: #E56A1F;
+}
+
+html {
+  font-size: 12.8px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 14.4px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Helvetica Neue", sans-serif;
+  background-color: #FAF7F2;
+  color: #201f1d;
+  overflow-x: hidden;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Helvetica Neue", sans-serif;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes text-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-text-shine {
+  background-size: 200% auto;
+  animation: text-shine 5s ease-in-out infinite;
+}
+
+@keyframes wave-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-text-wave {
+  background: linear-gradient(120deg, #1E2B49 0%, #9C3A03 25%, #C28020 50%, #9C3A03 75%, #1E2B49 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wave-animation 7s ease-in-out infinite;
+}
+
+@keyframes shader-anim {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-shader-orange {
+  background: linear-gradient(90deg, #F0883E 0%, #FFB067 25%, #E56A1F 50%, #F7AA5B 75%, #F0883E 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shader-anim 4s ease-in-out infinite;
+}
+
+.bubbly-text-shadow {
+  filter: drop-shadow(3px 3px 6px rgba(210, 100, 30, 0.35)) drop-shadow(-2px -2px 5px rgba(255, 255, 255, 0.95));
+}
+
+/* ------------------------------------------------------------------
+   Global Dark Space Glassmorphic Theme Styles
+--------------------------------------------------------------------*/
+:root {
+  --surface-color: #070C1B;
+  --text-dark: #FFFFFF;
+  --text-muted: #94A3B8;
+  --placeholder-color: #64748B;
+  --orange-color: #38BDF8;
+  --orange-dark-color: #0284C7;
+  --orange-glow: rgba(56, 189, 248, 0.45);
+  --orange-border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* ── Hyper-Realistic Dark Space Glassmorphism Form Inputs ── */
+.neu-field {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(11, 19, 43, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.35),
+    inset 0 -8px 16px rgba(56, 189, 248, 0.08),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  color: #FFFFFF !important;
+  outline: none;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.neu-field::placeholder {
+  color: rgba(148, 163, 184, 0.65) !important;
+}
+
+.neu-field:hover {
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(56, 189, 248, 0.05) 100%), rgba(11, 19, 43, 0.85) !important;
+  box-shadow: 
+    inset 0 1.5px 2.5px rgba(255, 255, 255, 0.5),
+    inset 0 -10px 20px rgba(56, 189, 248, 0.15),
+    inset 0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 12px rgba(56, 189, 248, 0.20),
+    0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.neu-field:focus,
+.neu-field:focus-visible,
+.neu-field:active {
+  border-color: #38BDF8 !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(56, 189, 248, 0.10) 100%), rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 
+    inset 0 2px 3px rgba(255, 255, 255, 0.75),
+    inset 0 -10px 20px rgba(56, 189, 248, 0.30),
+    0 0 14px rgba(56, 189, 248, 0.35),
+    0 4px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+.neu-field-filled {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(56, 189, 248, 0.05) 100%), rgba(11, 19, 43, 0.85) !important;
+  border: 1px solid rgba(56, 189, 248, 0.38) !important;
+  box-shadow: 
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.40),
+    inset 0 -8px 16px rgba(56, 189, 248, 0.12),
+    inset 0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 10px rgba(56, 189, 248, 0.12),
+    0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  color: #FFFFFF !important;
+  outline: none;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.neu-field-filled::placeholder {
+  color: rgba(148, 163, 184, 0.65) !important;
+}
+
+.neu-field-filled:hover {
+  border-color: rgba(56, 189, 248, 0.65) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.17) 0%, rgba(56, 189, 248, 0.08) 100%), rgba(11, 19, 43, 0.90) !important;
+  box-shadow: 
+    inset 0 1.5px 2.5px rgba(255, 255, 255, 0.55),
+    inset 0 -10px 20px rgba(56, 189, 248, 0.20),
+    inset 0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 14px rgba(56, 189, 248, 0.25),
+    0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+.neu-field-filled:focus,
+.neu-field-filled:focus-visible,
+.neu-field-filled:active {
+  border-color: #38BDF8 !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(56, 189, 248, 0.12) 100%), rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 
+    inset 0 2px 3px rgba(255, 255, 255, 0.80),
+    inset 0 -10px 20px rgba(56, 189, 248, 0.35),
+    0 0 16px rgba(56, 189, 248, 0.35),
+    0 4px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ── Prevent Browser Autofill / Typing White Background ── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-text-fill-color: #FFFFFF !important;
+  -webkit-box-shadow: 0 0 0px 1000px #0B132B inset !important;
+  box-shadow: 0 0 0px 1000px #0B132B inset !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  caret-color: #38BDF8 !important;
+}
+
+input:autofill {
+  background-color: #0B132B !important;
+  color: #FFFFFF !important;
+}
+
+.neu-prefix {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%), rgba(11, 19, 43, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.35),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.4);
+  color: #FFFFFF;
+  backdrop-filter: blur(20px);
+}
+
+.neu-checkbox {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%), rgba(11, 19, 43, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  transition: all 200ms ease-in-out;
+}
+
+.neu-checkbox:hover {
+  border-color: #38BDF8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+}
+
+/* ── Glassmorphic Liquid Action Button ── */
+.neu-btn-raised {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%), #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 9999px !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 2px rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(56, 189, 248, 0.3) !important;
+  color: #FFFFFF !important;
+  backdrop-filter: blur(24px);
+  transition: all 0.25s ease-in-out;
+}
+
+.neu-btn-raised:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.14) 100%), #0F172A !important;
+  border-color: rgba(255, 255, 255, 0.75) !important;
+  box-shadow:
+    0 12px 35px rgba(255, 255, 255, 0.18),
+    0 4px 15px rgba(0, 0, 0, 0.4),
+    0 0 25px rgba(56, 189, 248, 0.5) !important;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.neu-btn-raised:active {
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.6),
+    0 2px 10px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(1px) scale(0.98);
+}
+
+.neu-btn-raised:disabled {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Flat/Soft Glassmorphic Button */
+.neu-btn-flat-active {
+  background-color: rgba(56, 189, 248, 0.2) !important;
+  border: 1px solid rgba(56, 189, 248, 0.6) !important;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3) !important;
+  color: #FFFFFF !important;
+  backdrop-filter: blur(16px);
+  border-radius: 9999px !important;
+  font-weight: bold;
+}
+
+.neu-btn-flat-inactive {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+  color: #E2E8F0 !important;
+  backdrop-filter: blur(16px);
+  border-radius: 9999px !important;
+}
+
+.neu-btn-flat-inactive:hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #FFFFFF !important;
+}
+
+/* Card Glassmorphic Raised (Service Card Theme) */
+.neu-card-raised {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(11, 19, 43, 0.90) 50%, rgba(7, 12, 27, 0.95) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+/* Card Glassmorphic Inset */
+.neu-card-inset {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* Glassmorphic Embossed Text Effect */
+.neu-text-embossed {
+  text-shadow: 0 2px 10px rgba(56, 189, 248, 0.4), 0 0 20px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Premium Highlight Glass Card */
+.neu-card-orange-classic {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+/* ── Glassmorphic Floating Popup Modal Styles ── */
+@keyframes popupScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-popup-scale {
+  animation: popupScaleIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.glass-popup-panel {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(7, 12, 27, 0.98) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+  border-radius: 28px !important;
+  backdrop-filter: blur(32px) !important;
+  color: #FFFFFF !important;
+}
+
+/* Hide scrollbar for Chrome, Safari, Edge and Firefox */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-thin::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.scrollbar-none,
+.scrollbar-thin {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Prevent native scrollbar protrusion past rounded borders at 100%+ zoom */
+[class*="rounded-"] > .overflow-y-auto {
+  overflow-x: hidden !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+[class*="rounded-"] > .overflow-y-auto::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Crisp Vector Font Smoothing for Report PDF Pages */
+.report-page {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
